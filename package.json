@@ -1,0 +1,22 @@
+{
+    "name": "nextleveldb-model",
+    "main": "model.js",
+    "license": "MIT",
+    "dependencies": {
+        "binary-encoding": "0.0.27",
+        "deep-equal": "^1.0.1",
+        "jsgui3": "^0.0.4",
+        "moment": "^2.18.1",
+        "xas2": "0.0.8"
+    },
+    "engines": {
+        "node": ">=7.0.0"
+    },
+    "description": "NextLevelDB Server",
+    "author": "James Vickers <james@metabench.com>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/metabench/nextleveldb-server.git"
+    },
+    "version": "0.0.2"
+}
