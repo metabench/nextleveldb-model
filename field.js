@@ -2,7 +2,26 @@ var Incrementor = require('./incrementor');
 var jsgui = require('jsgui3');
 var tof = jsgui.tof;
 var each = jsgui.each;
+var get_a_sig = jsgui.get_a_sig;
 
+const special_characters = {
+    '!': true,
+    '+': true
+}
+
+const NT_XAS2_NUMBER = 0;
+const NT_DATE = 1;
+const NT_TIME = 1;
+const NT_STRING = 2;
+const NT_FLOAT32_LE = 3;
+
+const map_nt_ids = {
+    'xas2': 0,
+    'date': 1,
+    'time': 1,
+    'string': 2,
+    'float32le': 3
+}
 
 class Field {
 
@@ -11,6 +30,8 @@ class Field {
     // Link the field back to the table?
     //  Not (quite) needed yet.
     //   Links to the incrementor where needed.
+    //   Looks like it should link back to the table, to access incrementors, the db's new incrementor.
+
 
     // name
 
@@ -35,6 +56,11 @@ class Field {
 
     // We use the incrementors at a later point in time, but it's worth having reference to them.
 
+    // Could store fk info in here.
+
+
+
+
 
 
 
@@ -47,15 +73,115 @@ class Field {
         //  is it the entire pk?
 
         this.is_pk = false;
+        var str_field, first_char;
+        this.__type_name = 'field';
 
+        // More Field constructor options for parsing field definitions, such as string fields, primary keys, unique indexes with incrementors.
+
+
+
+        // foreign key to table...
+
+        this.fk_to_table = false;
+
+
+        // Basically always need a table reference.
+        //  Foreign key field should be possible.
+
+        // this.foreign_key_to_table
+        //  and it will be that table's PK.
+
+        // The field will have a type.
+        //  Often it won't be specified.
+        //  Sometimes it will be.
+
+
+        this.type_id = null;
+
+        var sig = get_a_sig(a);
+        //console.log('Field sig', sig);
 
 
 
         if (l === 1) {
-            this.name = a[0];
+            str_field = a[0];
+            console.trace();
+            throw 'stop - field now reqires a reference to table';
         }
+
         if (l === 2) {
-            this.name = a[0];
+            str_field = a[0];
+            var table = this.table = a[1];
+            //console.trace();
+            throw 'stop - field now reqires an id to be provided';
+        }
+
+
+
+        if (l === 3) {
+            str_field = a[0];
+            var table = this.table = a[1];
+            var id = this.id = a[2];
+            //console.trace();
+            //throw 'stop - field now reqires a reference to table';
+        }
+        if (l === 4) {
+            str_field = a[0];
+            var table = this.table = a[1];
+            var id = this.id = a[2];
+
+            // Next option - field type.
+            //  Want to encode that as an integer.
+            //   It would also refer to the native types table?
+
+            // Will be fine to encode null when we have no table type.
+            // tbl_native_types.add_records([[[0], ['xas2']], [[1], ['date']], [[2], ['string']], [[3], ['float32le']]]);
+
+
+
+            this.type_id = a[3];
+
+
+
+            //this.is_pk = a[3];
+            //console.trace();
+            //throw 'stop - field now reqires a reference to table';
+        }
+        if (l === 5) {
+            str_field = a[0];
+            var table = this.table = a[1];
+            var id = this.id = a[2];
+            this.type_id = a[3];
+            this.is_pk = a[4];
+
+            //console.log('str_field', str_field);
+            //console.log('this.type_id', this.type_id);
+            //this.is_pk = a[3] || false;
+            //this.fk_to_table = a[4];
+            //console.trace();
+            //throw 'stop - field now reqires a reference to table';
+        }
+        if (l === 6) {
+            str_field = a[0];
+            var table = this.table = a[1];
+            var id = this.id = a[2];
+            this.type_id = a[3];
+            this.is_pk = a[4] || false;
+            this.fk_to_table = a[5];
+
+            //this.fk_to_table = a[4];
+            //console.trace();
+            //throw 'stop - field now reqires a reference to table';
+        }
+
+
+
+        /*
+
+
+        if (l === 2) {
+            //this.name = a[0];
+            str_field = a[0];
             t = tof(a[1]);
             if (t === 'string') {
                 this.type = a[1];
@@ -63,9 +189,6 @@ class Field {
                 this.id = a[1];
             } else if (a[1] instanceof Incrementor) {
                 this.incrementor = a[1];
-
-                
-
                 //throw 'inc stop';
             }
         }
@@ -75,20 +198,28 @@ class Field {
         //  May be a bit of work to properly assign incrementors to tables, both within the model, and then within the db itself.
         //   Important variables for operating the DB need to be stored within the DB itself.
 
+        // A field could be defined in such a way that it creates a new incrementor.
+        //  Bit of a side effect here.
+
+
 
 
 
 
         if (l === 3) {
 
-
-            this.name = a[0];
+            str_field = a[0];
+            //this.name = a[0];
             this.id = a[1];
 
+
             t = tof(a[2]);
-            if (t === 'string') {
-                this.type = a[2];
-            } else if (a[2] instanceof Incrementor) {
+            //if (t === 'string') {
+                // Not encoding field types for the moment.
+
+            //    this.type = a[2];
+            //} else
+            if (a[2] instanceof Incrementor) {
                 this.incrementor = a[2];
             } else if (t === 'boolean') {
                 this.is_pk = a[2];
@@ -96,25 +227,187 @@ class Field {
             }
         }
         if (l === 4) {
-
-            /*
-
-            this.name = a[0];
-            this.id = a[1];
-            this.type = a[2];
-
-            this.incrementor = a[3];
-
-            */
-
-            this.name = a[0];
+            
+            //this.name = a[0];
+            //this.id = a[1];
+            //this.type = a[2];
+            //this.incrementor = a[3];
+            
+            str_field = a[0];
+            //this.name = a[0];
             this.id = a[1];
             this.incrementor = a[2];
             this.is_pk = a[3];
 
         }
 
+        */
+        // can modify the field name...
+        //  its not only the name, it may have a special character to start.
 
+
+
+
+
+
+
+        var t_field = tof(str_field);
+        //console.log('t_field', t_field);
+        if (t_field === 'string') {
+            // Also split out the part in brackets.
+            var str_type;
+            var str_prefix_code, field_name;
+
+            // parse the field name.
+
+            var parse_field_name = (str_field_name) => {
+                //console.log('str_field_name', str_field_name);
+                var pos0, pos1;
+                var str_type = null;
+                var str_prefix_code = null, field_name, first_char;
+
+                pos0 = str_field_name.indexOf('(');
+                if (pos0 > -1) {
+                    pos0++;
+                    pos1 = str_field_name.indexOf(')', pos0);
+                    str_type = str_field_name.substring(pos0, pos1);
+                    pos0--;
+                } else {
+                    pos0 = str_field_name.length;
+                }
+
+                if (special_characters[str_field_name[0]]) {
+                    str_prefix_code = str_field_name[0];
+
+
+                    field_name = str_field_name.substring(1, pos0);
+                } else {
+                    field_name = str_field_name.substring(0, pos0);
+                }
+
+                return [str_prefix_code, field_name, str_type];
+
+            }
+            [str_prefix_code, field_name, str_type] = parse_field_name(str_field);
+            //console.log('[str_prefix_code, field_name, str_type]', [str_prefix_code, field_name, str_type]);
+
+            //throw 'stop';
+
+            if (str_prefix_code === '+') {
+                var field_incrementor = this.table.db.new_incrementor('inc_' + this.table.name + '_' + field_name);
+                // just support a single pk_incrementor for the moment.
+                //that.pk_incrementor = new_inc;
+                this.table.pk_incrementor = field_incrementor;
+
+                this.is_pk = true;
+                this.type_id = NT_XAS2_NUMBER;
+                this.table.record_def.pk_field = this;
+            }
+            if (str_prefix_code === '!') {
+                // Make a unique index for that field.
+                //var idx_id = this.table.inc_foreign_keys.increment();
+                //var idx = this.table.add_index([]);
+
+                var pk_field = this.table.record_def.pk_field;
+                //console.log('pk_field', pk_field);
+
+                // no, not the primary key field as the key for the index. Use this field, to the pk field.
+                //var idx = this.table.add_index([[pk_field], [this]]);
+                var idx = this.table.add_index([[this], [pk_field]]);
+            }
+            if (str_type !== null) {
+                //console.log('str_type', str_type);
+                var type_id = map_nt_ids[str_type];
+
+                if (typeof type_id === 'number') {
+                    this.type_id = type_id;
+                }
+
+                //throw 'stop';
+            }
+
+            /*
+
+            
+
+            */
+
+            
+            this.name = field_name;
+
+
+
+            if (field_incrementor) {
+                //   Field may be given a primary key incrementor, for incrementing its value, or just an incrementor for incrementing its value, not pk. I suppose this will be used for pk though.
+
+
+                //item_field = new Field(field_name, field_id, field_incrementor, is_pk);
+            } else {
+                //item_field = new Field(field_name, field_id, is_pk);
+            }
+        } else {
+            console.trace();
+            console.log('a', a);
+            throw('expected string');
+        }
+
+
+
+    }
+    get_kv_record() {
+        var res;
+        var table = this.table, field = this;
+
+        // need a record type as well.
+        // From now on, this will get encoded in many cases, it will be null much of the time.
+
+        // Also include the record type.
+        // this.type_id
+
+        if (this.type_id === null) {
+            if (this.is_pk) {
+                
+
+                if (this.fk_to_table) {
+                    res = [[table.id, field.id], [field.name, null, true, this.fk_to_table.id]];
+                } else {
+                    res = [[table.id, field.id], [field.name, null, true]];
+                }
+
+            } else if (this.fk_to_table) {
+                res = [[table.id, field.id], [field.name, null, null, this.fk_to_table.id]];
+            } else {
+                res = [[table.id, field.id], [field.name]];
+            }
+        } else {
+            if (this.is_pk) {
+                if (this.fk_to_table) {
+                    res = [[table.id, field.id], [field.name, this.type_id, true, this.fk_to_table.id]];
+                } else {
+                    res = [[table.id, field.id], [field.name, this.type_id, true]];
+                }
+            } else if (this.fk_to_table) {
+                res = [[table.id, field.id], [field.name, this.type_id, null, this.fk_to_table.id]];
+            } else {
+                res = [[table.id, field.id], [field.name, this.type_id]];
+            }
+        }
+        return res;
+    }
+    update_db_record() {
+        var db_record = this.db_record;
+
+        if (db_record) {
+            var new_kv = this.get_kv_record();
+            console.log('new_kv', new_kv);
+
+            db_record.key = new_kv[0];
+            db_record.value = new_kv[1];
+
+            db_record.arr_data = [new_kv[0], new_kv[1]];
+
+
+        }
     }
 }
 

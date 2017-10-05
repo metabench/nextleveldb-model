@@ -22,6 +22,7 @@ var Table = require('./table');
 // When a standard record gets added or removed, its index records would also be added or removed.
 
 var Binary_Encoding = require('binary-encoding');
+var xas2 = require('xas2');
 var encode_pair_to_buffers = Binary_Encoding.encode_pair_to_buffers;
 
 
@@ -87,7 +88,21 @@ class Record {
 
 
 
+            } else if (t_spec === 'buffer') {
+
+                // Need to decode record from buffer.
+                console.log('spec (Buffer)', spec);
+                throw 'stop. need to decode record from buffer';
+
+
+
+            } else {
+                console.trace();
+                console.log('t_spec', t_spec);
+                throw 'stop';
             }
+            
+
         } else {
 
             // array[key, value], table
@@ -130,7 +145,9 @@ class Record {
 
                     this.key = key;
                     this.value = value;
+                    this.arr_data = [this.key, this.value];
 
+                    //console.log('this.arr_data', this.arr_data);
 
 
 
@@ -152,6 +169,7 @@ class Record {
                     */
 
                 } else if (a[1].__type_name === 'table') {
+
                     var data = a[0];
                     this.arr_data = data;
                     var t_data = tof(data);
@@ -171,17 +189,14 @@ class Record {
 
                     // special case data?
 
-
-
                     this.table = a[1];
-
-
-
 
                 }
             }
         }
-        
+
+        //console.log('this.key', this.key);
+        //console.log('this.value', this.value);
     }
 
     
@@ -213,6 +228,77 @@ class Record {
         // needs to know the table.
     }
 
+    to_buffer() {
+        // We will know its a record anyway.
+        //  No need to encode a data type.
+
+        // Length of key, key, length of value, value
+
+        var arr_own_record = this.get_own_record_bin();
+        var res = Buffer.concat([xas2(arr_own_record[0].length).buffer, arr_own_record[0], xas2(arr_own_record[1].length).buffer, arr_own_record[1]]);
+        return res;
+
+    }
+
+    // to buffer, with indexes
+    //  Would need a somewhat more complex format...?
+    //  key value pair, then number of index records, then each index record preceeded by its length.
+
+    //  Would probably be functional / event driven processing on the server.
+
+    // Maybe this is better done by the table.
+    to_buffer_with_indexes() {
+
+        // The record itself.
+        //  Need to know how long it is - though could count how many fields get decoded.
+        //   Maybe not necessary to encode that?
+        //    We could also know how many indexes there are.
+        //  Better to encode the number of fields in the key, num in the value
+
+        var arr_res = [this.to_buffer(), this.index_db_records_to_buffer()];
+        return Buffer.concat(arr_res);
+
+
+        // Then need to 
+
+
+
+    }
+
+    index_db_records_to_buffer() {
+        // Could do this much more simply.
+        // Have all records as key value pairs.
+        //  Have some kind of array specification in Binary_Encoding.
+
+        // Anyway, let's decode this format for the moment.
+        
+
+
+        // Includes the number of indexes
+
+        var indexes = this.table.indexes;
+        var arr_res = [xas2(indexes.length).buffer];
+        var record = this;
+        each(indexes, (index) => {
+            // res.push(rec_idx);
+            // then output the index record.
+            var buf_idx = index.record_to_index_buffer(record);
+            //console.log('indexed_record', indexed_record);
+            arr_res.push(Buffer.concat([xas2(buf_idx.length).buffer, buf_idx]));
+            //throw 'stop';
+
+            //res.push(
+        });
+
+        console.log('arr_res', arr_res);
+        throw 'stop';
+
+        return Buffer.concat(arr_res);
+    }
+
+
+
+
     get_own_record_bin() {
         // key: table prefix, key side of record
         //  value: value side of record
@@ -231,13 +317,48 @@ class Record {
 
         //console.log('this record', this);
         //throw 'stop';
-        console.log('record get_own_record_bin res', res);
+        //console.log('record get_own_record_bin res', res);
         //throw 'stop';
 
         return res;
 
 
     }
+
+
+    // to_obj
+    //  with keys and values.
+    //  Would need the record to know its own fields.
+    to_obj() {
+        // would go through each key and value.
+        //  they are essentially fields within the record - though the record is already split into key and value.
+
+        var table = this.table;
+        var fields = table.fields;
+
+        //console.log('fields', fields);
+        var res = {};
+
+        //console.log('this.key', this.key);
+        
+
+        var rec_fields = this.key.concat(this.value);
+        each(rec_fields, (field_value, i) => {
+            res[fields[i].name] = field_value;
+        });
+
+
+
+        return res;
+        //throw 'stop';
+
+
+
+    }
+
+
+
+
 
     // The record will reference the table's indexes, and index itself according to them.
 
@@ -246,191 +367,7 @@ class Record {
     //  Use the index object, and give it the records
     //   Seems better OO now that we have index and field objects.
 
-    _get_own_index_bin() {
-        var res = [];
-
-
-        // This should maybe be done by the index objects.
-        //  Indexes map keys to values.
-        //   They always / generally map to the primary key.
-        //    So we don't need to store specifically what they map to, usually.
-
-        // This looks like a good bit of programming to remove from Record, and to put into Index.
-        //  Index itself won't do very much, but it defines the keys for the indexes.
-        //  Indexes are just a way to efficiently link to a value.
-
-        // Before long, we will have plenty of data flowing into the db, ready to be displayed and analysed.
-
-
-
-
-        
-
-
-
-
-        var arr_kv = [this.key, this.value];
-        // The index rows get generated from the data and what has been set up for indexing.
-
-        // The indexes should be Index objects.
-
-        var indexes = this.table.indexes;
-
-
-
-        //console.log('indexes', indexes);
-
-        //throw 'stop';
-
-        var map_fields = this.table.map_fields;
-        //console.log('map_fields', map_fields);
-
-        // need to see where each field is within the keys or values.
-        //  use these to write the indexes.
-
-        var prefix = this.table.key_prefix + 1;
-        var res_arr_key, res_arr_value;
-
-        each(indexes, (index, index_index) => {
-
-            console.log('record get_own_index_bin each index loop', index);
-
-            res_arr_key = [];
-            res_arr_value = [];
-
-            //var arr_idx_keys = index[0];
-            //var arr_idx_values = index[1];
-
-            //console.log('arr_idx_keys', arr_idx_keys);
-            //console.log('arr_idx_values', arr_idx_values);
-
-            // get the encoded index value.
-            //  needs to apply to the data that is stored in the record.
-            //  doing that with index maps at the moment.
-            //  maybe best to have a map of name to value.
-            //   however, have given the record in two arrays.
-            //    That makes it easy / possible to store items because we always know what pk to refer to.
-
-
-
-            
-
-            var buf_idx_db_key = index.record_to_index_buffer(this);
-            console.log('buf_idx_db_key', buf_idx_db_key);
-
-            //res.push([buf_idx_db_key, []]);
-            res.push([buf_idx_db_key, null]);
-
-            // The whole index gets put into db keys.
-            //res_arr_key.push(buf_idx_db_key);
-
-
-            //throw 'stop';
-
-            /*
-
-            each(arr_idx_keys, (idx_key, idx_idx) => {
-                var key_field_position = map_fields[idx_key];
-                //console.log('key_field_position', key_field_position);
-                // not sure we need to know this.
-
-                // really just need to get the right values for the index.
-                //  however, the data is within the key and value arrays.
-                // get the right value
-
-                // Need to fix that we could have given a record a null value.
-
-                //console.log('arr_kv', arr_kv);
-                //console.log('key_field_position', key_field_position);
-
-                
-                var value = arr_kv[key_field_position[0]][key_field_position[1]];
-                //console.log('value', value);
-
-                res_arr_key.push(value);
-                
-
-
-            });
-
-            each(arr_idx_values, (idx_value) => {
-                var key_field_position = map_fields[idx_value];
-                //console.log('key_field_position', key_field_position);
-                // not sure we need to know this.
-
-                // really just need to get the right values for the index.
-                //  however, the data is within the key and value arrays.
-                // get the right value
-
-
-
-                var value = arr_kv[key_field_position[0]][key_field_position[1]];
-                //console.log('2) value', value);
-
-                res_arr_value.push(value);
-
-
-
-            });
-            
-
-            //console.log('res_arr_key', res_arr_key);
-            //console.log('res_arr_value', res_arr_value);
-
-            // Maybe encode the index id just as an xas2.
-            //  So the prefix denoting the index, as well as the index number within the table, would just be xas2.
-            //   Then the rest of it gets read.
-
-            // Need to allow for 2, or multiple xas2 numbered prefixes while encoding.
-
-            // index space prefix, index index (number) within table.
-
-
-            // Need to have 2 prefixes this time
-
-
-
-
-            ////
-            var pair_to_encode = [res_arr_key, res_arr_value];
-            //console.log('pair_to_encode', pair_to_encode);
-            var encoded_pair = encode_pair_to_buffers(pair_to_encode, prefix, index_index);
-            res.push(encoded_pair);
-
-            */
-
-            //
-            //console.log('encoded_pair', encoded_pair);
-
-
-
-            //console.log('index', index);
-            //console.log('res', res);
-            //throw 'stop';
-
-            //console.log('');
-
-
-        });
-
-        
-
-        //var 
-
-        
-
-
-
-
-
-        //throw 'stop';
-
-
-
-
-
-        return res;
-    }
+    
 
     // get record arr buffers
     get_key_value_buffers() {

@@ -32,6 +32,17 @@ We may use model to create a whole bunch of records. That would be good for test
 var encode_to_buffer = require('binary-encoding').encode_to_buffer;
 var xas2 = require('xas2');
 
+
+const XAS2 = 0;
+const DOUBLEBE = 1;
+const DATE = 2;
+
+const STRING = 4;
+const BOOL_TRUE = 6;
+const BOOL_FALSE = 7;
+const NULL = 8;
+const BUFFER = 9;
+
 class Incrementor {
     constructor(spec) {
 
@@ -100,10 +111,10 @@ class Incrementor {
         res.push(this.get_record_bin());
         res.concat(this.get_index_bin());
 
-        console.log('res', res);
+        //console.log('res', res);
         //throw 'stop';
-        console.log('-----------');
-        console.log('');
+        //console.log('-----------');
+        //console.log('');
 
         return res;
     }
@@ -115,8 +126,27 @@ class Incrementor {
 
 
         //var bufs_key = encode_to_buffer([0, this.id]);
-        console.log('***** this.id', this.id);
-        var bufs_key = Buffer.concat([xas2(0).buffer, xas2(this.id).buffer]);
+        //console.log('***** this.id', this.id);
+
+
+
+        var buf_name = Buffer.from(this.name);
+
+        // STRING
+
+        var bufs_key = Buffer.concat([xas2(0).buffer, xas2(this.id).buffer, xas2(STRING).buffer, xas2(buf_name.length).buffer, buf_name]);
+
+        // 0 for incrementor, then the incrementor id,
+        //  and then the incrementor name would help.
+
+
+        // Reconstructing all of the incrementors before putting together the tables makes sense.
+
+
+
+
+
+
 
         //var bufs_key = encode_to_buffer([this.id], 0);
 
