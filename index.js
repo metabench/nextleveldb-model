@@ -55,7 +55,7 @@ class Index {
 
 
     'constructor'(spec) {
-        console.log('\nIndex constructor');
+        //console.log('\nIndex constructor');
         var a = arguments;
         var l = arguments.length, t;
 
@@ -71,6 +71,7 @@ class Index {
         //  18/08/2017 - Need to get this basic db system up and running.
         //  It needs to store data soon in production.
 
+        this.__type_name = 'index';
 
 
 
@@ -88,6 +89,7 @@ class Index {
         }
 
         if (l === 2) {
+
             spec = a[0];
             table = this.table = a[1];
 
@@ -105,15 +107,12 @@ class Index {
         // [index_key_def, index_value_field]
 
         var t_spec = tof(spec);
-        console.log('t_spec', t_spec);
+        //console.log('index spec', spec);
+        //console.log('t_spec', t_spec);
         if (t_spec === 'array') {
 
             // Want to make this refer to specific fields in the table.
             //  Currently we use the field names as reference
-
-
-
-
 
             arr_def = spec;
             //console.log('Index arr_def', arr_def);
@@ -124,7 +123,7 @@ class Index {
         }
 
         if (arr_def) {
-            //console.log('arr_def', arr_def);
+            //console.log('Index arr_def', arr_def);
 
             //var arr_def_idx_key = arr_def[0];
             //var arr_def_pk = arr_def[1];
@@ -139,11 +138,12 @@ class Index {
             var map_fields = this.table.record_def.map_fields, i_field;
 
             //console.log('map_fields', map_fields);
-            console.log('arr_def', arr_def);
+            //console.log('arr_def', arr_def);
 
             each(arr_def[0], (key_field_item) => {
                 t = tof(key_field_item);
-                console.log('tof(key_field_item)', tof(key_field_item));
+                //console.log('key_field_item', key_field_item);
+                //console.log('* tof(key_field_item)', t);
                 if (t === 'string') {
                     i_field = map_fields[key_field_item];
                     //console.log('i_field', i_field);
@@ -152,7 +152,8 @@ class Index {
                     //throw 'stop';
                     key_fields.push(i_field);
 
-                } else if (t === 'field') {
+                } else if (t === 'field' || key_field_item.__type_name === 'field') {
+                    // unfortunate hack with tof not working right.
                     //console.log('t', t);
 
 
@@ -171,11 +172,12 @@ class Index {
             });
             each(arr_def[1], (value_field_item) => {
                 t = tof(value_field_item);
+                //console.log('value_field_item', value_field_item);
                 if (t === 'string') {
                     i_field = map_fields[value_field_item];
                     //console.log('i_field', i_field);
                     value_fields.push(i_field);
-                } else if (t === 'field') {
+                } else if (t === 'field' || value_field_item.__type_name === 'field') {
                     value_fields.push(value_field_item);
                     //console.log('tof(arr_def[0])', tof(arr_def[0]));
                     //throw 'stop';
@@ -201,6 +203,8 @@ class Index {
     }
 
     get key_field_ids() {
+
+        //console.log('this.table.name', this.table.name);
         var res = [this.table.id, this.id];
         // then index_type
         //  Only have unique index for the moment.
@@ -216,6 +220,9 @@ class Index {
         });
         return res;
     }
+
+    // Maybe table field ids had been put back together wrong.
+
     get value_field_ids() {
         var res = [];
         each(this.value_fields, (value_field) => {
@@ -230,6 +237,8 @@ class Index {
     get_kv_record() {
         return this.kv_field_ids;
     }
+
+    // 
 
 
     'to_arr_record_def'() {
@@ -309,124 +318,24 @@ class Index {
         // table index space, index id, values from index key, pk value
         //  first two items just encoded as xas2, others with Binary_Encoding
 
+        // table ikp, id of the index, then the value which is being indexed, then the key to the record it points towards.
+
+        // in binary encoding.
+
 
 
         var arr_res = [xas2(table_ikp).buffer, xas2(id).buffer];
 
-        // then need to encode the buffer, in the order of the index.
-
-
-
-
-        // Then add the key-value items from the index definition
-
-        //console.log('arr_def', arr_def);
-
-        //var arr_rest_of_db_key = [];
-
-        //map_fields no longer holds the field position.
-
-        // Don't need to look at the arr_def.
-
-
-
-        //var arr_index_key = this.arr_def[0];
-        //var arr_index_value = this.arr_def[1];
-        //console.log('record', record);
-
         var record_flat_data = record.key.concat(record.value);
-
-        // Could be done using the fields themselves.
-        //  Direct links with the field objects, not requiring the use of the field map here.
-
-        //console.log('arr_index_key', arr_index_key);
-        //console.log('arr_index_value', arr_index_value);
-
-        //throw 'stop';
+        
 
         each(this.key_fields, (key_field) => {
-            //console.log('def_key_item', def_key_item);
-
-
-            //var field = map_fields[def_key_item];
-
-
-            //console.log('map_fields', map_fields);
-
-            // Not using field pos.
-            //  Could get it from the field itself though.
-
-            //console.log('field', field);
-            //console.log('table.name', table.name);
-
-            // then get the value for it.
-            //  have a flat array of values too?
-            //   could use Data_Value to keep the values in the same object.
-
-            // want a flat view of the record.
-
-
-            //console.log('record_flat_data', record_flat_data);
-
-            //console.log('key_field', key_field);
-
             var item_value = record_flat_data[key_field.id];
-            //console.log('item_value', item_value);
-
             arr_res.push(flexi_encode_item(item_value));
-            //arr_index_value.push(
-
-            // do need to know the map position of the field.
-            //  whether the value being referred to is in the key or the value.
-
-            //throw 'stop';
-
-
-            //var field_data = data[field_pos[0]][field_pos[1]];
-            //console.log('field_data', field_data);
-
-            //arr_res.push(Binary_Encoding.flexi_encode_item(field_data));
         });
         each(this.value_fields, (value_field) => {
-            //console.log('def_key_item', def_key_item);
-
-
-            //var field = map_fields[def_key_item];
-
-
-            //console.log('map_fields', map_fields);
-
-            // Not using field pos.
-            //  Could get it from the field itself though.
-
-            //console.log('field', field);
-            //console.log('table.name', table.name);
-
-            // then get the value for it.
-            //  have a flat array of values too?
-            //   could use Data_Value to keep the values in the same object.
-
-            // want a flat view of the record.
-
-
-            //console.log('record_flat_data', record_flat_data);
-
             var item_value = record_flat_data[value_field.id];
-            //console.log('item_value', item_value);
-
             arr_res.push(flexi_encode_item(item_value));
-            //arr_index_value.push(
-
-            // do need to know the map position of the field.
-            //  whether the value being referred to is in the key or the value.
-
-            //throw 'stop';
-
-
-            //var field_data = data[field_pos[0]][field_pos[1]];
-            //console.log('field_data', field_data);
-
-            //arr_res.push(Binary_Encoding.flexi_encode_item(field_data));
         });
 
         

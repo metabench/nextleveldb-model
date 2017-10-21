@@ -134,7 +134,7 @@ class Table {
 
 
             var ta0 = tof(a[0]);
-            console.log('ta0', ta0);
+            //console.log('ta0', ta0);
 
             if (ta0 === 'array') {
                 console.log('a[0]', a[0]);
@@ -159,14 +159,13 @@ class Table {
             } else {
                 // s,?,a
 
-
                 //var t_spec = tof(spec.name);
                 //if (t_spec !== 'undefined') this.name = spec.name;
                 name = a[0];
                 this.db = db = a[1];
                 //this.record_def = new Record_Def(a[2], this);
                 spec_record_def = a[2];
-                console.log('spec_record_def', JSON.stringify(spec_record_def));
+                //console.log('spec_record_def', JSON.stringify(spec_record_def));
             //storage = a[2];
             }
         }
@@ -339,6 +338,23 @@ class Table {
         return this.records.add_records.apply(this.records, arguments);
     }
 
+    add_records_including_table_id_in_key() {
+        return this.records.add_records_including_table_id_in_key.apply(this.records, arguments);
+    }
+    // add_records_including_table_id_in_key
+
+    new_record() {
+        return this.records.new_record.apply(this.records, arguments);
+    }
+
+    new_records() {
+        return this.records.new_records.apply(this.records, arguments);
+    }
+
+    add_arr_table_records(at_records) {
+        return this.records.add_arr_table_records.apply(this.records, arguments);
+    }
+
     // could have a fields getter.
     //  The fields are normally split into key and value.
 
@@ -371,11 +387,48 @@ class Table {
     }
     // and the index instances of the records?
 
+    get_map_lookup(field_name) {
+        // looks it up to the primary key.
+        //  don't bother consulting the index right now.
+        var i_field = this.map_fields[field_name].id;
+        //console.log('i_field', i_field);
 
+        var res = {};
+        //var field_i = this.fields[i_field];
+
+        this.records.each((record) => {
+            //res[record]
+            //console.log('record', record);
+            //console.log('record.', record);
+
+            // record get value by field name
+            //  or by field id.
+
+            // Change it to flat array
+            var arr_rec = record.to_flat_arr();
+            //console.log('arr_rec', arr_rec);
+            
+            var field_value = arr_rec[i_field];
+            //console.log('field_value', field_value);
+
+            // get the pk field or fields.
+
+            //if (record.key)
+
+            res[field_value] = record.key;
+
+            //throw 'stop';
+
+        });
+        //console.log('field_i', field_i);
+        //console.log('field_i', field_i.name);
+        //throw 'stop';
+        return res;
+    }
 
     // get_all_db_records_bin
     get_all_db_records_bin() {
-        // include the indexes here?
+        // include the indexes here? seems not
 
         var buf_records = this.records.get_all_db_records_bin.apply(this.records, arguments);
         //  and this makes the index records too?
@@ -387,6 +440,8 @@ class Table {
 
 
     }
+
+
 
 
     //get_table_table_db_records_bin() {
@@ -418,6 +473,9 @@ class Table {
 
 
 }
+
+var p = Table.prototype;
+p.get_obj_map = p.get_map_lookup;
 
 module.exports = Table;
 

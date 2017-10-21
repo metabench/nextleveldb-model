@@ -27,6 +27,7 @@ class Primary_Key {
 
         this.fields.push(field);
         this.map_fields[field.name] = field;
+        //throw 'stop';
 
 
 
@@ -54,7 +55,7 @@ class Primary_Key {
 
 
 
-                field = table.add_field(item, XAS2_VALUE_TYPE, true);
+                field = table.add_field(item, -1, XAS2_VALUE_TYPE, true);
 
                 //field = table.add_field(item, null, true);
 
@@ -64,7 +65,7 @@ class Primary_Key {
             //console.log('field', field);
             //console.log('table.map_fields', table.map_fields);
             //field = new Field(item, table, table.inc_fields.increment(), true);
-            that.add_field(field);
+            that.add_field(field, -1);
         }
 
         if (t_def === 'string') {

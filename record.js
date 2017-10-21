@@ -321,8 +321,6 @@ class Record {
         //throw 'stop';
 
         return res;
-
-
     }
 
 
@@ -354,6 +352,18 @@ class Record {
 
 
 
+    }
+
+    // to a single array?
+    //  Not sure when we want that.
+    to_arr() {
+        return [this.key, this.value];
+
+        //return this.key.concat(this.value);
+    }
+
+    to_flat_arr() {
+        return this.key.concat(this.value);
     }
 
 
@@ -405,6 +415,9 @@ class Record {
 
 }
 
+
+var p = Record.prototype;
+p.to_array = p.to_arr;
 // Record could be the basis for doing some queries on the database.
 //  Definitely want some types of records to be defined as Record, and then instances made.
 

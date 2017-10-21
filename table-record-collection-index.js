@@ -24,6 +24,20 @@ class Table_Record_Collection_Index {
     // give it an Index class instance as its definition.
 
 
+    // Currently not indexing the records on the client, or in the Model.
+
+    // Seems important to check / rebuild / build indexes on the server.
+    //  Having an (active) model running on the server will help it to automatically create indexes.
+
+    // Also, it should be possible on the client to create index values to ll put them to the server.
+    //  Could have it so that only some users in the authenticated db can do ll_put operations.
+    //   Seems like a (very) super user operation.
+
+    
+
+
+
+
 
 
 

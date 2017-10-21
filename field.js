@@ -167,7 +167,18 @@ class Field {
             var id = this.id = a[2];
             this.type_id = a[3];
             this.is_pk = a[4] || false;
-            this.fk_to_table = a[5];
+
+            // check if it's a table or a number.
+            //  if it's a number, look up that table by its id.
+
+            var t_a5 = tof(a[5]);
+            if (t_a5 === 'number') {
+                this.fk_to_table = this.table.db.tables[a[5]];
+            } else {
+                this.fk_to_table = a[5];
+            }
+
+            
 
             //this.fk_to_table = a[4];
             //console.trace();
@@ -200,11 +211,6 @@ class Field {
 
         // A field could be defined in such a way that it creates a new incrementor.
         //  Bit of a side effect here.
-
-
-
-
-
 
         if (l === 3) {
 
@@ -245,26 +251,46 @@ class Field {
         // can modify the field name...
         //  its not only the name, it may have a special character to start.
 
+        // Problem seems most likely to be with reconstructing the model from remote.
+        //  Could make some simpler remote model reconstruction tests.
 
-
-
+        // Also, turning the index records into objects would help.
+        //  
 
 
 
         var t_field = tof(str_field);
         //console.log('t_field', t_field);
         if (t_field === 'string') {
+
+            
+
             // Also split out the part in brackets.
             var str_type;
-            var str_prefix_code, field_name;
+            var str_prefix_code, field_name, fk_table;
 
             // parse the field name.
 
             var parse_field_name = (str_field_name) => {
                 //console.log('str_field_name', str_field_name);
+                // Check to see if there is ' fk=> '
+                //  If so, we split in two and have a fk_table var
+
+
+
+                var fk_table = null;
+
                 var pos0, pos1;
                 var str_type = null;
                 var str_prefix_code = null, field_name, first_char;
+
+                pos0 = str_field_name.indexOf(' fk=> ');
+                if (pos0 > 0) {
+                    var s_str_field_name = str_field_name.split(' fk=> ');
+                    str_field_name = s_str_field_name[0];
+                    fk_table = s_str_field_name[1];
+                
+                }
 
                 pos0 = str_field_name.indexOf('(');
                 if (pos0 > -1) {
@@ -285,10 +311,10 @@ class Field {
                     field_name = str_field_name.substring(0, pos0);
                 }
 
-                return [str_prefix_code, field_name, str_type];
+                return [str_prefix_code, field_name, str_type, fk_table];
 
             }
-            [str_prefix_code, field_name, str_type] = parse_field_name(str_field);
+            [str_prefix_code, field_name, str_type, fk_table] = parse_field_name(str_field);
             //console.log('[str_prefix_code, field_name, str_type]', [str_prefix_code, field_name, str_type]);
 
             //throw 'stop';
@@ -302,18 +328,68 @@ class Field {
                 this.is_pk = true;
                 this.type_id = NT_XAS2_NUMBER;
                 this.table.record_def.pk_field = this;
+
+                // add a field to the pk object.
+
+                //console.log('this.table.record_def.pk', this.table.record_def.pk);
+                this.table.record_def.pk.add_field(this);
+
+                //throw 'stop';
+
             }
             if (str_prefix_code === '!') {
-                // Make a unique index for that field.
+                // Make a unique index for that field. (unless the field is the pk, where is is part of an already existing unique index)
                 //var idx_id = this.table.inc_foreign_keys.increment();
                 //var idx = this.table.add_index([]);
 
                 var pk_field = this.table.record_def.pk_field;
+                // The primary key field / fields should be set when this gets done.
+                //  could be an array of fields.
+
+                // Having pk_field set to an array of multiple fields seems OK.
+
+                //  When the fields get made, if they are primary keys, add them to the primary key object.
+
+
                 //console.log('pk_field', pk_field);
 
+                //console.log('this.table.record_def.pk', this.table.record_def.pk);
+                // Should add fields to the primary key at appropriate times.
+                //  best to drop pk_field probably.
+
+                // In stead should be able to point to the primary key itself?
+                //  Or we get the fields from the primary key, and give that as a param.
+
+                var arr_pk_fields = this.table.record_def.pk.fields;
+
+                /*
+
+                if (!pk_field) {
+                    console.trace();
+                    throw 'pk_field not found';
+                }
+                */
+
                 // no, not the primary key field as the key for the index. Use this field, to the pk field.
-                //var idx = this.table.add_index([[pk_field], [this]]);
-                var idx = this.table.add_index([[this], [pk_field]]);
+                //  var idx = this.table.add_index([[pk_field], [this]]);
+                
+                // This looks like the line in error...?
+                //  It's a side-effect too.
+
+                // We index to the pk field.
+                
+                //  Index this field to the pk field.
+
+                // add a unique index
+
+                // Seems like a side effect here.
+
+                // 
+
+                //var idx = this.table.add_index([[this], [pk_field]]);
+                var idx = this.table.add_index([[this], arr_pk_fields]);
+
+
             }
             if (str_type !== null) {
                 //console.log('str_type', str_type);
@@ -326,6 +402,18 @@ class Field {
                 //throw 'stop';
             }
 
+            if (fk_table) {
+
+                this.fk_to_table = this.table.db.map_tables[fk_table];
+                //  The table's database has not been set yet?
+                //  Just give it the table name?
+
+
+                // side effect - add a foreign key to the table
+                // Don't think we need to add it. Just note within the field that its a foreign key to a given table.
+                //this.table.add
+            }
+
             /*
 
             
@@ -334,8 +422,6 @@ class Field {
 
             
             this.name = field_name;
-
-
 
             if (field_incrementor) {
                 //   Field may be given a primary key incrementor, for incrementing its value, or just an incrementor for incrementing its value, not pk. I suppose this will be used for pk though.
@@ -399,13 +485,12 @@ class Field {
 
         if (db_record) {
             var new_kv = this.get_kv_record();
-            console.log('new_kv', new_kv);
+            //console.log('new_kv', new_kv);
 
             db_record.key = new_kv[0];
             db_record.value = new_kv[1];
 
             db_record.arr_data = [new_kv[0], new_kv[1]];
-
 
         }
     }

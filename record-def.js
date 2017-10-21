@@ -140,6 +140,8 @@ class Record_Def {
             if (o_table.pk.fields.length === 1) {
                 // get the data type of that field.
                 var pk_field = o_table.pk.fields[0];
+
+                
                 //console.log('pk_field.type_id', pk_field.type_id);
                 // type_id
                 //throw 'stop';
@@ -149,7 +151,16 @@ class Record_Def {
 
 
             } else {
-                throw 'Need to handle ' + o_table.pk.fields.length + ' fields';
+                //console.log('this.table.name', this.table.name);
+                //console.log('field.name', field.name);
+
+                // the field for a foreign key would need to contain two values, if the pk contains two values.
+                //  a field with two values seems fine.
+                //   an array type of value.
+
+                console.log('previous throw exception here: Need to handle ' + o_table.pk.fields.length + ' fields');
+
+                //throw 'Need to handle ' + o_table.pk.fields.length + ' fields';
 
                 // Some kind of tuple data type for a value?
                 //  Or just refer to part of the primary key?
@@ -192,8 +203,6 @@ class Record_Def {
         }
 
 
-
-
         //throw 'stop';
 
 
@@ -203,7 +212,6 @@ class Record_Def {
     set_def(obj_record_def) {
         //console.log('set_def', obj_record_def);
         var pk = this.pk
-
         var that = this, new_field;
 
 
@@ -238,6 +246,10 @@ class Record_Def {
                 //console.log('item', item);
                 //throw 'stop';
                 new_field = that.add_field(item);
+
+                // Some fields have got built in indexes.
+                //  Adding the field should also add the index where necessary.
+
 
                 // Add fields to the primary key...
                 if (new_field.is_pk) {
@@ -293,11 +305,15 @@ class Record_Def {
                 throw 'stop';
             }
 
-            each(kv_def[0], (key_field, i) => {
-                console.log('key_field', key_field);
-                // don't know the type
+            var f;
 
-                that.add_field(key_field, null, true);
+            each(kv_def[0], (key_field, i) => {
+                //console.log('key_field', key_field);
+                // don't know the type
+                f = that.add_field(key_field, null, true);
+                // then add it to the pk
+                that.pk.add_field(f);
+
             });
             each(kv_def[1], (value_field, i) => {
                 //console.log('value_field', value_field);
@@ -344,7 +360,14 @@ class Record_Def {
     }
     */
 
-    add_field(field, i_type = null, is_pk = false) {
+    add_field(field, id = -1, i_type = null, is_pk = false, fk_to_table) {
+        // make the id -1 for no id set here, use incrementor.
+
+        // want better parameter handling.
+        //  maybe do that later.
+
+
+
         // Make choosing the type optional.
         //  Less about enforcing types, more about being able to recognise an xas2 number (or more than one of them) has been given for a field which is a foreign key, that's the right type, put it in.
         //   Then if a string value is given, we can do a lookup. Would need to know something like the name is the identifier, or we are giving it the name value to look up.
@@ -370,7 +393,14 @@ class Record_Def {
         if (field instanceof Field) {
             item_field = field;
         } else {
-            var field_id = table.inc_fields.increment();
+            //var id;
+
+            if (id === -1 || id === null) {
+                id = table.inc_fields.increment();
+            } else {
+
+            }
+
             field_name = a[0];
             // This does looks like field parsing, so could make a Field object from the 'field' object.
             //console.log('field', field);
@@ -378,7 +408,12 @@ class Record_Def {
 
             // This is tricky, because the table is not fully defined.
             //  Its record def could be in the midst of being constructed.
-            item_field = new Field(field_name, table, field_id, i_type, is_pk);
+            //console.log('field_name', field_name);
+            item_field = new Field(field_name, table, id, i_type, is_pk, fk_to_table);
+
+            // Then could receive something back from the field object saying that it has an index?
+            //  Saying that it is unique, then we set up the unique index.
+
 
         }
 
@@ -476,7 +511,7 @@ class Record_Def {
         //  Index ids could come about through an incrementor. Each table would have an index incrementor.
 
         // Indexes need an id (within the table)
-        console.log('add_index a', a);
+        //console.log('add_index a', a);
 
         var idx_2;
         //console.log('idx instanceof Index', idx instanceof Index);
@@ -492,10 +527,25 @@ class Record_Def {
                 //console.log('this.table', this.table);
                 var id = this.table.inc_indexes.increment();
                 //console.log('** add_index id', id);
+                //console.log('idx', idx);
+
+                // Adds an index to a field?
+
+                // is it a field in an array?
+                //console.log('tof(idx)', tof(idx));
+                //console.log('idx[0]', idx[0]);
+
+                // Quite a hack here, solves Idx inside arr inside arr
+                if (tof(idx) === 'array' && idx.length === 1 && tof(idx[0]) === 'array' && idx[0][0].__type_name === 'index') {
+                    idx = idx[0][0];
+                }
+
                 idx_2 = new Index(idx, this.table, id);
+                // index with idx spec, to this table with given id.
+
             //console.log('idx_2', idx_2);
             } else {
-                console.log('sig', sig);
+                //console.log('add_index sig', sig);
 
                 if (sig === '[n,a]') {
                     //var table_id = a[0];
@@ -503,18 +553,21 @@ class Record_Def {
                     var field_id = a[0];
                     var arr_kv_index_record = a[1];
 
-                    console.log('field_id', field_id);
-                    console.log('arr_kv_index_record', arr_kv_index_record);
+                    //console.log('field_id', field_id);
+                    //console.log('arr_kv_index_record', arr_kv_index_record);
 
 
                     // Need to deal with these arr key values coming in as numbers, not string field names.
-                    var id = this.table.inc_indexes.increment();
-                    idx_2 = new Index(arr_kv_index_record, this.table, id);
+
+
+                    //var id = this.table.inc_indexes.increment();
+                    idx_2 = new Index(arr_kv_index_record, this.table, field_id);
                     //console.log('idx_2', idx_2);
                     //throw 'stop';
                 }
 
                 if (sig === '[n,n,a]') {
+                    throw 'stop';
                     //var table_id = a[0];
 
                     //var field_id = a[0];

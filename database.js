@@ -165,10 +165,6 @@ class Database {
             } else {
 
             }
-
-
-
-            
             
         }
 
@@ -178,6 +174,28 @@ class Database {
 
 
         
+    }
+
+    get_obj_map(table_name, field_name) {
+        return this.map_tables[table_name].get_map_lookup(field_name);
+    }
+
+    view_decoded_rows() {
+
+        var model_rows = this.get_model_rows();
+
+        //throw 'stop';
+        //console.log('model_rows.length', model_rows.length);
+
+        each(model_rows, (model_row) => {
+            //console.log('1) model_row', model_row);
+            console.log('model_row', Database.decode_model_row(model_row));
+
+        });
+        console.log('\n\n\n');
+        //throw 'stop';
+        //var decoded_rows = crypto_db.get_model_rows_decoded();
+        //console.log('decoded_rows', decoded_rows);
     }
 
 
@@ -192,8 +210,8 @@ class Database {
             //var table_name = table[0];
             //var table_def = table[1];
 
-            console.log('\n\n\n');
-            console.log('table', table);
+            //console.log('\n\n\n');
+            //console.log('table', table);
             that.add_table(table);
         });
     }
@@ -300,7 +318,7 @@ class Database {
         //  Check for a null and assign it?
 
         //tbl_tables.add_field('name', tbl_tables, NT_STRING);
-        tbl_tables.add_field('name', NT_STRING);
+        tbl_tables.add_field('name', -1, NT_STRING);
 
 
         tbl_tables.add_index([['name'], ['id']]);
@@ -341,8 +359,8 @@ class Database {
         //var native_types_storage_def = [native_types_kv_def, [native_types_only_index]];
 
         var tbl_native_types = new Table('native types', this);
-        tbl_native_types.add_field('+id');
-        tbl_native_types.add_field('name', NT_STRING);
+        tbl_native_types.add_field('+id', -1);
+        tbl_native_types.add_field('name', -1, NT_STRING);
         map_tables[tbl_native_types.name] = tbl_native_types;
         this.tbl_native_types = tbl_native_types;
         tbl_native_types.add_index([['name'], ['id']]);
@@ -446,6 +464,11 @@ class Database {
         var tbl_table_indexes = this.tbl_indexes = new Table('table indexes', this);
         tables.push(tbl_table_indexes);
         map_tables[tbl_table_indexes.name] = tbl_table_indexes;
+
+        // No fields defined here.
+        //  []
+
+
         // Have not defined the fields of this.
         tbl_fields.set_pk(['table_id', 'id']);
 
@@ -456,7 +479,7 @@ class Database {
         //tbl_fields.add_field('table_id');
         //tbl_fields.add_field('id');            
 
-        tbl_fields.add_field('name', NT_STRING);
+        tbl_fields.add_field('name', -1, NT_STRING);
 
 
 
@@ -669,6 +692,8 @@ class Database {
 
             //var tf_record = tbl_fields.add_record([[table.id, field.id], [field.name]]);
 
+            /*
+
             var table_id = arr_kv_index_record[0][0];
             var field_id = arr_kv_index_record[0][1];
 
@@ -676,11 +701,20 @@ class Database {
             arr_key_field_ids.splice(0, 2);
             var arr_value_field_ids = arr_kv_index_record[1];
 
+            */
+
             //var table = that.tables[table_id];
+
+            //console.log('arr_kv_index_record', arr_kv_index_record);
             // 
+            //throw 'stop';
+
+
 
             var ti_record = tbl_indexes.add_record(arr_kv_index_record);
             //var new_index = table.add_index(field_id, [arr_key_field_ids, arr_value_field_ids]);
+
+
 
 
 
@@ -734,6 +768,9 @@ class Database {
             //throw 'stop';
             //var tf_record = tbl_fields.add_record([[table.id, field.id], [field.name]]);
 
+            // This could be tricky concerning the existing numbers of incrementors.
+
+
             var tf_record = tbl_fields.add_record(arr_kv_field_record);
             field.db_record = tf_record;
 
@@ -760,20 +797,17 @@ class Database {
             name = a[0];
             var spec_record_def = a[1];
             table = new Table(name, this, spec_record_def);
-
         } else {
             if (table_def instanceof Table) {
                 table = table_def;
             } else {
                 if (sig === '[a]') {
-
                     var a_sig = get_a_sig(a[0]);
                     //console.log('a_sig', a_sig);
 
                     if (a_sig === '[s,a]') {
-
                         var table_name = a[0][0];
-                        console.log('table_name', table_name);
+                        //console.log('table_name', table_name);
                         //console.log('a[0][1]', a[0][1]);
 
                         var table_inner_def = a[0][1];
@@ -781,7 +815,6 @@ class Database {
                         //console.log('table', table);
                         //throw 'stop';
                     }
-
                     //throw 'stop';
                 } else {
                     if (sig === '[s]') {
@@ -790,7 +823,6 @@ class Database {
                         if (sig === '[s,n]') {
                             table = new Table(a[0], this, a[1]);
                         } else {
-
                             if (sig === '[s,n,a]') {
                                 table = new Table(a[0], this, a[1], a[2]);
                             } else {
@@ -825,6 +857,11 @@ class Database {
 
 
             this.tbl_tables.add_record([[table.id], [table.name, arr_inc_ids]]);
+
+
+            // add the table index records to the indexes table
+
+            this.add_tables_indexes_to_indexes_table(table);
 
         }
         //throw 'stop';
@@ -876,6 +913,11 @@ class Database {
 
     // to_buffer
 
+
+    // Maybe worth retiring or renaming this.
+    //  Gets an array of encoded rows.
+
+    // Gets them as binary
     get_model_rows() {
         // incrementor rows...
         var incrementors = this.incrementors;
@@ -926,6 +968,11 @@ class Database {
 
         return res;
     }
+    
+    get_table_records_length(table_name) {
+        var table = this.map_tables[table_name];
+        return table.records.length;
+    }
 
     get table_names() {
         var res = [];
@@ -953,6 +1000,19 @@ class Database {
         return buf_simple_encoded;
         //var res = new Array(model_rows.length);
     }
+
+    encode_table_model_rows(table_name, arr_rows) {
+        
+
+        var key_prefix = this.map_tables[table_name].key_prefix;
+        var res = [];
+        each(arr_rows, (row) => {
+            // encode_model_row
+            res.push(encode_model_row(Binary_Encoding.encode_pair_to_buffers(row, key_prefix)));
+        });
+        return Buffer.concat(res);
+        //res.concat();
+    }
     // get all model rows...
     //  will be useful for starting a database / loading the right data into place to begin with.
     //  all rows in the database model, to go into the database that's in production.
@@ -964,6 +1024,8 @@ class Database {
     //  Don't get decoded to OO right now?
     //   Could use an active record to persist them to the DB? Seems unnecessary.
 }
+
+// -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~\\
 
 var decode_key = (buf_key) => {
     var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
@@ -979,6 +1041,22 @@ var decode_key = (buf_key) => {
     }
     return decoded_key;
 }
+
+// encode key
+//  encode index key
+//   index_kp, index_id, arr_index_values
+
+var encode_index_key = (index_kp, index_id, arr_index_values) => {
+    var res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
+    return res;
+}
+var encode_key = (kp, arr_values) => {
+    var res = Binary_Encoding.encode_to_buffer(arr_values, kp);
+    return res;
+}
+
+
+
 
 var decode_keys = jsgui.arrayify(decode_key);
 
@@ -1031,7 +1109,14 @@ var decode_model_row = (model_row) => {
 
         // 
         //console.log('buf_key', buf_key);
-        decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
+
+        try {
+            decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
+        }
+        catch(err) {
+            decoded_key = '[DECODING ERROR: ' + err + ']';
+        }
+        
         //console.log('decoded_key', decoded_key);
         //throw 'stop';
     }
@@ -1089,8 +1174,12 @@ var decode_model_rows = (model_rows) => {
     return res;
 }
 
-var encode_model_row = (model_row) => {
 
+// Should possibly be renamed
+//  More detail about what encoding it starts with, what the result is.
+//  This only does a partial encoding of already binary rows.
+var encode_model_row = (model_row) => {
+    
     if (model_row[1]) {
         var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(model_row[1].length).buffer, model_row[1]];
     } else {
@@ -1099,7 +1188,28 @@ var encode_model_row = (model_row) => {
     }
 
 
+
     return Buffer.concat(arr_res);
+}
+
+
+
+var get_arr_rows_as_buffer = (arr_rows) => {
+    // for every row, encode it using the Binary_Encoding.
+
+    // They may not have the table key prefix?
+
+}
+
+
+var encode_model_rows = (model_rows) => {
+    var res = [];
+
+    each(model_rows, (model_row) => {
+        res.push(encode_model_row(model_row));
+    });
+
+    return Buffer.concat(res);
 }
 
 // filter out index rows.
@@ -1118,8 +1228,8 @@ var load_arr_core = (arr_core) => {
 
     var decoded_core = decode_model_rows(arr_core);
 
-    //console.log('decoded_core', decoded_core);
-
+    console.log('decoded_core', decoded_core);
+    //throw 'stop';
     // Should have the index table rows showing up in prefix 8
 
 
@@ -1197,6 +1307,9 @@ var load_arr_core = (arr_core) => {
     //   5 table specific incrementor, table specific field value autoincrement, field id
 
     // Though the field can link back to the incrementor anyway.
+
+
+    // When recreting rows, may need to avoid using an incrementor.
 
 
     each(arr_incrementor_rows, (inc_row) => {
@@ -1471,7 +1584,9 @@ var load_arr_core = (arr_core) => {
 
         //console.log('db.tables.length ' + db.tables.length);
 
-        table.add_field(field_name, data_type_id, is_pk);
+        // Definitely need to set the field ID!
+
+        table.add_field(field_name, field_id, data_type_id, is_pk, fk_to_table_id);
         // then need to make sure the field appears in the map.
 
         // Then will test this reconstruction with a more advanced database structure, such as one to hold cryptocurrencies.
@@ -1533,7 +1648,6 @@ var load_arr_core = (arr_core) => {
         //console.log('index_keys', index_keys);
         //console.log('ir_value', ir_value);
         // the value probably corresponds with the primary key of the table.
-
         var table = db.tables[table_id];
 
         var idx_kv = [index_keys, ir_value];
@@ -1549,6 +1663,36 @@ var load_arr_core = (arr_core) => {
     //console.log('arr_table_index_rows.length', arr_table_index_rows.length);
     //throw 'stop';
 
+    /*
+    each(arr_table_field_rows, (table_field_row) => {
+        console.log('table_field_row', table_field_row);
+        var key = table_field_row[0], value = table_field_row[1];
+
+        var table_id = key[0], field_id = key[1];
+
+        var name = value[0];
+        var i_type = value[1];
+        var is_pk = value[2];
+        var fk_to_table_id = value[3];
+
+        // should be able to do db.add_table_field_row?
+
+        var table = db.tables[table_id];
+
+        // (field, id = -1, i_type = null, is_pk = false)
+        table.add_field(name, table, field_id, i_type, is_pk, fk_to_table_id);
+
+
+
+
+        // 
+        
+
+
+
+    });
+    */
+    //throw 'stop';
     
 
     // (field, i_type = null, is_pk = false)
@@ -1561,9 +1705,37 @@ var load_arr_core = (arr_core) => {
 
 
     // Recreating its own db representation.
+    //  This looks like the part where we should reset some incrementors
+
+
+    //  Couldn't we load those tables up anyway.
+    // Should we even need to add these?
+
+
+
+    // Can't we have all these records loaded anyway when we load the core?
+
+    // Go through the table fields and the table indices.
+    //  Recreate them from keys.
+    //  Don't use add_tables_fields_to_fields_table as that uses the current values of the incrementors to assign some keys. Want to use the pre-existing values
+
+
+
+    // It's the creation of these index and fields records which are the problem.
+
+
+
+
+    
+
     each(db.tables, (table) => {
+
+        // When adding these, it will use the already high value of some incrementors.
+
         db.add_tables_fields_to_fields_table(table);
         //this.add_tables_fields_to_fields_table(tbl_tables);
+
+        
         db.add_tables_indexes_to_indexes_table(table);
     });
 
@@ -1574,6 +1746,8 @@ var load_arr_core = (arr_core) => {
 
 
     if (db.tbl_indexes) db.tbl_tables.add_record([[db.tbl_indexes.id], [db.tbl_indexes.name]]);
+
+    
 
 
     db._init = false;
@@ -1594,12 +1768,20 @@ Database.load = (arr_core) => {
     return load_arr_core(arr_core);
 }
 
+
+Database.load_buf = load_buf;
 Database.decode_key = decode_key;
 Database.decode_keys = decode_keys;
 Database.decode_model_row = decode_model_row;
 Database.decode_model_rows = decode_model_rows;
 Database.encode_model_row = encode_model_row;
+Database.encode_model_rows = encode_model_rows;
+Database.encode_index_key = encode_index_key;
+Database.encode_key = encode_key;
 Database.from_buffer = from_buffer;
+
+var p = Database.prototype;
+p.encode_model_rows = encode_model_rows;
 
 
 if (require.main === module) {

@@ -30,7 +30,6 @@ var encode_to_buffer = Binary_Encoding.encode_to_buffer;
 
 
 
-
 class Table_Record_Collection {
 	'constructor'(table) {
 
@@ -151,7 +150,15 @@ class Table_Record_Collection {
 
     get length() {
         return this.arr_records.length;
-    }
+	}
+	
+	to_array() {
+		var res = [];
+		each(this.arr_records, (record) => {
+			res.push(record.to_array());
+		});
+		return res;
+	}
 
 
 
@@ -219,13 +226,11 @@ class Table_Record_Collection {
 		// Looks like 'table fields' table has had records incorrectly added.
 		//  Whenever a field gets added to a table, we should add another table fields record.
 
-
 		// then for each record, we get the record itself, along with its index records.
 		//console.log('\nthis.arr_records.length', this.arr_records.length);
 		//console.log('this.table.name', this.table.name);
 
 		each(this.arr_records, (record) => {
-
 			// Why are there undefined records?
 
 			if (record) {
@@ -255,11 +260,14 @@ class Table_Record_Collection {
 				push_record_indexes();
 			}
 		});
-
 		//console.log('get_all_db_records_bin res', res);
 
 		return res;
-    }
+	}
+	
+	each_record(cb_record) {
+		each(this.arr_records, cb_record);
+	}
 
     index_record(record) {
         var def_indexes = this.table.record_def.indexes;
@@ -268,12 +276,10 @@ class Table_Record_Collection {
         //  stringify its value.
         //  simplest way, just store that.
         var arr_coll_indexes = this.indexes;
-        //console.log('def_indexes', def_indexes);
+        //console.log('index_record def_indexes', def_indexes);
         each(def_indexes, (index, i) => {
 
             // undefined index in place?
-
-
 
             // res.push(rec_idx);
             //console.log('i', i);
@@ -300,45 +306,125 @@ class Table_Record_Collection {
 
             //res.push(
         });
-
-
-
     }
 
-
-    add_record(record) {
+    add_record(record, dont_index = false) {
         //console.log('add_record');
-
 		// The record may need to make use of an incrementor.
 		//  Could possibly make records correspond with fields.
 		//  Then records could also have an ordering of fields within their keys and values.
 
 		// Making the OO bulkier with fields makes sense.
+
+		var new_record = this.new_record(record);
+		//console.log('new_record', new_record);
+		
+		if (new_record) {
+			// The record should not have the table id normally.
+			//  However, when we need to identify the table id it is useful.
+			//  add_records_with_table_ids.
+
+
+			
+
+
+			this.arr_records.push(new_record);
+			if (!dont_index) {
+				//console.log('dont_index', dont_index);
+				this.index_record(new_record);
+			}
+
+            
+			// Then for each index, we index the record.
+		} else {
+			console.trace('failed to add table record');
+			console.log('record', record);
+			throw 'stop';
+		}
+		// then add to the index of this table.
+		//this.index_record(res);
+        //console.log('res', res);
+		return new_record;
+	}
+	add_records(records) {
+		var that = this;
+		each(records, (record) => {
+			//console.log('\n\nrecord', record);
+			that.add_record(record);
+        });
+	}
+
+	// Splices the table id out of the key
+	add_record_including_table_id_in_key(record, dont_index = false) {
+        //console.log('add_record');
+		// The record may need to make use of an incrementor.
+		//  Could possibly make records correspond with fields.
+		//  Then records could also have an ordering of fields within their keys and values.
+
+		// Making the OO bulkier with fields makes sense.
+		//console.log('add_record_including_table_id_in_key');
+		//console.log('record', record);
+		record[0].splice(0, 1);
+		console.log('record', record);
+
+		//throw 'stop';
+
+		/*
+
+		var new_record = this.new_record(record);
+		//console.log('new_record', new_record);
+		
+		if (new_record) {
+			// The record should not have the table id normally.
+			//  However, when we need to identify the table id it is useful.
+			//  add_records_with_table_ids.
+
+            this.arr_records.push(new_record);
+            this.index_record(new_record);
+			// Then for each index, we index the record.
+		} else {
+			console.trace('failed to add table record');
+			console.log('record', record);
+			throw 'stop';
+		}
+		// then add to the index of this table.
+		//this.index_record(res);
+        //console.log('res', res);
+		return new_record;
+		*/
+		return this.add_record(record, dont_index);
+	}
+
+	add_records_including_table_id_in_key(records, dont_index = false) {
+		var that = this;
+		each(records, (record) => {
+			//console.log('\n\nrecord', record);
+			that.add_record_including_table_id_in_key(record, dont_index);
+        });
+	}
+	new_record(record) {
 		var res;
-
-
 		//console.log('record instanceof Record', record instanceof Record);
         //console.log('record', record);
 
 		if (!(record instanceof Record)) {
-
 			// is the record shorter by 1?
 			//console.log('record', record);
 
+
+			// Can't do this while just creating a new record without adding it.
+			//  
+
 			if (record[0] === null) {
 				// need to make a new key for the data.
-
 				//console.log('this.table.pk_incrementor', this.table.pk_incrementor);
 				//throw 'stop';
 
 				if (this.table.pk_incrementor) {
 					record[0] = [this.table.pk_incrementor.increment()];
 				}
-
 				// Need to use the right incrementor for the id.
-
 				// Need to access the right field(s).
-
 				//this.generate_new_key();
 				//throw 'stop'
 				//res = new Record(record, this);
@@ -356,35 +442,21 @@ class Table_Record_Collection {
                     if (this.table.pk_incrementor) {
                         record[0][0] = [this.table.pk_incrementor.increment()];
                     }
-
-                    // Need to use the right incrementor for the id.
-
-                    // Need to access the right field(s).
-
-                    //this.generate_new_key();
-                    //throw 'stop'
-                    //res = new Record(record, this);
                 }
 
 				res = new Record(record, this.table);
 				//throw 'stop';
 
 			} else {
-
 				// The Record should know the field name and number for all its data?
-
 				var data_length = this.table.record_def.fields.length;
 				// be able to get the fields from the table...?
-
-
 
 				//console.log('data_length', data_length);
 				//console.log('record.length', record.length);
 
 				if (record.length === data_length - 1) {
 					var kv_record = [[this.table.pk_incrementor.increment()], record];
-
-
 					res = new Record(kv_record, this.table);
 				} else {
 					// 
@@ -393,49 +465,40 @@ class Table_Record_Collection {
 
 				//throw 'stop';
 			}
-
-
 		} else {
 			res = record;
 		}
-
-
-		if (res) {
-            this.arr_records.push(res);
-
-            this.index_record(res);
-			// Then for each index, we index the record.
-
-
-
-		} else {
-			console.trace('failed to add table record');
-			console.log('record', record);
-			throw 'stop';
-		}
-
-
-		// then add to the index of this table.
-
-		//this.index_record(res);
-
-        //console.log('res', res);
-
 		return res;
-
-
 	}
-
-	add_records(records) {
+	new_records(records) {
 		var that = this;
+		var res = [];
 		each(records, (record) => {
 			//console.log('\n\nrecord', record);
-			that.add_record(record);
-        });
-        
+			res.push(that.new_record(record));
+		});
+		return res;
 	}
 
+	// adding arr_table records
+	//  could compare the structure to start with.
+
+	add_arr_table_records(at_records) {
+		// can check against the table keys.
+		//var table_keys = 
+		// table has got fields.
+		var that = this;
+		
+		each(at_records.values, (v, i) => {
+			//console.log('v', v);
+			//console.log('at_records.keys', at_records.keys);
+			// don't know if record is formatted right
+			that.add_record(v);
+		})
+	}
 }
 
+var p = Table_Record_Collection.prototype;
+p.each = p.each_record;
 
 module.exports = Table_Record_Collection;
