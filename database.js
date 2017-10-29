@@ -1060,7 +1060,7 @@ var encode_key = (kp, arr_values) => {
 
 var decode_keys = jsgui.arrayify(decode_key);
 
-var decode_model_row = (model_row) => {
+var decode_model_row = (model_row, remove_kp) => {
     var buf_key = model_row[0];
     var buf_value = model_row[1];
     //console.log('buf_key', buf_key);
@@ -1112,6 +1112,8 @@ var decode_model_row = (model_row) => {
 
         try {
             decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
+
+            
         }
         catch(err) {
             decoded_key = '[DECODING ERROR: ' + err + ']';
@@ -1119,6 +1121,9 @@ var decode_model_row = (model_row) => {
         
         //console.log('decoded_key', decoded_key);
         //throw 'stop';
+    }
+    if (remove_kp) {
+        decoded_key.splice(0, remove_kp);
     }
     //throw 'stop';
     //console.log('decoded_key', decoded_key);
@@ -1153,7 +1158,7 @@ var from_buffer = (buf) => {
 }
 
 
-var decode_model_rows = (model_rows) => {
+var decode_model_rows = (model_rows, remove_kp) => {
     var res = [];
 
     each(model_rows, (model_row) => {
@@ -1164,7 +1169,7 @@ var decode_model_rows = (model_rows) => {
         //  Let's see how records (keys and values), as well as index records (keys and values) decode with the multi-decoder.
 
         //console.log('pre decode');
-        res.push(decode_model_row(model_row));
+        res.push(decode_model_row(model_row, remove_kp));
         //throw 'stop';
         //console.log('post decode');
 
@@ -1199,6 +1204,19 @@ var get_arr_rows_as_buffer = (arr_rows) => {
 
     // They may not have the table key prefix?
 
+}
+
+
+// This only does some encoding with the rows as binary already.
+//  Keys and values already encoded as binary buffers.
+
+var encode_arr_rows_to_buf = (arr_rows, key_prefix) => {
+    var res = [];
+    each(arr_rows, (row) => {
+        // encode_model_row
+        res.push(encode_model_row(Binary_Encoding.encode_pair_to_buffers(row, key_prefix)));
+    });
+    return Buffer.concat(res);
 }
 
 
@@ -1746,7 +1764,6 @@ var load_arr_core = (arr_core) => {
 
 
     if (db.tbl_indexes) db.tbl_tables.add_record([[db.tbl_indexes.id], [db.tbl_indexes.name]]);
-
     
 
 
@@ -1776,9 +1793,22 @@ Database.decode_model_row = decode_model_row;
 Database.decode_model_rows = decode_model_rows;
 Database.encode_model_row = encode_model_row;
 Database.encode_model_rows = encode_model_rows;
+Database.encode_arr_rows_to_buf = encode_arr_rows_to_buf;
 Database.encode_index_key = encode_index_key;
 Database.encode_key = encode_key;
 Database.from_buffer = from_buffer;
+
+// encode_arr_model_rows
+// encode_arr_model_row
+
+
+
+
+// encode model rows to buffer?
+//  encode rows to buffer
+//  encode_data_rows_to_buffer
+
+
 
 var p = Database.prototype;
 p.encode_model_rows = encode_model_rows;

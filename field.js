@@ -343,50 +343,9 @@ class Field {
                 //var idx = this.table.add_index([]);
 
                 var pk_field = this.table.record_def.pk_field;
-                // The primary key field / fields should be set when this gets done.
-                //  could be an array of fields.
-
-                // Having pk_field set to an array of multiple fields seems OK.
-
-                //  When the fields get made, if they are primary keys, add them to the primary key object.
-
-
-                //console.log('pk_field', pk_field);
-
-                //console.log('this.table.record_def.pk', this.table.record_def.pk);
-                // Should add fields to the primary key at appropriate times.
-                //  best to drop pk_field probably.
-
-                // In stead should be able to point to the primary key itself?
-                //  Or we get the fields from the primary key, and give that as a param.
-
                 var arr_pk_fields = this.table.record_def.pk.fields;
 
-                /*
 
-                if (!pk_field) {
-                    console.trace();
-                    throw 'pk_field not found';
-                }
-                */
-
-                // no, not the primary key field as the key for the index. Use this field, to the pk field.
-                //  var idx = this.table.add_index([[pk_field], [this]]);
-                
-                // This looks like the line in error...?
-                //  It's a side-effect too.
-
-                // We index to the pk field.
-                
-                //  Index this field to the pk field.
-
-                // add a unique index
-
-                // Seems like a side effect here.
-
-                // 
-
-                //var idx = this.table.add_index([[this], [pk_field]]);
                 var idx = this.table.add_index([[this], arr_pk_fields]);
 
 

@@ -199,13 +199,15 @@ class Index {
 
         //console.log('Index constructor complete, this', this);
 
-
     }
 
     get key_field_ids() {
 
         //console.log('this.table.name', this.table.name);
+
         var res = [this.table.id, this.id];
+        //var res = [];
+
         // then index_type
         //  Only have unique index for the moment.
         //   Think about sorted sequential indexes in the db.
@@ -213,6 +215,8 @@ class Index {
 
         // I think unique indexes will be the first type for the moment.
         //  Then could have 'bucket' indexes, where the index can refer to more than one record?
+
+
 
 
         each(this.key_fields, (key_field) => {
@@ -281,6 +285,25 @@ class Index {
 
     }
 
+    'record_to_index_arr_data'(record) {
+        var table = this.table;
+        var table_ikp = table.indexes_key_prefix;
+        var arr_res = [(table_ikp), this.id];
+        var record_flat_data = record.key.concat(record.value);
+
+        each(this.key_fields, (key_field) => {
+            var item_value = record_flat_data[key_field.id];
+            arr_res.push((item_value));
+        });
+        console.log('this.value_fields', this.value_fields);
+        each(this.value_fields, (value_field) => {
+            console.log('value_field.id', value_field.id);
+            var item_value = record_flat_data[value_field.id];
+            arr_res.push((item_value));
+        });
+        return arr_res;
+    }
+
     'record_to_index_buffer'(record) {
         // need to use a map of record fields to the values?
         //  keep the values within the field objects within records?
@@ -325,7 +348,6 @@ class Index {
 
 
         var arr_res = [xas2(table_ikp).buffer, xas2(id).buffer];
-
         var record_flat_data = record.key.concat(record.value);
         
 

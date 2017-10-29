@@ -170,17 +170,43 @@ class Table {
             }
         }
 
+        // Seems like the primary key incrementor is not being stored correctly for the table.
+        //  Should make it so that the table's records includes the primary key incrementor for the table.
+        //  Also that table primary key incrementors get stored in the incrementors part of the DB.
+
+        // Need to have these primary key incrementors reconstructed.
+        //  Can't assume there are 3 incrementors per table.
+        //   Could assume 4, with an unused PK incrementor. Could maybe have a row count incrementor though.
+
+        // Looks like that will probably take more work on the model or crypto model db.
+        //  May need to start the db anew to get these table pk incrementors stored.
+
+        // Reconstruction of table pk incrementors?
+        //  That may be better in the short term.
+        //  Could find the highest key value in the tables.
+
+
+
+
+
+
+
+
+
+
         if (sig === '[s,?,n,a]') {
             name = a[0];
             this.db = db = a[1];
             this.id = id = a[2];
 
             // need to go through that array, maybe doing lookups
-            //console.log('a[3][0]', a[3][0]);
+            console.log('a[3]', a[3]);
+            console.log('a[3].length', a[3].length);
             if (tof(a[3][0]) === 'number') {
                 var inc_fields_id = a[3][0];
                 var inc_indexes_id = a[3][1];
                 var inc_foreign_keys_id = a[3][2];
+
                 this.inc_fields = db.incrementors[inc_fields_id];
                 this.inc_indexes = db.incrementors[inc_indexes_id];
                 this.inc_foreign_keys = db.incrementors[inc_foreign_keys_id];
@@ -439,6 +465,10 @@ class Table {
 
 
 
+    }
+
+    get_arr_data_index_records() {
+        return this.records.get_arr_data_index_records.apply(this.records, arguments);
     }
 
 

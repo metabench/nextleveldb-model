@@ -140,13 +140,11 @@ class Table_Record_Collection {
 
 
 
+	}
+	
+	// filter... make a new table record collection, using the filter function on each of them.
 
 
-
-
-
-
-    }
 
     get length() {
         return this.arr_records.length;
@@ -202,6 +200,50 @@ class Table_Record_Collection {
 		// get its entry in the table table
 
 		return res;
+	}
+
+	get_arr_data_index_records() {
+
+
+		// record_to_index_arr_data
+		var res = [];
+		var that = this;
+		var indexes = this.table.record_def.indexes;
+
+		each(this.arr_records, (record) => {
+			// Why are there undefined records?
+
+			if (record) {
+				//console.log('that.name', that.name);
+				// Need to be able to encode the indexes too in the indexes.
+
+				//res.push(record.get_own_record_bin());
+
+				var push_record_indexes = () => {
+					each(indexes, (index) => {
+						// res.push(rec_idx);
+
+						// then output the index record.
+						var indexed_record = [index.record_to_index_arr_data(record), null];
+						console.log('indexed_record', indexed_record);
+						console.log('record', record);
+						console.log('record.table.record_def.pk', record.table.record_def.pk);
+						throw 'stop';
+						res.push(indexed_record);
+						
+						//console.trace();
+						//throw 'stop';
+
+						//res.push(
+					});
+				}
+				push_record_indexes();
+			}
+		});
+		//console.log('get_all_db_records_bin res', res);
+
+		return res;
+
 	}
 
 
@@ -347,11 +389,12 @@ class Table_Record_Collection {
 		return new_record;
 	}
 	add_records(records) {
-		var that = this;
+		var that = this, res = [];
 		each(records, (record) => {
 			//console.log('\n\nrecord', record);
-			that.add_record(record);
-        });
+			res.push(that.add_record(record));
+		});
+		return res;
 	}
 
 	// Splices the table id out of the key
@@ -400,7 +443,8 @@ class Table_Record_Collection {
 		each(records, (record) => {
 			//console.log('\n\nrecord', record);
 			that.add_record_including_table_id_in_key(record, dont_index);
-        });
+		});
+		
 	}
 	new_record(record) {
 		var res;
