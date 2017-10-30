@@ -1246,7 +1246,7 @@ var load_arr_core = (arr_core) => {
 
     var decoded_core = decode_model_rows(arr_core);
 
-    console.log('decoded_core', decoded_core);
+    //console.log('decoded_core', decoded_core);
     //throw 'stop';
     // Should have the index table rows showing up in prefix 8
 

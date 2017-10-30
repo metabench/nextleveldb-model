@@ -388,11 +388,11 @@ class Table_Record_Collection {
         //console.log('res', res);
 		return new_record;
 	}
-	add_records(records) {
+	add_records(records, dont_index = false) {
 		var that = this, res = [];
 		each(records, (record) => {
 			//console.log('\n\nrecord', record);
-			res.push(that.add_record(record));
+			res.push(that.add_record(record, dont_index));
 		});
 		return res;
 	}
@@ -406,9 +406,12 @@ class Table_Record_Collection {
 
 		// Making the OO bulkier with fields makes sense.
 		//console.log('add_record_including_table_id_in_key');
-		//console.log('record', record);
+		//console.log('1) record', record);
+		
+		
 		record[0].splice(0, 1);
-		console.log('record', record);
+
+		//console.log('2) record', record);
 
 		//throw 'stop';
 

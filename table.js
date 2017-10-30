@@ -200,8 +200,8 @@ class Table {
             this.id = id = a[2];
 
             // need to go through that array, maybe doing lookups
-            console.log('a[3]', a[3]);
-            console.log('a[3].length', a[3].length);
+            //console.log('a[3]', a[3]);
+            //console.log('a[3].length', a[3].length);
             if (tof(a[3][0]) === 'number') {
                 var inc_fields_id = a[3][0];
                 var inc_indexes_id = a[3][1];
