@@ -7,7 +7,7 @@
         "deep-equal": "^1.0.1",
         "jsgui3": "^0.0.4",
         "moment": "^2.18.1",
-        "xas2": "0.0.9"
+        "xas2": "^0.0.10"
     },
     "engines": {
         "node": ">=8.5.0"
@@ -18,5 +18,5 @@
         "type": "git",
         "url": "https://github.com/metabench/nextleveldb-model.git"
     },
-    "version": "0.0.3"
+    "version": "0.0.5"
 }

@@ -199,31 +199,6 @@ class Record {
         //console.log('this.value', this.value);
     }
 
-    
-    _get_all_db_records_bin() {
-        var res = [this.get_own_record_bin()];
-
-        // its key and its value as a record (own / main record)
-        //  then all indexes that apply.
-        //   Maybe record needs a link back to the table (which it has in some cases)
-
-        // Do or don't get the record's index record at this stage?
-        //  May be better / more memory efficient doing it this way.
-
-        each(this.indexes, (index) => {
-
-        });
-
-        /*
-        each(this.get_own_index_bin(), (idx_rec) => {
-            res.push(idx_rec);
-        });
-        */
-
-
-        return res;
-    }
-
     to_arr_buf() {
         // needs to know the table.
     }

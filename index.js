@@ -295,9 +295,9 @@ class Index {
             var item_value = record_flat_data[key_field.id];
             arr_res.push((item_value));
         });
-        console.log('this.value_fields', this.value_fields);
+        //console.log('this.value_fields', this.value_fields);
         each(this.value_fields, (value_field) => {
-            console.log('value_field.id', value_field.id);
+            //console.log('value_field.id', value_field.id);
             var item_value = record_flat_data[value_field.id];
             arr_res.push((item_value));
         });
