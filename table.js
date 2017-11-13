@@ -354,6 +354,9 @@ class Table {
     add_field() {
         //var args = Array.prototype.slice.call(arguments);
         //args.push(this);
+
+        console.log('table add_field ', arguments);
+
         return this.record_def.add_field.apply(this.record_def, arguments);
     }
 
@@ -362,6 +365,11 @@ class Table {
     }
     add_records() {
         return this.records.add_records.apply(this.records, arguments);
+    }
+
+    ensure_records_no_overwrite() {
+        // ensure_records_no_overwrite
+        return this.records.ensure_records_no_overwrite.apply(this.records, arguments);
     }
 
     add_records_including_table_id_in_key() {

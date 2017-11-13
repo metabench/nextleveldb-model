@@ -30,6 +30,7 @@ var encode_to_buffer = Binary_Encoding.encode_to_buffer;
 
 
 
+
 class Table_Record_Collection {
 	'constructor'(table) {
 
@@ -38,30 +39,22 @@ class Table_Record_Collection {
 		this.arr_records = [];
 
 		//var table_indexes_def = table.indexes;
-
-        
-
 		// multiple indexes
-
-
         // refer to the table def to see how many indexes there are.
 
-
-
-        this.indexes = new Array(this.table.record_def.indexes.length);
+		this.indexes = new Array(this.table.record_def.indexes.length);
+		this.map_keys = new Map();
 
         var c, l = this.indexes.length;
         for (c = 0; c < l; c++) {
             this.indexes[c] = {};
-        }
+		}
+		
+		// map of the records
 
         //console.log('this.table.record_def.indexes.length', this.table.record_def.indexes.length);
         //console.log('this.table.name', this.table.name);
         //throw 'stop';
-
-
-
-
 
 		// Using the index def (available through the table), we will need to put records into indexes.
 
@@ -75,13 +68,6 @@ class Table_Record_Collection {
         // Seems worthwhile to have a table of table indexes.
         //  which fields are in the key, (which are in the value)
         //   it refers to the primary key automatically, but the pk may be expressed with more than one value.
-
-
-
-
-
-
-
 
 		// Will need to refer back to the table, as there are index records
 		
@@ -105,26 +91,13 @@ class Table_Record_Collection {
 
 		// There may be multiple 
 
-
 		// The index definitions would be within the record definitions.
 		//  The indexes themselves would be within this collection part.
-
-
-
-
-
-		
-
-
 
 		// And multiple indexes too.
 		//  May want to map the indexes by what fields they represent.
 
 		// Probably worth getting on with this OOP so that it all works smoothly and logically
-
-
-
-
 
 
 		// Actual working index
@@ -139,6 +112,46 @@ class Table_Record_Collection {
 		//  It's not just for outputting the indexes to the db.
 
 
+
+	}
+
+	ensure_record_no_overwrite(arr_record) {
+		console.log('arr_record', arr_record);
+
+		// Need to work out which of these fields is the key.
+		var pks, vals;
+
+		if (is_arr_of_arrs(arr_record) && arr_record.length === 2) {
+			pks = arr_record[0];
+			vals = arr_record[1];
+			throw 'not yet implemented'
+		} else {
+
+			var pk_def = this.table.record_def.pk;
+			console.log('pk_def.length', pk_def.length);
+
+			console.log('pk_def', pk_def);
+			// Seems an undefined field has crept in there.
+
+			
+
+			// look up the record by key...
+			//  after transforming it into a kv record
+
+
+		}
+
+	}
+
+	ensure_records_no_overwrite(arr_records) {
+		console.log('trc ensure_records_no_overwrite arr_records.length', arr_records.length);
+		// These records won't contain the table pk.
+
+		// Will need to do key lookup on the records.
+		var that = this;
+		each(arr_records, (arr_record) => {
+			that.ensure_record_no_overwrite(arr_record);
+		})
 
 	}
 	
@@ -158,11 +171,8 @@ class Table_Record_Collection {
 		return res;
 	}
 
-
-
 	get_inner_db_records() {
 		// calculates them, not gets them from the DB.
-
 		var res = [];
 		each(this.arr_records, (record) => {
 			res.push(record.get_own_record_bin());

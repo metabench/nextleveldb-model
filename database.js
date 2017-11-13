@@ -832,8 +832,6 @@ class Database {
                         //throw 'stop';
                     }
                 }
-
-                
                 // Assign it to the db.
                 // name, db, record_def
             }
@@ -1061,6 +1059,7 @@ var encode_key = (kp, arr_values) => {
 var decode_keys = jsgui.arrayify(decode_key);
 
 var decode_model_row = (model_row, remove_kp) => {
+    //console.log('decode model_row', model_row);
     var buf_key = model_row[0];
     var buf_value = model_row[1];
     //console.log('buf_key', buf_key);

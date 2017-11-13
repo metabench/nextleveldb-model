@@ -260,7 +260,6 @@ class Record_Def {
                 // Already added to pk?
                 //  Seems so, maybe its a side-effect elsewhere.
 
-
                 //that.add_field(new_field);
                 /*
                 if (new_field.is_pk) {
@@ -429,12 +428,17 @@ class Record_Def {
         //throw 'stop';
         if (item_field) {
             field_name = item_field.name;
-            this.fields.push(item_field);
-            this.map_fields[field_name] = item_field;
 
-            if (item_field.is_pk) {
-                this.pk.add_field(item_field);
+            if (!this.map_fields[field_name]) {
+                this.fields.push(item_field);
+                this.map_fields[field_name] = item_field;
+    
+                if (item_field.is_pk) {
+                    this.pk.add_field(item_field);
+                }
             }
+
+            
 
 
             //this.add_field_to_fields_table(item_field);

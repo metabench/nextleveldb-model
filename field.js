@@ -276,8 +276,6 @@ class Field {
                 // Check to see if there is ' fk=> '
                 //  If so, we split in two and have a fk_table var
 
-
-
                 var fk_table = null;
 
                 var pos0, pos1;
@@ -317,10 +315,13 @@ class Field {
             [str_prefix_code, field_name, str_type, fk_table] = parse_field_name(str_field);
             //console.log('[str_prefix_code, field_name, str_type]', [str_prefix_code, field_name, str_type]);
 
+            this.name = field_name;
+
             //throw 'stop';
 
             if (str_prefix_code === '+') {
                 var field_incrementor = this.table.db.new_incrementor('inc_' + this.table.name + '_' + field_name);
+                console.log('field_name', field_name);
                 // just support a single pk_incrementor for the moment.
                 //that.pk_incrementor = new_inc;
                 this.table.pk_incrementor = field_incrementor;
@@ -380,7 +381,7 @@ class Field {
             */
 
             
-            this.name = field_name;
+            
 
             if (field_incrementor) {
                 //   Field may be given a primary key incrementor, for incrementing its value, or just an incrementor for incrementing its value, not pk. I suppose this will be used for pk though.

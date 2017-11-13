@@ -18,15 +18,26 @@ class Primary_Key {
 
         this.table = table;
     }
+    get length() {
+        return this.fields.length;
+    }
     add_field(field) {
         if (!(field instanceof Field)) {
             throw 'stop';
         }
-
         //this.table.add_field(field);
 
-        this.fields.push(field);
-        this.map_fields[field.name] = field;
+        if (!this.map_fields[field.name]) {
+            this.fields.push(field);
+            this.map_fields[field.name] = field;
+        }
+
+        if (typeof field.name === 'undefined') {
+            console.trace();
+            throw 'Field name expected';
+        }
+
+        
         //throw 'stop';
 
 
@@ -41,6 +52,8 @@ class Primary_Key {
 
         var t_def = tof(def);
 
+        console.log('pk set_def', def);
+
 
         var set_string = (item) => {
             field = table.map_fields[item];
@@ -52,13 +65,16 @@ class Primary_Key {
                 // We don't know the type of the pk.
                 //  Assume it is type 0?
                 //   Maybe assume that for primary key (constituent) fields.
+                
 
-
-
+                // Maybe the wrong place / way to create the field.
                 field = table.add_field(item, -1, XAS2_VALUE_TYPE, true);
 
                 //field = table.add_field(item, null, true);
 
+            } else {
+                console.trace();
+                throw 'stop';
             }
 
 
