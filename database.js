@@ -1090,7 +1090,7 @@ var encode_key = (kp, arr_values) => {
 
 
 
-var decode_keys = jsgui.arrayify(decode_key);
+var decode_keys = lang.arrayify(decode_key);
 
 var decode_model_row = (model_row, remove_kp) => {
     //console.log('decode model_row', model_row);
@@ -1319,8 +1319,8 @@ var load_arr_core = (arr_core) => {
     var arr_table_index_rows = arr_by_prefix[8];
 
     //console.log('arr_incrementor_rows', arr_incrementor_rows);
-    console.log('arr_table_field_rows', arr_table_field_rows);
-    console.trace();
+    //console.log('arr_table_field_rows', arr_table_field_rows);
+    //console.trace();
     //throw 'stop';
 
     // Incrementors are important for consistency.
@@ -1613,7 +1613,7 @@ var load_arr_core = (arr_core) => {
     each(arr_table_field_rows, (table_field_row) => {
         //var table_id = (table_field_row[0][0] - 2) / 2;
 
-        console.log('table_field_row', table_field_row);
+        //console.log('table_field_row', table_field_row);
 
         // Parse it differently depending on length
 

@@ -173,37 +173,24 @@ class Incrementor {
     get_index_bin() {
         // the name, the id.
         // make xas2 capable of storing a string and showing how long it is?
-
         // incrementors themselves - global prefix of 0           (MAGIC NUMBER)
         // the incrementors index will have a global prefix of 1. (MAGIC NUMBER)
-
         // returns an array containing pairs (nested array)
-
         // Need to get the key as a buffer.
 
         // prefix space 1, index number 0 within incrementor indexes, name, incrementor id
 
         //var arr_idx_key = [1, 0, this.name, this.id];
         var arr_idx_key = [this.name, this.id];
-
-
         var buf_key = encode_to_buffer(arr_idx_key, 1, 0);
         //console.log('buf_key', buf_key);
 
-       
-
         var res = [[buf_key, null]];
-
         //console.log('res', res);
         //throw 'stop';
         return res;
 
-
-
-
     }
-
-
 
 }
 
@@ -213,8 +200,6 @@ Incrementor.get_by_name = (name) => {
     // Incrementor by name index would be in keyspace 1
     var incrementor_name_lookup_key = xas2([1, name]);
     console.log('incrementor_name_lookup_key', incrementor_name_lookup_key);
-
-
 
 }
 
