@@ -1,8 +1,8 @@
 var Incrementor = require('./incrementor');
-var jsgui = require('jsgui3');
-var tof = jsgui.tof;
-var each = jsgui.each;
-var get_a_sig = jsgui.get_a_sig;
+var lang = require('lang-mini');
+var tof = lang.tof;
+var each = lang.each;
+var get_a_sig = lang.get_a_sig;
 
 const special_characters = {
     '!': true,
@@ -183,6 +183,11 @@ class Field {
             //this.fk_to_table = a[4];
             //console.trace();
             //throw 'stop - field now reqires a reference to table';
+        }
+
+        if (typeof this.type_id === 'boolean') {
+            console.trace();
+            throw 'expected integer type_id';
         }
 
 
@@ -397,8 +402,7 @@ class Field {
             throw('expected string');
         }
 
-
-
+        
     }
     get_kv_record() {
         var res;
@@ -409,6 +413,8 @@ class Field {
 
         // Also include the record type.
         // this.type_id
+
+        console.log('this.type_id', this.type_id);
 
         if (this.type_id === null) {
             if (this.is_pk) {
@@ -439,6 +445,16 @@ class Field {
             }
         }
         return res;
+    }
+    get description() {
+        //var res = this.name + ': type_id: ' + this.type_id + ' ' + (this.is_pk ? 'PRIMARY KEY ' : '') + (this.fk_to_table) ? 'FOREIGN KEY TO ' + this.fk_to_table.name : '';
+        
+        var res = this.name + ': type_id: ' + this.type_id;
+        if (this.is_pk) {
+            res = res + ' PRIMARY KEY';
+        }
+
+        return res; 
     }
     update_db_record() {
         var db_record = this.db_record;

@@ -1,7 +1,7 @@
 var Field = require('./field');
-var jsgui = require('jsgui3');
-var each = jsgui.each;
-var tof = jsgui.tof;
+var lang = require('lang-mini');
+var each = lang.each;
+var tof = lang.tof;
 
 const XAS2_VALUE_TYPE = 0;
 

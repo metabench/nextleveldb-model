@@ -1,6 +1,6 @@
-var jsgui = require('jsgui3');
-var tof = jsgui.tof;
-var each = jsgui.each;
+var lang = require('lang-mini');
+var tof = lang.tof;
+var each = lang.each;
 
 var xas2 = require('xas2');
 var Binary_Encoding = require('binary-encoding');

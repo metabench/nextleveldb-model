@@ -5,12 +5,12 @@
 //  Ability to serialise and deserialise a record collection.
 //  That is a structural advantage to splitting this out of Table.
 //  Nicer encapsulation.
-var jsgui = require('jsgui3');
-var tof = jsgui.tof;
+var lang = require('lang-mini');
+var tof = lang.tof;
 var xas2 = require('xas2');
-var each = jsgui.each;
-var is_arr_of_strs = jsgui.is_arr_of_strs;
-var is_arr_of_arrs = jsgui.is_arr_of_arrs;
+var each = lang.each;
+var is_arr_of_strs = lang.is_arr_of_strs;
+var is_arr_of_arrs = lang.is_arr_of_arrs;
 
 var Incrementor = require('./incrementor');
 var Record = require('./record');
@@ -491,10 +491,6 @@ class Table_Record_Collection {
                 //console.log('record in arrays of keys and values form');
 
                 if (record[0][0] === null) {
-                    // need to make a new key for the data.
-
-                    //console.log('this.table.pk_incrementor', this.table.pk_incrementor);
-                    //throw 'stop';
 
                     if (this.table.pk_incrementor) {
                         record[0][0] = [this.table.pk_incrementor.increment()];

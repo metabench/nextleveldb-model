@@ -94,11 +94,11 @@ Want an OO system that presents the data in a form that's easy to use for the pr
 */
 
 
-var jsgui = require('jsgui3');
-var each = jsgui.each;
-var get_a_sig = jsgui.get_a_sig;
-var clone = jsgui.clone;
-var tof = jsgui.tof;
+var lang = require('lang-mini');
+var each = lang.each;
+var get_a_sig = lang.get_a_sig;
+var clone = lang.clone;
+var tof = lang.tof;
 
 var Incrementor = require('./incrementor');
 var Table = require('./table');
@@ -175,6 +175,35 @@ class Database {
 
         
     }
+
+    get arr_table_ids_and_names() {
+        var tables = this.tables, l = tables.length;
+        var res = new Array(l);
+        each(tables, (table, i) => {
+            res[i] = [table.id, table.name];
+        })
+        return res;
+    }
+
+    get description() {
+        var tables = this.tables, l = tables.length;
+        var res = [];
+        each(tables, (table, i) => {
+            //res[i] = [table.id, table.name];
+            res.push(table.name);
+            res.push('-'.repeat(table.name.length) + '\n');
+
+            res.push('fields');
+            each(table.fields, (field) => {
+                res.push('\t', field.description);
+            })
+
+            res.push('\n');
+        })
+        return res.join('\n');
+    }
+
+
 
     get_obj_map(table_name, field_name) {
         return this.map_tables[table_name].get_map_lookup(field_name);
@@ -318,6 +347,8 @@ class Database {
         //  Check for a null and assign it?
 
         //tbl_tables.add_field('name', tbl_tables, NT_STRING);
+
+        // field name, id = -1, i_type = null, is_pk = false, fk_to_table
         tbl_tables.add_field('name', -1, NT_STRING);
 
 
@@ -765,6 +796,7 @@ class Database {
             // This is to do with the fields table's fields. Need to be somewhat careful with this.
 
             var arr_kv_field_record = field.get_kv_record();
+            console.log('arr_kv_field_record', arr_kv_field_record);
             //throw 'stop';
             //var tf_record = tbl_fields.add_record([[table.id, field.id], [field.name]]);
 
@@ -862,6 +894,8 @@ class Database {
             this.add_tables_indexes_to_indexes_table(table);
 
         }
+
+        console.log('table', table);
         //throw 'stop';
 
         return table;
@@ -1131,6 +1165,8 @@ var decode_model_row = (model_row, remove_kp) => {
     //console.log('decoded_record', decoded_record);
 }
 
+/*
+
 var from_buffer = (buf) => {
     console.log('from_buffer\n----------\n');
 
@@ -1155,7 +1191,7 @@ var from_buffer = (buf) => {
 
     })
 }
-
+*/
 
 var decode_model_rows = (model_rows, remove_kp) => {
     var res = [];
@@ -1283,6 +1319,9 @@ var load_arr_core = (arr_core) => {
     var arr_table_index_rows = arr_by_prefix[8];
 
     //console.log('arr_incrementor_rows', arr_incrementor_rows);
+    console.log('arr_table_field_rows', arr_table_field_rows);
+    console.trace();
+    //throw 'stop';
 
     // Incrementors are important for consistency.
 
@@ -1292,7 +1331,6 @@ var load_arr_core = (arr_core) => {
     //  need to load the tables / add them
 
     db._init = true;
-
 
     // Do Active_Table / Connected_Table later / next
     // Active_Table sounds better.
@@ -1574,17 +1612,42 @@ var load_arr_core = (arr_core) => {
     // Add the fields to the tables.
     each(arr_table_field_rows, (table_field_row) => {
         //var table_id = (table_field_row[0][0] - 2) / 2;
+
+        console.log('table_field_row', table_field_row);
+
+        // Parse it differently depending on length
+
+        var lv = table_field_row[1].length;
+
+        
+
+
         var table_id = table_field_row[0][0];
         //console.log('table_id', table_id);
 
 
         var field_id = table_field_row[0][1];
 
-        var field_name = table_field_row[1][0];
-        var data_type_id = table_field_row[1][1];
+        var field_name, data_type_id, is_pk, fk_to_table_id;
 
-        var is_pk = table_field_row[1][2];
-        var fk_to_table_id = table_field_row[1][3];
+        if (lv === 1) {
+            field_name = table_field_row[1][0];
+        } else if (lv === 2) {
+            field_name = table_field_row[1][0];
+            data_type_id = table_field_row[1][1];
+        } else if (lv === 3) {
+            field_name = table_field_row[1][0];
+            data_type_id = table_field_row[1][1];
+            is_pk = table_field_row[1][2];
+        } else if (lv === 4) {
+            field_name = table_field_row[1][0];
+            data_type_id = table_field_row[1][1];
+    
+            //console.log('data_type_id', data_type_id);
+    
+            is_pk = table_field_row[1][2];
+            fk_to_table_id = table_field_row[1][3];
+        }
 
         var table = db.tables[table_id];
 
@@ -1602,6 +1665,12 @@ var load_arr_core = (arr_core) => {
         //console.log('db.tables.length ' + db.tables.length);
 
         // Definitely need to set the field ID!
+
+        console.log('1) data_type_id', data_type_id);
+        if (typeof data_type_id === 'boolean') {
+            console.trace();
+            throw('data_type_id expected to be integer');
+        }
 
         table.add_field(field_name, field_id, data_type_id, is_pk, fk_to_table_id);
         // then need to make sure the field appears in the map.
@@ -1795,7 +1864,7 @@ Database.encode_model_rows = encode_model_rows;
 Database.encode_arr_rows_to_buf = encode_arr_rows_to_buf;
 Database.encode_index_key = encode_index_key;
 Database.encode_key = encode_key;
-Database.from_buffer = from_buffer;
+//Database.from_buffer = from_buffer;
 
 // encode_arr_model_rows
 // encode_arr_model_row

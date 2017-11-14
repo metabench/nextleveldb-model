@@ -1,10 +1,10 @@
-var jsgui = require('jsgui3');
-var tof = jsgui.tof;
+var lang = require('lang-mini');
+var tof = lang.tof;
 var xas2 = require('xas2');
-var each = jsgui.each;
-var is_arr_of_strs = jsgui.is_arr_of_strs;
-var is_arr_of_arrs = jsgui.is_arr_of_arrs;
-var get_a_sig = jsgui.get_a_sig;
+var each = lang.each;
+var is_arr_of_strs = lang.is_arr_of_strs;
+var is_arr_of_arrs = lang.is_arr_of_arrs;
+var get_a_sig = lang.get_a_sig;
 
 var Incrementor = require('./incrementor');
 var Record = require('./record');
@@ -355,7 +355,7 @@ class Table {
         //var args = Array.prototype.slice.call(arguments);
         //args.push(this);
 
-        console.log('table add_field ', arguments);
+        //console.log('table add_field ', arguments);
 
         return this.record_def.add_field.apply(this.record_def, arguments);
     }
@@ -463,10 +463,10 @@ class Table {
     // get_all_db_records_bin
     get_all_db_records_bin() {
         // include the indexes here? seems not
+        console.log('get_all_db_records_bin');
 
         var buf_records = this.records.get_all_db_records_bin.apply(this.records, arguments);
         //  and this makes the index records too?
-
         //var buf_indexes = 
 
         return buf_records;

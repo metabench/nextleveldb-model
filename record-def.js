@@ -1,10 +1,10 @@
-var jsgui = require('jsgui3');
-var tof = jsgui.tof;
+var lang = require('lang-mini');
+var tof = lang.tof;
 var xas2 = require('xas2');
-var each = jsgui.each;
-var is_arr_of_strs = jsgui.is_arr_of_strs;
-var is_arr_of_arrs = jsgui.is_arr_of_arrs;
-var get_a_sig = jsgui.get_a_sig;
+var each = lang.each;
+var is_arr_of_strs = lang.is_arr_of_strs;
+var is_arr_of_arrs = lang.is_arr_of_arrs;
+var get_a_sig = lang.get_a_sig;
 
 var Incrementor = require('./incrementor');
 var Record = require('./record');
@@ -172,22 +172,14 @@ class Record_Def {
 
             //throw 'stop';
 
-
-
-
             // Then update the field record.
             o_field.update_db_record();
-
 
             //throw 'stop';
 
         } else {
             throw 'stop';
         }
-
-
-
-
     }
 
     set_pk(pk) {
@@ -213,7 +205,6 @@ class Record_Def {
         //console.log('set_def', obj_record_def);
         var pk = this.pk
         var that = this, new_field;
-
 
         // is it an array, with 2 items?
         //  if each of those is an array, it's 
@@ -314,7 +305,7 @@ class Record_Def {
             each(kv_def[0], (key_field, i) => {
                 //console.log('key_field', key_field);
                 // don't know the type
-                f = that.add_field(key_field, null, true);
+                f = that.add_field(key_field, null, null, true);
                 // then add it to the pk
                 that.pk.add_field(f);
 
@@ -369,6 +360,8 @@ class Record_Def {
 
         // want better parameter handling.
         //  maybe do that later.
+
+        console.log('i_type', i_type);
 
 
 

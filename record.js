@@ -7,12 +7,12 @@
 // Records generally need a storage definition.
 
 
-var jsgui = require('jsgui3');
-var tof = jsgui.tof;
-var each = jsgui.each;
-var is_array = jsgui.is_array;
-var arrayify = jsgui.arrayify;
-var Fns = jsgui.Fns;
+var lang = require('lang-mini');
+var tof = lang.tof;
+var each = lang.each;
+var is_array = lang.is_array;
+var arrayify = lang.arrayify;
+var Fns = lang.Fns;
 
 var Incrementor = require('./incrementor');
 var Table = require('./table');

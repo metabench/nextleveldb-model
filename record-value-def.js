@@ -1,9 +1,9 @@
-var jsgui = require('jsgui3');
-var tof = jsgui.tof;
+var lang = require('lang-mini');
+var tof = lang.tof;
 var xas2 = require('xas2');
-var each = jsgui.each;
-var is_arr_of_strs = jsgui.is_arr_of_strs;
-var is_arr_of_arrs = jsgui.is_arr_of_arrs;
+var each = lang.each;
+var is_arr_of_strs = lang.is_arr_of_strs;
+var is_arr_of_arrs = lang.is_arr_of_arrs;
 
 var Incrementor = require('./incrementor');
 var Record = require('./record');
