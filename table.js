@@ -6,11 +6,13 @@ var is_arr_of_strs = lang.is_arr_of_strs;
 var is_arr_of_arrs = lang.is_arr_of_arrs;
 var get_a_sig = lang.get_a_sig;
 
+
 var Incrementor = require('./incrementor');
 var Record = require('./record');
 var Field = require('./field');
 var Index = require('./index');
 var Foreign_Key = require('./foreign-key');
+//var Database = require('./database');
 
 var Binary_Encoding = require('binary-encoding');
 var encode_to_buffer = Binary_Encoding.encode_to_buffer;
@@ -477,6 +479,21 @@ class Table {
 
     get_arr_data_index_records() {
         return this.records.get_arr_data_index_records.apply(this.records, arguments);
+    }
+
+    buf_pk_query(arr_pk_part) {
+        //var res = [xas2(this.key_prefix).buffer];
+        //console.log('Database', Database);
+
+        //var res = Database.encode_key(this.key_prefix, arr_pk_part);
+
+        // Binary_Encoding.encode_to_buffer(arr_values, kp);
+        var res = Binary_Encoding.encode_to_buffer(arr_pk_part, this.key_prefix);
+
+
+        return res;
+
+
     }
 
 

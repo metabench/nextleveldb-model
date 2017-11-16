@@ -895,7 +895,7 @@ class Database {
 
         }
 
-        console.log('table', table);
+        //console.log('table', table);
         //throw 'stop';
 
         return table;
@@ -1634,19 +1634,43 @@ var load_arr_core = (arr_core) => {
             field_name = table_field_row[1][0];
         } else if (lv === 2) {
             field_name = table_field_row[1][0];
-            data_type_id = table_field_row[1][1];
+
+            if (typeof table_field_row[1][1] === 'boolean') {
+                //console.log('table_field_row', table_field_row);
+                //throw 'stop';
+                console.log('reinterpreting malformatted field row', table_field_row);
+                is_pk = table_field_row[1][1];
+            } else {
+                data_type_id = table_field_row[1][1];
+            }
+
+            
         } else if (lv === 3) {
             field_name = table_field_row[1][0];
             data_type_id = table_field_row[1][1];
             is_pk = table_field_row[1][2];
         } else if (lv === 4) {
             field_name = table_field_row[1][0];
-            data_type_id = table_field_row[1][1];
-    
-            //console.log('data_type_id', data_type_id);
-    
-            is_pk = table_field_row[1][2];
-            fk_to_table_id = table_field_row[1][3];
+
+            // Bug fix for field encoding problem in early version, wrting bug since fixed.
+            if (typeof table_field_row[1][1] === 'boolean') {
+                //console.log('table_field_row', table_field_row);
+                //throw 'stop';
+                console.log('reinterpreting malformatted field row', table_field_row);
+                data_type_id = table_field_row[1][2];
+                //console.log('data_type_id', data_type_id);
+        
+                is_pk = table_field_row[1][1];
+                fk_to_table_id = table_field_row[1][3];
+            } else {
+                data_type_id = table_field_row[1][1];
+                //console.log('data_type_id', data_type_id);
+        
+                is_pk = table_field_row[1][2];
+                fk_to_table_id = table_field_row[1][3];
+            }
+
+            
         }
 
         var table = db.tables[table_id];
@@ -1669,6 +1693,10 @@ var load_arr_core = (arr_core) => {
         console.log('1) data_type_id', data_type_id);
         if (typeof data_type_id === 'boolean') {
             console.trace();
+            console.log('lv', lv);
+
+            console.log('table_field_row', table_field_row);
+
             throw('data_type_id expected to be integer');
         }
 
