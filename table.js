@@ -496,6 +496,34 @@ class Table {
 
     }
 
+    validate_row(row) {
+        // Need to restore the db 
+        
+        // Row already has a key prefix?
+
+        // Check row length
+
+        // Is row divided into both key and value
+
+        var res = true;
+        var r2 = [row[0].slice(1), row[1]];
+
+        // 
+
+        //console.log('table.fields.length', table.fields.length);
+
+        //console.log('r2.length', r2[0].length + r2[1].length);
+        //console.log('r2', r2);
+
+        if (r2[0].length + r2[1].length !== this.fields.length) {
+            res = false;
+        } else {
+            // check the fields of this to see if the types match.
+
+        }
+        return res;
+    }
+
 
 
 

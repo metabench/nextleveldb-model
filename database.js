@@ -100,6 +100,8 @@ var get_a_sig = lang.get_a_sig;
 var clone = lang.clone;
 var tof = lang.tof;
 
+
+
 var Incrementor = require('./incrementor');
 var Table = require('./table');
 var Record = require('./record');
@@ -181,6 +183,15 @@ class Database {
         var res = new Array(l);
         each(tables, (table, i) => {
             res[i] = [table.id, table.name];
+        })
+        return res;
+    }
+
+    get map_table_kps() {
+        var tables = this.tables, l = tables.length;
+        var res = {};
+        each(tables, (table) => {
+            res[table.key_prefix] = table;
         })
         return res;
     }
