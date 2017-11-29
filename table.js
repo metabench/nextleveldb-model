@@ -50,7 +50,7 @@ const special_characters = {
 //  
 
 
-
+// 29/11/2017 - 
 
 
 
@@ -115,6 +115,8 @@ class Table {
         sig = get_a_sig(a);
         //console.log('Table constructor sig', sig);
 
+        // Could have something in the record def to see if there is an autoincremeinting pk field.
+
 
         if (a.length === 1) {
             var t_spec = tof(spec.name);
@@ -167,10 +169,12 @@ class Table {
                 this.db = db = a[1];
                 //this.record_def = new Record_Def(a[2], this);
                 spec_record_def = a[2];
-                //console.log('spec_record_def', JSON.stringify(spec_record_def));
+                //
             //storage = a[2];
             }
         }
+
+        
 
         // Seems like the primary key incrementor is not being stored correctly for the table.
         //  Should make it so that the table's records includes the primary key incrementor for the table.
@@ -203,27 +207,45 @@ class Table {
 
             // need to go through that array, maybe doing lookups
             //console.log('a[3]', a[3]);
-            //console.log('a[3].length', a[3].length);
-            if (tof(a[3][0]) === 'number') {
-                var inc_fields_id = a[3][0];
-                var inc_indexes_id = a[3][1];
-                var inc_foreign_keys_id = a[3][2];
+            console.log('a[3].length', a[3].length);
 
-                this.inc_fields = db.incrementors[inc_fields_id];
-                this.inc_indexes = db.incrementors[inc_indexes_id];
-                this.inc_foreign_keys = db.incrementors[inc_foreign_keys_id];
-            } else {
-                this.inc_fields = a[3][0];
-                this.inc_indexes = a[3][1];
-                this.inc_foreign_keys = a[3][2];
+            if (a[3].length === 3 || a[3].length === 4) {
+                if (tof(a[3][0]) === 'number') {
+                    var inc_fields_id = a[3][0];
+                    var inc_indexes_id = a[3][1];
+                    var inc_foreign_keys_id = a[3][2];
+    
+                    this.inc_fields = db.incrementors[inc_fields_id];
+                    this.inc_indexes = db.incrementors[inc_indexes_id];
+                    this.inc_foreign_keys = db.incrementors[inc_foreign_keys_id];
+                } else {
+                    this.inc_fields = a[3][0];
+                    this.inc_indexes = a[3][1];
+                    this.inc_foreign_keys = a[3][2];
+                }
             }
-
+            if (a[3].length === 4) {
+                if (tof(a[3][0]) === 'number') {
+                    var inc_pk_id = a[3][3];
+                    this.pk_incrementor = db.incrementors[inc_pk_id];
+                } else {
+                    this.pk_incrementor = a[3][3];
+                }
+            }
             
 
             //var inc_fields = 
             //var inc_indexes = 
             //var inc_foreign_keys = 
         }
+
+        console.log('spec_record_def', JSON.stringify(spec_record_def));
+
+        // Table could have a primary key value incrementor.
+        //  That value could already be set to something.
+
+
+
 
         if (name) this.name = name;
         //console.log('this.name', this.name);
@@ -351,7 +373,16 @@ class Table {
     */
 
     get own_incrementor_ids() {
-        return [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id];
+        var res;
+
+        if (this.pk_incrementor) {
+            res = [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id, this.pk_incrementor.id];
+        } else {
+            res = [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id];
+        }
+
+
+        return res;
     }
     add_field() {
         //var args = Array.prototype.slice.call(arguments);
@@ -466,15 +497,10 @@ class Table {
     get_all_db_records_bin() {
         // include the indexes here? seems not
         console.log('get_all_db_records_bin');
-
         var buf_records = this.records.get_all_db_records_bin.apply(this.records, arguments);
         //  and this makes the index records too?
         //var buf_indexes = 
-
         return buf_records;
-
-
-
     }
 
     get_arr_data_index_records() {

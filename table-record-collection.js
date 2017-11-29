@@ -115,23 +115,55 @@ class Table_Record_Collection {
 
 	}
 
+	// Could do this only for the newer servers.
+	//  Have a lower level function that does it.
+
+	// Though for the moment, we are just doing it in the model here.
+
 	ensure_record_no_overwrite(arr_record) {
-		console.log('arr_record', arr_record);
+		//console.log('ensure_record_no_overwrite arr_record', arr_record);
 
 		// Need to work out which of these fields is the key.
 		var pks, vals;
 
 		if (is_arr_of_arrs(arr_record) && arr_record.length === 2) {
+			console.log('arr_record', arr_record);
 			pks = arr_record[0];
 			vals = arr_record[1];
+			console.trace();
 			throw 'not yet implemented'
 		} else {
 
 			var pk_def = this.table.record_def.pk;
-			console.log('pk_def.length', pk_def.length);
+			//console.log('pk_def.length', pk_def.length);
 
-			console.log('pk_def', pk_def);
+			//console.log('pk_def', pk_def);
 			// Seems an undefined field has crept in there.
+
+			var record_pk_fields = arr_record.slice(0, pk_def.length);
+
+			//console.log('record_pk_fields.length', record_pk_fields.length);
+
+			// then do we already have such a record?
+
+			// try to get the record by key
+
+			//this.table.records.get
+
+			var has_key = this.map_keys.has(record_pk_fields);
+			//console.log('has_key', has_key);
+
+			if (!has_key) {
+				return this.add_record(arr_record);
+			} else {
+				return false;
+			}
+
+			//this.table.
+
+
+
+
 
 			
 
@@ -144,14 +176,16 @@ class Table_Record_Collection {
 	}
 
 	ensure_records_no_overwrite(arr_records) {
-		console.log('trc ensure_records_no_overwrite arr_records.length', arr_records.length);
+		//console.log('trc ensure_records_no_overwrite arr_records.length', arr_records.length);
 		// These records won't contain the table pk.
 
 		// Will need to do key lookup on the records.
 		var that = this;
+		var res = [];
 		each(arr_records, (arr_record) => {
-			that.ensure_record_no_overwrite(arr_record);
-		})
+			res.push(that.ensure_record_no_overwrite(arr_record));
+		});
+		return res;
 
 	}
 	
@@ -508,6 +542,11 @@ class Table_Record_Collection {
 				//console.log('data_length', data_length);
 				//console.log('record.length', record.length);
 
+				//console.log('record', record);
+
+				// Could automatically create a new PK incrementor for every table that gets made / loaded.
+				//  When we load a table from the db, we want to get the current incrementor values.
+
 				if (record.length === data_length - 1) {
 					var kv_record = [[this.table.pk_incrementor.increment()], record];
 					res = new Record(kv_record, this.table);
@@ -549,6 +588,13 @@ class Table_Record_Collection {
 			that.add_record(v);
 		})
 	}
+
+	// Get some kind of a map of the records.
+	//  Could possibly use indexing records in the model too, but not sure about that in some cases.
+
+
+
+
 }
 
 var p = Table_Record_Collection.prototype;

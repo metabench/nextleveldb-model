@@ -326,7 +326,7 @@ class Field {
 
             if (str_prefix_code === '+') {
                 var field_incrementor = this.table.db.new_incrementor('inc_' + this.table.name + '_' + field_name);
-                console.log('field_name', field_name);
+                //console.log('field_name', field_name);
                 // just support a single pk_incrementor for the moment.
                 //that.pk_incrementor = new_inc;
                 this.table.pk_incrementor = field_incrementor;
@@ -414,7 +414,7 @@ class Field {
         // Also include the record type.
         // this.type_id
 
-        console.log('this.type_id', this.type_id);
+        //console.log('this.type_id', this.type_id);
 
         if (this.type_id === null) {
             if (this.is_pk) {

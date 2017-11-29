@@ -807,7 +807,7 @@ class Database {
             // This is to do with the fields table's fields. Need to be somewhat careful with this.
 
             var arr_kv_field_record = field.get_kv_record();
-            console.log('arr_kv_field_record', arr_kv_field_record);
+            //console.log('arr_kv_field_record', arr_kv_field_record);
             //throw 'stop';
             //var tf_record = tbl_fields.add_record([[table.id, field.id], [field.name]]);
 
@@ -1055,6 +1055,12 @@ class Database {
         });
         return Buffer.concat(res);
         //res.concat();
+    }
+
+    ensure_table_records_no_overwrite(table_name, arr_records) {
+        var table = this.map_tables[table_name];
+        // Don't overwrite the keys or the values
+        table.ensure_records_no_overwrite(arr_records);
     }
     // get all model rows...
     //  will be useful for starting a database / loading the right data into place to begin with.
@@ -1388,7 +1394,6 @@ var load_arr_core = (arr_core) => {
 
         db.add_incrementor(inc_id, inc_name, inc_value);
 
-
     });
 
     db.inc_incrementor = db.incrementors[0];
@@ -1560,14 +1565,29 @@ var load_arr_core = (arr_core) => {
 
         // No, don't assign incrementors like this...
 
-
         // Trouble is, it adds the table record index too, incorrectly.
         //var arr_table_incrementors = [db.incrementors[2 + i * incrementors_per_table], db.incrementors[3 + i * incrementors_per_table], db.incrementors[4 + i * incrementors_per_table]];
         arr_table_incrementor_ids = table_table_row[1][1];
         var arr_table_incrementors = [];
+        
         each(arr_table_incrementor_ids, (id) => {
             arr_table_incrementors.push(db.incrementors[id]);
-        })
+        });
+
+        // The primary key incrementor would probably be the last incrementor.
+
+        // Bittrex curencies should have a primary key incrementor.
+        //  Should have that when it's initially set up, and then when persisted to a db record.
+        //  All tables should have the pk incrementor set up, if relevant, when the table is created or remade.
+        //   After this, hopefully the DB will function OK for storing bittrex trades, and resuming the connections.
+        //   DB stuff will take a bit more work. Seems necessary to press on with it, in order to get the data structures back out of the db.
+
+        // Also want to store all of the trade data for bittrex. Will require streaming them or downloading them every few minutes, or both.
+
+        //console.log('arr_table_incrementors.length', arr_table_incrementors.length);
+
+        // Some tables should also have a primary key incrementor.
+        //  In that case, they will have 4 incrementors.
 
 
 
@@ -1586,6 +1606,10 @@ var load_arr_core = (arr_core) => {
         //db.tables.push(table);
         //db.map_tables[table.name] = table;
     });
+
+    // Not sure the incrementors got created in the DB properly.
+
+    //throw 'stop';
 
     //console.log('db.incrementors', db.incrementors);
     //throw 'stop';

@@ -202,6 +202,11 @@ class Record_Def {
     }
 
     set_def(obj_record_def) {
+
+        // Possibly will result in creating a new pk incrementor for the table.
+
+
+
         //console.log('set_def', obj_record_def);
         var pk = this.pk
         var that = this, new_field;
@@ -355,13 +360,15 @@ class Record_Def {
     }
     */
 
+    // Possibility of creating a new pk incrementor in the table if it's a pk field.
+
     add_field(field, id = -1, i_type = null, is_pk = false, fk_to_table) {
         // make the id -1 for no id set here, use incrementor.
 
         // want better parameter handling.
         //  maybe do that later.
 
-        console.log('i_type', i_type);
+        //console.log('i_type', i_type);
 
 
 
@@ -428,6 +435,9 @@ class Record_Def {
     
                 if (item_field.is_pk) {
                     this.pk.add_field(item_field);
+
+                    // Ensure the table has got a pk incrementor?
+
                 }
             }
 
