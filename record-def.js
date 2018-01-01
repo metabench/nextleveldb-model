@@ -9,7 +9,7 @@ var get_a_sig = lang.get_a_sig;
 var Incrementor = require('./incrementor');
 var Record = require('./record');
 var Field = require('./field');
-var Index = require('./index');
+var Index = require('./index-def');
 var Foreign_Key = require('./foreign-key');
 var Primary_Key = require('./primary-key');
 
@@ -25,7 +25,7 @@ class Record_Def {
     // Not sure I like this record def all that much?
     //  Hard to decide where to draw the line between Table and this.
     //  
-    
+
     // This will takes some of the parsing out of the Table constructor.
 
     // I wonder if this is too big a change.
@@ -141,7 +141,7 @@ class Record_Def {
                 // get the data type of that field.
                 var pk_field = o_table.pk.fields[0];
 
-                
+
                 //console.log('pk_field.type_id', pk_field.type_id);
                 // type_id
                 //throw 'stop';
@@ -209,7 +209,8 @@ class Record_Def {
 
         //console.log('set_def', obj_record_def);
         var pk = this.pk
-        var that = this, new_field;
+        var that = this,
+            new_field;
 
         // is it an array, with 2 items?
         //  if each of those is an array, it's 
@@ -234,7 +235,10 @@ class Record_Def {
             // will need to put the system's storage into key value pairs.
 
             // Use the table fields incrementor?
-            var kv_def = this.kv_def = [[], []];
+            var kv_def = this.kv_def = [
+                [],
+                []
+            ];
             each(obj_record_def, (item, i) => {
                 //first_char = item[0];
                 //console.log('first_char', first_char);
@@ -248,11 +252,11 @@ class Record_Def {
 
 
                 // Add fields to the primary key...
-                
+
                 //if (new_field.is_pk) {
-                    //pk.add_field(new_field);
+                //pk.add_field(new_field);
                 //}
-                
+
                 // Already added to pk?
                 //  Seems so, maybe its a side-effect elsewhere.
 
@@ -338,7 +342,7 @@ class Record_Def {
             // Adding fields should maybe put the field into the fields table.
             // check the typr of these...
             //console.log('tof(kv_def[0])', tof(kv_def[0]));
-            
+
         }
     }
 
@@ -432,7 +436,7 @@ class Record_Def {
             if (!this.map_fields[field_name]) {
                 this.fields.push(item_field);
                 this.map_fields[field_name] = item_field;
-    
+
                 if (item_field.is_pk) {
                     this.pk.add_field(item_field);
 
@@ -441,7 +445,7 @@ class Record_Def {
                 }
             }
 
-            
+
 
 
             //this.add_field_to_fields_table(item_field);
@@ -487,7 +491,7 @@ class Record_Def {
         if (!(foreign_table instanceof Table)) {
             foreign_table = this.table.db.map_tables[foreign_table];
             if (!foreign_table) {
-                throw 'Table not found'; 
+                throw 'Table not found';
             }
         };
 
@@ -509,12 +513,34 @@ class Record_Def {
 
     }
 
+    get_arr_record_index_values(arr_record) {
+        //console.log('arr_record', arr_record);
+        var res = [];
+
+        each(this.indexes, index => {
+            //console.log('index', index);
+
+            var arr_rec_idx = index.arr_record_to_index_arr_data(arr_record);
+            res.push(arr_rec_idx);
+        });
+
+        // The index fields array daya
+        //  won't have index prefix, index number, 
+
+        //console.log('res', res);
+
+
+        //throw 'stop';
+        return res;
+    }
+
     add_index(idx) {
 
 
         //could give it more params.
 
-        var a = arguments; a.l = a.length;
+        var a = arguments;
+        a.l = a.length;
 
 
         // Index should maybe use OO index objects, if it would help to structure the code better.
@@ -560,7 +586,7 @@ class Record_Def {
                 idx_2 = new Index(idx, this.table, id);
                 // index with idx spec, to this table with given id.
 
-            //console.log('idx_2', idx_2);
+                //console.log('idx_2', idx_2);
             } else {
                 //console.log('add_index sig', sig);
 
@@ -614,7 +640,7 @@ class Record_Def {
 
 
 
-            
+
         }
 
 

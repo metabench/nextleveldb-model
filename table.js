@@ -10,7 +10,7 @@ var get_a_sig = lang.get_a_sig;
 var Incrementor = require('./incrementor');
 var Record = require('./record');
 var Field = require('./field');
-var Index = require('./index');
+var Index = require('./index-def');
 var Foreign_Key = require('./foreign-key');
 //var Database = require('./database');
 
@@ -82,7 +82,9 @@ class Table {
 
 
 
-        var a = arguments, sig; a.l = a.length;
+        var a = arguments,
+            sig;
+        a.l = a.length;
 
         //console.log('Table constructor 
 
@@ -105,7 +107,8 @@ class Table {
 
         //var 
 
-        var that = this, t, field_name, new_field;
+        var that = this,
+            t, field_name, new_field;
 
         // The table linking back to the db, so that it can get the global incrementor.
         var name, db, storage;
@@ -151,7 +154,7 @@ class Table {
             name = a[0];
             this.db = db = a[1];
         }
-        
+
 
 
         if (a.length === 3) {
@@ -170,11 +173,11 @@ class Table {
                 //this.record_def = new Record_Def(a[2], this);
                 spec_record_def = a[2];
                 //
-            //storage = a[2];
+                //storage = a[2];
             }
         }
 
-        
+
 
         // Seems like the primary key incrementor is not being stored correctly for the table.
         //  Should make it so that the table's records includes the primary key incrementor for the table.
@@ -214,7 +217,7 @@ class Table {
                     var inc_fields_id = a[3][0];
                     var inc_indexes_id = a[3][1];
                     var inc_foreign_keys_id = a[3][2];
-    
+
                     this.inc_fields = db.incrementors[inc_fields_id];
                     this.inc_indexes = db.incrementors[inc_indexes_id];
                     this.inc_foreign_keys = db.incrementors[inc_foreign_keys_id];
@@ -232,14 +235,12 @@ class Table {
                     this.pk_incrementor = a[3][3];
                 }
             }
-            
-
             //var inc_fields = 
             //var inc_indexes = 
             //var inc_foreign_keys = 
         }
 
-        console.log('spec_record_def', JSON.stringify(spec_record_def));
+        //console.log('spec_record_def', JSON.stringify(spec_record_def));
 
         // Table could have a primary key value incrementor.
         //  That value could already be set to something.
@@ -284,7 +285,7 @@ class Table {
             throw 'Create new incrementors not connected to db';
 
         }
-        
+
         if (spec_record_def) {
             //console.log('spec_record_def', spec_record_def);
 
@@ -357,20 +358,20 @@ class Table {
     }
 
     add_index() {
-        //this.record_def.add_index.apply(this.record_def, arguments);
-        return this.record_def.add_index.apply(this.record_def, arguments);
+            //this.record_def.add_index.apply(this.record_def, arguments);
+            return this.record_def.add_index.apply(this.record_def, arguments);
 
 
 
-        //return this.record_def.add_index.apply(this, arguments);
-    }
-    /*
-    add_field() {
-        var args = Array.prototype.slice.call(arguments);
-        args.push(this);
-        return this.record_def.add_field.apply(this.record_def, args);
-    }
-    */
+            //return this.record_def.add_index.apply(this, arguments);
+        }
+        /*
+        add_field() {
+            var args = Array.prototype.slice.call(arguments);
+            args.push(this);
+            return this.record_def.add_field.apply(this.record_def, args);
+        }
+        */
 
     get own_incrementor_ids() {
         var res;
@@ -406,9 +407,9 @@ class Table {
     }
 
     add_records_including_table_id_in_key() {
-        return this.records.add_records_including_table_id_in_key.apply(this.records, arguments);
-    }
-    // add_records_including_table_id_in_key
+            return this.records.add_records_including_table_id_in_key.apply(this.records, arguments);
+        }
+        // add_records_including_table_id_in_key
 
     new_record() {
         return this.records.new_record.apply(this.records, arguments);
@@ -446,13 +447,13 @@ class Table {
     }
 
     get field_names() {
-        var res = [];
-        each(this.fields, (field) => {
-            res.push(field.name);
-        });
-        return res;
-    }
-    // and the index instances of the records?
+            var res = [];
+            each(this.fields, (field) => {
+                res.push(field.name);
+            });
+            return res;
+        }
+        // and the index instances of the records?
 
     get_map_lookup(field_name) {
         // looks it up to the primary key.
@@ -474,7 +475,7 @@ class Table {
             // Change it to flat array
             var arr_rec = record.to_flat_arr();
             //console.log('arr_rec', arr_rec);
-            
+
             var field_value = arr_rec[i_field];
             //console.log('field_value', field_value);
 
@@ -524,7 +525,7 @@ class Table {
 
     validate_row(row) {
         // Need to restore the db 
-        
+
         // Row already has a key prefix?
 
         // Check row length
@@ -554,7 +555,7 @@ class Table {
 
 
     //get_table_table_db_records_bin() {
-        // (the record for the table table + single (so far) record for indexing)
+    // (the record for the table table + single (so far) record for indexing)
 
     //}
 
@@ -587,4 +588,3 @@ var p = Table.prototype;
 p.get_obj_map = p.get_map_lookup;
 
 module.exports = Table;
-

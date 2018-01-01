@@ -8,8 +8,12 @@ var flexi_encode_item = Binary_Encoding.flexi_encode_item;
 // Likely will be better when indexes themselves get their own database records.
 //  Better for persistance of db record structure.
 
+// Will have actual OO index records.
+//  Ability to tell them from other objects
+//  Will basically have an array 
 
-class Index {
+
+class Index_Def {
     // All of the index capability takes place within the key.
 
     // Possibly table fields needs its own table.
@@ -54,10 +58,11 @@ class Index {
 
 
 
-    'constructor'(spec) {
+    'constructor' (spec) {
         //console.log('\nIndex constructor');
         var a = arguments;
-        var l = arguments.length, t;
+        var l = arguments.length,
+            t;
 
         var arr_def, table, id;
 
@@ -135,7 +140,8 @@ class Index {
 
             //console.log('this.table', this.table);
 
-            var map_fields = this.table.record_def.map_fields, i_field;
+            var map_fields = this.table.record_def.map_fields,
+                i_field;
 
             //console.log('map_fields', map_fields);
             //console.log('arr_def', arr_def);
@@ -199,6 +205,8 @@ class Index {
 
         //console.log('Index constructor complete, this', this);
 
+        // Have the 
+
     }
 
     get key_field_ids() {
@@ -245,18 +253,22 @@ class Index {
     // 
 
 
-    'to_arr_record_def'() {
+    'to_arr_record_def' () {
         // [table_id, index_id (within table)][arr_key_fields, arr_value_fields]
         //  [arr_key_fields, arr_value_fields] are encoded as numbers, each field is just the field id
 
         // [table_id, index_id (within table)][arr_key_field_ids, arr_value_field_ids];
 
-        return [[this.table.id, this.id], this.kv_field_ids];
+        return [
+            [this.table.id, this.id], this.kv_field_ids
+        ];
 
 
     }
 
-    'index_record'(record) {
+    'index_record' (record) {
+        // This should be called when adding data to a model.
+
         console.log('index_record_data', record);
         throw 'stop';
     }
@@ -266,7 +278,7 @@ class Index {
     //   each refers to the table, and the field id
     //   
 
-    'record_to_key_string'(record) {
+    'record_to_key_string' (record) {
         //console.log('record', record);
         var record_key = record.key;
         var data = record.arr_data;
@@ -285,7 +297,45 @@ class Index {
 
     }
 
-    'record_to_index_arr_data'(record) {
+    'arr_record_to_index_arr_data' (arr_record, num_pk_fields = 1) {
+
+        // Go through the index key fields
+        //console.log('arr_record', arr_record);
+
+
+
+        var table = this.table;
+        var table_ikp = table.indexes_key_prefix;
+        //var arr_res = [(table_ikp), this.id];
+        var arr_res = [];
+
+        // Number of pk fields in the record?
+
+        each(this.key_fields, (key_field) => {
+            // Where do we get the -1 from?
+            //  It's the number of pk fields within the record?
+
+
+            var item_value = arr_record[key_field.id - num_pk_fields];
+            // Could be a problem with this, using -1.
+
+            //console.log('key_field.id', key_field.id);
+            arr_res.push((item_value));
+        });
+        //console.log('arr_res', arr_res);
+        //throw 'stop';
+        //console.log('this.value_fields', this.value_fields);
+        /*
+        each(this.value_fields, (value_field) => {
+            //console.log('value_field.id', value_field.id);
+            var item_value = arr_record[value_field.id];
+            arr_res.push((item_value));
+        });
+        */
+        return arr_res;
+    }
+
+    'record_to_index_arr_data' (record) {
         var table = this.table;
         var table_ikp = table.indexes_key_prefix;
         var arr_res = [(table_ikp), this.id];
@@ -304,7 +354,7 @@ class Index {
         return arr_res;
     }
 
-    'record_to_index_buffer'(record) {
+    'record_to_index_buffer' (record) {
         // need to use a map of record fields to the values?
         //  keep the values within the field objects within records?
         //   maybe too OO and slow, unnecessary. Keeping data as arrays seems easier / more efficient.
@@ -315,7 +365,7 @@ class Index {
         //console.log('this', this);
         //console.log('this.key_fields', this.key_fields);
         //console.log('this.value_fields', this.value_fields);
-        
+
 
 
         var record_key = record.key;
@@ -349,7 +399,7 @@ class Index {
 
         var arr_res = [xas2(table_ikp).buffer, xas2(id).buffer];
         var record_flat_data = record.key.concat(record.value);
-        
+
 
         each(this.key_fields, (key_field) => {
             var item_value = record_flat_data[key_field.id];
@@ -360,10 +410,10 @@ class Index {
             arr_res.push(flexi_encode_item(item_value));
         });
 
-        
-        
 
-        
+
+
+
 
         //throw 'stop';
 
@@ -379,4 +429,4 @@ class Index {
 
 }
 
-module.exports = Index;
+module.exports = Index_Def;

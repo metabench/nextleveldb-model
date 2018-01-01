@@ -199,13 +199,30 @@ class Record {
         //console.log('this.value', this.value);
     }
 
+    // Could have more to do with getting self in various js formats, then encoding that with Binary_Encoding.
+    //  Binary_encoding would handle the details of array lengths and noting that something is stored in an array.
+
+    // That would make for a simpler system to encode and decode records, on the server and on the client.
+    //  Binary_Encoding should be good enough for this.
+    //  However at times, just need the buffers in order to put them into the database.
+
+    // Getting arrays of buffers back makes sense when we are going to execute a batch DB put.
+
+
+
+
+
     to_arr_buf() {
         // needs to know the table.
+
     }
 
     to_buffer() {
         // We will know its a record anyway.
         //  No need to encode a data type.
+
+
+        // Seems like an OK way of doing it, but just using Binary_Encoding could make for cleaner code.
 
         // Length of key, key, length of value, value
 
@@ -215,13 +232,25 @@ class Record {
 
     }
 
+
+
     // to buffer, with indexes
     //  Would need a somewhat more complex format...?
     //  key value pair, then number of index records, then each index record preceeded by its length.
 
     //  Would probably be functional / event driven processing on the server.
 
+    // It seems this could be done in a more standard way.
+
+    // Could use Binary_Encoding as standard.
+    //  Don't just want them joined together in a buffer, it's harder to read that way.
+
+
+    // Maybe could do more to standardise the formats that the data goes to the DB in.
+    //  Just using Binary_Encoding.
+
     // Maybe this is better done by the table.
+
     to_buffer_with_indexes() {
 
         // The record itself.
@@ -229,6 +258,9 @@ class Record {
         //   Maybe not necessary to encode that?
         //    We could also know how many indexes there are.
         //  Better to encode the number of fields in the key, num in the value
+
+        // Could use a more standard type of encoding for multiple fields.
+
 
         var arr_res = [this.to_buffer(), this.index_db_records_to_buffer()];
         return Buffer.concat(arr_res);
@@ -240,7 +272,25 @@ class Record {
 
     }
 
+    to_arr_buffer_with_indexes() {
+        var res = [this.get_own_record_bin()];
+        res = res.concat(this.index_db_records_to_arr_buffers());
+        return res;
+    }
+
+    index_db_records_to_arr_buffers() {
+        var indexes = this.table.indexes;
+        var record = this;
+        var res = [];
+        each(indexes, (index) => {
+            res.push(index.record_to_index_buffer(record));;
+        });
+        return (res);
+    }
+
     index_db_records_to_buffer() {
+
+
         // Could do this much more simply.
         // Have all records as key value pairs.
         //  Have some kind of array specification in Binary_Encoding.

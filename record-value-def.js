@@ -8,7 +8,7 @@ var is_arr_of_arrs = lang.is_arr_of_arrs;
 var Incrementor = require('./incrementor');
 var Record = require('./record');
 var Field = require('./field');
-var Index = require('./index');
+var Index = require('./index-def');
 var Foreign_Key = require('./foreign-key');
 
 var Binary_Encoding = require('binary-encoding');
