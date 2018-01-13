@@ -5,8 +5,8 @@
     "dependencies": {
         "binary-encoding": "^0.0.33",
         "deep-equal": "^1.0.1",
-        "lang-mini": "^0.0.1",
-        "moment": "^2.18.1",
+        "lang-mini": "^0.0.2",
+        "moment": "^2.20.1",
         "xas2": "^0.0.10"
     },
     "engines": {
@@ -18,5 +18,5 @@
         "type": "git",
         "url": "https://github.com/metabench/nextleveldb-model.git"
     },
-    "version": "0.0.13"
+    "version": "0.0.14"
 }

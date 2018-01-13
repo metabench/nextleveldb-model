@@ -210,7 +210,7 @@ class Table {
 
             // need to go through that array, maybe doing lookups
             //console.log('a[3]', a[3]);
-            console.log('a[3].length', a[3].length);
+            //console.log('a[3].length', a[3].length);
 
             if (a[3].length === 3 || a[3].length === 4) {
                 if (tof(a[3][0]) === 'number') {
