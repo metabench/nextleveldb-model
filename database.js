@@ -132,6 +132,11 @@ const NT_STRING = 2;
 const NT_FLOAT32_LE = 3;
 
 class Database {
+
+    // Database could have a name.
+    //  Storing a name as a DB Property would be useful.
+    //  A System Properties table would be of use.
+
     constructor(spec) {
         this.__type_name = 'database';
 

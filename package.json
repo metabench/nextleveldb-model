@@ -3,11 +3,11 @@
     "main": "model.js",
     "license": "MIT",
     "dependencies": {
-        "binary-encoding": "^0.0.33",
+        "binary-encoding": "^0.0.35",
         "deep-equal": "^1.0.1",
         "lang-mini": "^0.0.2",
         "moment": "^2.20.1",
-        "xas2": "^0.0.10"
+        "xas2": "^0.0.11"
     },
     "engines": {
         "node": ">=8.5.0"
@@ -18,5 +18,5 @@
         "type": "git",
         "url": "https://github.com/metabench/nextleveldb-model.git"
     },
-    "version": "0.0.14"
+    "version": "0.0.16"
 }
