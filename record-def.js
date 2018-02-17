@@ -1,23 +1,24 @@
-var lang = require('lang-mini');
-var tof = lang.tof;
-var xas2 = require('xas2');
-var each = lang.each;
-var is_arr_of_strs = lang.is_arr_of_strs;
-var is_arr_of_arrs = lang.is_arr_of_arrs;
-var get_a_sig = lang.get_a_sig;
+const lang = require('lang-mini');
+const tof = lang.tof;
+const xas2 = require('xas2');
+const each = lang.each;
+const is_array = lang.is_array;
+const is_arr_of_strs = lang.is_arr_of_strs;
+const is_arr_of_arrs = lang.is_arr_of_arrs;
+const get_a_sig = lang.get_a_sig;
 
-var Incrementor = require('./incrementor');
-var Record = require('./record');
-var Field = require('./field');
-var Index = require('./index-def');
-var Foreign_Key = require('./foreign-key');
-var Primary_Key = require('./primary-key');
+const Incrementor = require('./incrementor');
+const Record = require('./record');
+const Field = require('./field');
+const Index = require('./index-def');
+const Foreign_Key = require('./foreign-key');
+const Primary_Key = require('./primary-key');
 
 
-var Binary_Encoding = require('binary-encoding');
-var encode_to_buffer = Binary_Encoding.encode_to_buffer;
+const Binary_Encoding = require('binary-encoding');
+const encode_to_buffer = Binary_Encoding.encode_to_buffer;
 
-var Record_Value_Def = require('./record-value-def');
+const Record_Value_Def = require('./record-value-def');
 
 //var Table = require('./table');
 class Record_Def {
@@ -221,6 +222,12 @@ class Record_Def {
         //console.trace();
         //throw 'stop';
 
+        // It's an array, process the items in the array one by one.
+        //  Deal with items that are specified differently in different ways.
+        //  Some of them will have given types, as in [name, Type]
+
+
+
         if (is_arr_of_strs(obj_record_def)) {
             //console.log('storage', storage);
             //console.log('is_arr_of_strs');
@@ -246,6 +253,11 @@ class Record_Def {
                 //console.log('item', item);
                 //throw 'stop';
                 new_field = that.add_field(item);
+                // With autoincrement fields it should know the type.
+                //  Should be one of the native types.
+
+                // Native types could be set up at the beginning anyway.
+
 
                 // Some fields have got built in indexes.
                 //  Adding the field should also add the index where necessary.
@@ -366,6 +378,8 @@ class Record_Def {
 
     // Possibility of creating a new pk incrementor in the table if it's a pk field.
 
+    // Generally would be better to set the field type.
+
     add_field(field, id = -1, i_type = null, is_pk = false, fk_to_table) {
         // make the id -1 for no id set here, use incrementor.
 
@@ -417,12 +431,11 @@ class Record_Def {
             // This is tricky, because the table is not fully defined.
             //  Its record def could be in the midst of being constructed.
             //console.log('field_name', field_name);
+
             item_field = new Field(field_name, table, id, i_type, is_pk, fk_to_table);
 
             // Then could receive something back from the field object saying that it has an index?
             //  Saying that it is unique, then we set up the unique index.
-
-
         }
 
 

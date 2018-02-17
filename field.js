@@ -9,11 +9,11 @@ const special_characters = {
     '+': true
 }
 
-const NT_XAS2_NUMBER = 0;
-const NT_DATE = 1;
-const NT_TIME = 1;
-const NT_STRING = 2;
-const NT_FLOAT32_LE = 3;
+const NT_XAS2_NUMBER = 1;
+const NT_DATE = 2;
+const NT_TIME = 3;
+const NT_STRING = 4;
+const NT_FLOAT32_LE = 5;
 
 const map_nt_ids = {
     'xas2': 0,
@@ -64,8 +64,10 @@ class Field {
 
 
 
-    'constructor'() {
-        var a = arguments, l = a.length, t;
+    'constructor' () {
+        var a = arguments,
+            l = a.length,
+            t;
         // is the field a key?
         //  
 
@@ -178,7 +180,7 @@ class Field {
                 this.fk_to_table = a[5];
             }
 
-            
+
 
             //this.fk_to_table = a[4];
             //console.trace();
@@ -268,7 +270,7 @@ class Field {
         //console.log('t_field', t_field);
         if (t_field === 'string') {
 
-            
+
 
             // Also split out the part in brackets.
             var str_type;
@@ -277,47 +279,48 @@ class Field {
             // parse the field name.
 
             var parse_field_name = (str_field_name) => {
-                //console.log('str_field_name', str_field_name);
-                // Check to see if there is ' fk=> '
-                //  If so, we split in two and have a fk_table var
+                    //console.log('str_field_name', str_field_name);
+                    // Check to see if there is ' fk=> '
+                    //  If so, we split in two and have a fk_table var
 
-                var fk_table = null;
+                    var fk_table = null;
 
-                var pos0, pos1;
-                var str_type = null;
-                var str_prefix_code = null, field_name, first_char;
+                    var pos0, pos1;
+                    var str_type = null;
+                    var str_prefix_code = null,
+                        field_name, first_char;
 
-                pos0 = str_field_name.indexOf(' fk=> ');
-                if (pos0 > 0) {
-                    var s_str_field_name = str_field_name.split(' fk=> ');
-                    str_field_name = s_str_field_name[0];
-                    fk_table = s_str_field_name[1];
-                
+                    pos0 = str_field_name.indexOf(' fk=> ');
+                    if (pos0 > 0) {
+                        var s_str_field_name = str_field_name.split(' fk=> ');
+                        str_field_name = s_str_field_name[0];
+                        fk_table = s_str_field_name[1];
+
+                    }
+
+                    pos0 = str_field_name.indexOf('(');
+                    if (pos0 > -1) {
+                        pos0++;
+                        pos1 = str_field_name.indexOf(')', pos0);
+                        str_type = str_field_name.substring(pos0, pos1);
+                        pos0--;
+                    } else {
+                        pos0 = str_field_name.length;
+                    }
+
+                    if (special_characters[str_field_name[0]]) {
+                        str_prefix_code = str_field_name[0];
+
+
+                        field_name = str_field_name.substring(1, pos0);
+                    } else {
+                        field_name = str_field_name.substring(0, pos0);
+                    }
+
+                    return [str_prefix_code, field_name, str_type, fk_table];
+
                 }
-
-                pos0 = str_field_name.indexOf('(');
-                if (pos0 > -1) {
-                    pos0++;
-                    pos1 = str_field_name.indexOf(')', pos0);
-                    str_type = str_field_name.substring(pos0, pos1);
-                    pos0--;
-                } else {
-                    pos0 = str_field_name.length;
-                }
-
-                if (special_characters[str_field_name[0]]) {
-                    str_prefix_code = str_field_name[0];
-
-
-                    field_name = str_field_name.substring(1, pos0);
-                } else {
-                    field_name = str_field_name.substring(0, pos0);
-                }
-
-                return [str_prefix_code, field_name, str_type, fk_table];
-
-            }
-            [str_prefix_code, field_name, str_type, fk_table] = parse_field_name(str_field);
+                [str_prefix_code, field_name, str_type, fk_table] = parse_field_name(str_field);
             //console.log('[str_prefix_code, field_name, str_type]', [str_prefix_code, field_name, str_type]);
 
             this.name = field_name;
@@ -352,7 +355,11 @@ class Field {
                 var arr_pk_fields = this.table.record_def.pk.fields;
 
 
-                var idx = this.table.add_index([[this], arr_pk_fields]);
+
+                // A unique index here.
+                var idx = this.table.add_index([
+                    [this], arr_pk_fields
+                ]);
 
 
             }
@@ -379,15 +386,6 @@ class Field {
                 //this.table.add
             }
 
-            /*
-
-            
-
-            */
-
-            
-            
-
             if (field_incrementor) {
                 //   Field may be given a primary key incrementor, for incrementing its value, or just an incrementor for incrementing its value, not pk. I suppose this will be used for pk though.
 
@@ -399,14 +397,15 @@ class Field {
         } else {
             console.trace();
             console.log('a', a);
-            throw('expected string');
+            throw ('expected string');
         }
 
-        
+
     }
     get_kv_record() {
         var res;
-        var table = this.table, field = this;
+        var table = this.table,
+            field = this;
 
         // need a record type as well.
         // From now on, this will get encoded in many cases, it will be null much of the time.
@@ -418,43 +417,67 @@ class Field {
 
         if (this.type_id === null) {
             if (this.is_pk) {
-                
+
 
                 if (this.fk_to_table) {
-                    res = [[table.id, field.id], [field.name, null, true, this.fk_to_table.id]];
+                    res = [
+                        [table.id, field.id],
+                        [field.name, null, true, this.fk_to_table.id]
+                    ];
                 } else {
-                    res = [[table.id, field.id], [field.name, null, true]];
+                    res = [
+                        [table.id, field.id],
+                        [field.name, null, true]
+                    ];
                 }
 
             } else if (this.fk_to_table) {
-                res = [[table.id, field.id], [field.name, null, null, this.fk_to_table.id]];
+                res = [
+                    [table.id, field.id],
+                    [field.name, null, null, this.fk_to_table.id]
+                ];
             } else {
-                res = [[table.id, field.id], [field.name]];
+                res = [
+                    [table.id, field.id],
+                    [field.name]
+                ];
             }
         } else {
             if (this.is_pk) {
                 if (this.fk_to_table) {
-                    res = [[table.id, field.id], [field.name, this.type_id, true, this.fk_to_table.id]];
+                    res = [
+                        [table.id, field.id],
+                        [field.name, this.type_id, true, this.fk_to_table.id]
+                    ];
                 } else {
-                    res = [[table.id, field.id], [field.name, this.type_id, true]];
+                    res = [
+                        [table.id, field.id],
+                        [field.name, this.type_id, true]
+                    ];
                 }
             } else if (this.fk_to_table) {
-                res = [[table.id, field.id], [field.name, this.type_id, null, this.fk_to_table.id]];
+                res = [
+                    [table.id, field.id],
+                    [field.name, this.type_id, null, this.fk_to_table.id]
+                ];
             } else {
-                res = [[table.id, field.id], [field.name, this.type_id]];
+                res = [
+                    [table.id, field.id],
+                    [field.name, this.type_id]
+                ];
             }
         }
         return res;
     }
     get description() {
         //var res = this.name + ': type_id: ' + this.type_id + ' ' + (this.is_pk ? 'PRIMARY KEY ' : '') + (this.fk_to_table) ? 'FOREIGN KEY TO ' + this.fk_to_table.name : '';
-        
+
         var res = this.name + ': type_id: ' + this.type_id;
         if (this.is_pk) {
             res = res + ' PRIMARY KEY';
         }
 
-        return res; 
+        return res;
     }
     update_db_record() {
         var db_record = this.db_record;

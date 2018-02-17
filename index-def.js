@@ -302,8 +302,6 @@ class Index_Def {
         // Go through the index key fields
         //console.log('arr_record', arr_record);
 
-
-
         var table = this.table;
         var table_ikp = table.indexes_key_prefix;
         //var arr_res = [(table_ikp), this.id];
