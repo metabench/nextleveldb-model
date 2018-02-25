@@ -106,6 +106,9 @@ var Binary_Encoding = require('binary-encoding');
 var xas2 = require('xas2');
 // should have some connected model classes, extending these.
 
+
+const deep_diff = require('deep-object-diff');
+
 // However, we should include the native types.
 //  Don't completely correspond to the encoding number
 //  could have the type and the value encoded. Eg true, false, positive int 0, positive int 1
@@ -551,6 +554,29 @@ class Database {
         return table;
     }
 
+    table_exists(table_name) {
+        return !!this.map_tables[table_name];
+    }
+
+    ensure_table(table_def) {
+        var sig = get_a_sig(table_def);
+        if (sig === '[s,a]') {
+            let name = a[0];
+            if (this.table_exists(name)) {
+                // nothing to do
+                return true;
+            } else {
+                var spec_record_def = a[1];
+                return this.add_table(table_def);
+            }
+
+            // check if the table exists.
+
+            //var spec_record_def = a[1];
+            //table = new Table(name, this, spec_record_def);
+        }
+    }
+
     each_record(cb_record) {
         each(this.tables, (table) => {
             //console.log('table', table);
@@ -584,6 +610,31 @@ class Database {
     // to_buffer
     // Maybe worth retiring or renaming this.
     //  Gets an array of encoded rows.
+
+
+    get_arr_model_rows() {
+        var incrementors = this.incrementors;
+        var tables = this.tables;
+        var res = [];
+
+        each(incrementors, (incrementor) => {
+            var incrementor_db_records = incrementor.get_all_db_records();
+            each(incrementor_db_records, (incrementor_db_record) => {
+                res.push(incrementor_db_record);
+            });
+        });
+
+        each(tables, (table) => {
+            var table_all_db_records = table.get_all_db_records();
+            each(table_all_db_records, (table_db_record) => {
+                res.push(table_db_record);
+            });
+        });
+        return res;
+    }
+
+
+    // Is there a way to get these decoded to start with, rather than getting all db records bin
 
     // Gets them as binary
     get_model_rows() {
@@ -668,6 +719,21 @@ class Database {
 
 
         return table.ensure_records_no_overwrite(arr_records);
+    }
+
+
+    diff(model_db) {
+        // diffing this against model_table
+
+        let my_rows = this.get_arr_model_rows();
+        let other_rows = model_db.get_arr_model_rows();
+        // can use deep-object-diff
+
+        let diff = deep_diff(my_rows, other_rows);
+
+        console.log('diff', diff);
+
+
     }
     // get all model rows...
     //  will be useful for starting a database / loading the right data into place to begin with.

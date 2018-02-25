@@ -210,23 +210,7 @@ class Index_Def {
     }
 
     get key_field_ids() {
-
-        //console.log('this.table.name', this.table.name);
-
         var res = [this.table.id, this.id];
-        //var res = [];
-
-        // then index_type
-        //  Only have unique index for the moment.
-        //   Think about sorted sequential indexes in the db.
-        //    Should be sorted according the the values, buy the index prefix.
-
-        // I think unique indexes will be the first type for the moment.
-        //  Then could have 'bucket' indexes, where the index can refer to more than one record?
-
-
-
-
         each(this.key_fields, (key_field) => {
             res.push(key_field.id);
         });
@@ -279,15 +263,12 @@ class Index_Def {
     //   
 
     'record_to_key_string' (record) {
-        //console.log('record', record);
         var record_key = record.key;
         var data = record.arr_data;
         var table = record.table;
         var map_fields = table.record_def.map_fields;
         var record_flat_data = record.key.concat(record.value);
         var arr_res = [];
-        //console.log('this.key_fields', this.key_fields);
-        //throw 'stop';
         each(this.key_fields, (key_field) => {
             var item_value = record_flat_data[key_field.id];
             arr_res.push((item_value));
@@ -298,38 +279,13 @@ class Index_Def {
     }
 
     'arr_record_to_index_arr_data' (arr_record, num_pk_fields = 1) {
-
-        // Go through the index key fields
-        //console.log('arr_record', arr_record);
-
         var table = this.table;
         var table_ikp = table.indexes_key_prefix;
-        //var arr_res = [(table_ikp), this.id];
         var arr_res = [];
-
-        // Number of pk fields in the record?
-
         each(this.key_fields, (key_field) => {
-            // Where do we get the -1 from?
-            //  It's the number of pk fields within the record?
-
-
             var item_value = arr_record[key_field.id - num_pk_fields];
-            // Could be a problem with this, using -1.
-
-            //console.log('key_field.id', key_field.id);
             arr_res.push((item_value));
         });
-        //console.log('arr_res', arr_res);
-        //throw 'stop';
-        //console.log('this.value_fields', this.value_fields);
-        /*
-        each(this.value_fields, (value_field) => {
-            //console.log('value_field.id', value_field.id);
-            var item_value = arr_record[value_field.id];
-            arr_res.push((item_value));
-        });
-        */
         return arr_res;
     }
 
@@ -353,52 +309,16 @@ class Index_Def {
     }
 
     'record_to_index_buffer' (record) {
-        // need to use a map of record fields to the values?
-        //  keep the values within the field objects within records?
-        //   maybe too OO and slow, unnecessary. Keeping data as arrays seems easier / more efficient.
-
-        // That would help to ensure we have the indexes in the right format.
-        //console.log('record_to_index_buffer');
-        //console.log('record', record);
-        //console.log('this', this);
-        //console.log('this.key_fields', this.key_fields);
-        //console.log('this.value_fields', this.value_fields);
-
-
-
         var record_key = record.key;
         var record_value = record.value;
-
         var data = record.arr_data;
-
-        //console.log('record_key', record_key);
-        //console.log('record_value', record_value);
-        //console.log('data', data);
-        //console.log('this.arr_def', this.arr_def);
         var table = record.table;
         var map_fields = table.record_def.map_fields;
-        //console.log('map_fields', map_fields);
-
         var id = this.id;
-        //console.log('id', id);
-        //throw 'stop';
         var table_ikp = table.indexes_key_prefix;
-
-        //var table = this.
-
-        // table index space, index id, values from index key, pk value
-        //  first two items just encoded as xas2, others with Binary_Encoding
-
-        // table ikp, id of the index, then the value which is being indexed, then the key to the record it points towards.
-
-        // in binary encoding.
-
-
 
         var arr_res = [xas2(table_ikp).buffer, xas2(id).buffer];
         var record_flat_data = record.key.concat(record.value);
-
-
         each(this.key_fields, (key_field) => {
             var item_value = record_flat_data[key_field.id];
             arr_res.push(flexi_encode_item(item_value));
@@ -407,20 +327,29 @@ class Index_Def {
             var item_value = record_flat_data[value_field.id];
             arr_res.push(flexi_encode_item(item_value));
         });
-
-
-
-
-
-
-        //throw 'stop';
-
-
-
-        //return [Buffer.concat(arr_res), []];
         return Buffer.concat(arr_res);
+    }
 
+    record_to_index_arr() {
+        var record_key = record.key;
+        var record_value = record.value;
+        var data = record.arr_data;
+        var table = record.table;
+        var map_fields = table.record_def.map_fields;
+        var id = this.id;
+        var table_ikp = table.indexes_key_prefix;
 
+        var arr_res = [table_ikp, id];
+        var record_flat_data = record.key.concat(record.value);
+        each(this.key_fields, (key_field) => {
+            var item_value = record_flat_data[key_field.id];
+            arr_res.push((item_value));
+        });
+        each(this.value_fields, (value_field) => {
+            var item_value = record_flat_data[value_field.id];
+            arr_res.push((item_value));
+        });
+        return (arr_res);
     }
 
 

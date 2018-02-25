@@ -77,16 +77,16 @@ class Incrementor {
                 var name = a[0];
                 var i_id = a[1];
                 var i_value = a[2]; // test it's positive integer?
-                
+
 
                 this.name = name;
                 this.value = i_value;
                 this.id = i_id;
             }
 
-        } 
+        }
 
-        
+
     }
 
     increment() {
@@ -115,41 +115,40 @@ class Incrementor {
         //throw 'stop';
         //console.log('-----------');
         //console.log('');
-
         return res;
+    }
+
+    get_all_db_records() {
+        var res = [];
+        res.push(this.get_record());
+        res.concat(this.get_index());
+        return res;
+    }
+
+    get_record() {
+        return [
+            [0, this.id, this.name], this.value
+        ];
     }
 
     get_record_bin() {
         // key 0 for incrementors prefix, incrementor id
-
         // Have the 0 as its first item, encoded as an xas2
-
 
         //var bufs_key = encode_to_buffer([0, this.id]);
         //console.log('***** this.id', this.id);
 
-
-
         var buf_name = Buffer.from(this.name);
-
         // STRING
 
         var bufs_key = Buffer.concat([xas2(0).buffer, xas2(this.id).buffer, xas2(STRING).buffer, xas2(buf_name.length).buffer, buf_name]);
 
         // 0 for incrementor, then the incrementor id,
         //  and then the incrementor name would help.
-
-
         // Reconstructing all of the incrementors before putting together the tables makes sense.
 
 
-
-
-
-
-
         //var bufs_key = encode_to_buffer([this.id], 0);
-
 
         //var buf_val = xas2(this.value).buffer;
 
@@ -165,8 +164,11 @@ class Incrementor {
         return res;
     }
 
-
-
+    get_index() {
+        return [
+            [this.name, this.id], null
+        ];
+    }
 
     // Will also create an index record for an incrementor.
 
@@ -185,7 +187,9 @@ class Incrementor {
         var buf_key = encode_to_buffer(arr_idx_key, 1, 0);
         //console.log('buf_key', buf_key);
 
-        var res = [[buf_key, null]];
+        var res = [
+            [buf_key, null]
+        ];
         //console.log('res', res);
         //throw 'stop';
         return res;

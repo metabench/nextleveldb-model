@@ -1,4 +1,3 @@
-
 // Want to make paging system easy to use, reading from binary buffer that represents a query.
 //  Using OO query parsing on the server may well be better.
 //   Easier to test. Queries get created on the client, and can be parsed there to see if the parsing works correctly.
@@ -12,28 +11,33 @@ const PAGING_RECORD_COUNT = 1;
 // Followed by p number
 const PAGING_BYTE_COUNT = 2;
 
+// Paging objects could raise events themselves.
+//  
+
+
+
 class Paging {
-    'constructor'(spec) {
+    'constructor' (spec) {
 
     }
     get buffer() {
         if (this.paging_type === NO_PAGING) {
             return xas2(NO_PAGING).buffer;
         } else {
-            return Buffer.concat([xas2(this.paging_type).buffer, xas2(this.paging_type).page_size]);
+            return Buffer.concat([xas2(this.paging_type).buffer, xas2(this.page_size).buffer]);
         }
     }
 }
 
 class No_Paging extends Paging {
-    'constructor'(num_records) {
+    'constructor' (num_records) {
         super();
         this.paging_type = NO_PAGING;
     }
 }
 
-class Record_Paging extends Paging{
-    'constructor'(num_records) {
+class Record_Paging extends Paging {
+    'constructor' (num_records) {
         super();
         this.num_records = num_records;
         this.page_size = num_records;
@@ -44,7 +48,7 @@ class Record_Paging extends Paging{
 // Byte paging will send complete records though.
 
 class Byte_Paging extends Paging {
-    'constructor'(num_bytes) {
+    'constructor' (num_bytes) {
         super();
         this.num_bytes = num_bytes;
         this.page_size = num_bytes;

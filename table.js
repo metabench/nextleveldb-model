@@ -358,20 +358,20 @@ class Table {
     }
 
     add_index() {
-            //this.record_def.add_index.apply(this.record_def, arguments);
-            return this.record_def.add_index.apply(this.record_def, arguments);
+        //this.record_def.add_index.apply(this.record_def, arguments);
+        return this.record_def.add_index.apply(this.record_def, arguments);
 
 
 
-            //return this.record_def.add_index.apply(this, arguments);
-        }
-        /*
-        add_field() {
-            var args = Array.prototype.slice.call(arguments);
-            args.push(this);
-            return this.record_def.add_field.apply(this.record_def, args);
-        }
-        */
+        //return this.record_def.add_index.apply(this, arguments);
+    }
+    /*
+    add_field() {
+        var args = Array.prototype.slice.call(arguments);
+        args.push(this);
+        return this.record_def.add_field.apply(this.record_def, args);
+    }
+    */
 
     get own_incrementor_ids() {
         var res;
@@ -407,9 +407,9 @@ class Table {
     }
 
     add_records_including_table_id_in_key() {
-            return this.records.add_records_including_table_id_in_key.apply(this.records, arguments);
-        }
-        // add_records_including_table_id_in_key
+        return this.records.add_records_including_table_id_in_key.apply(this.records, arguments);
+    }
+    // add_records_including_table_id_in_key
 
     new_record() {
         return this.records.new_record.apply(this.records, arguments);
@@ -447,13 +447,13 @@ class Table {
     }
 
     get field_names() {
-            var res = [];
-            each(this.fields, (field) => {
-                res.push(field.name);
-            });
-            return res;
-        }
-        // and the index instances of the records?
+        var res = [];
+        each(this.fields, (field) => {
+            res.push(field.name);
+        });
+        return res;
+    }
+    // and the index instances of the records?
 
     get_map_lookup(field_name) {
         // looks it up to the primary key.
@@ -494,10 +494,40 @@ class Table {
         return res;
     }
 
+
+    // Get expansive all records
+    //  All records associated with the table too
+    //   Incrementor records
+    //   Field records
+
+    // When doing some updates, could get two sets of records, and compare them.
+    //  Do an object diff on before and after
+    //   Any records which have changed then get put to the DB.
+
+    // That seems like the right way of carrying out various server-side tasks, such as adding a table.
+    //  The difference would be spread accross quite a number of model rows.
+
+    // Doing a diff on the full model rows would work well.
+    //  Then can send the changed rows to the database
+
+
+    get_all_db_records() {
+        // include the indexes here? seems not
+        //console.log('get_all_db_records');
+        //var buf_records = this.records.get_all_db_records_bin.apply(this.records, arguments);
+
+        var arr_records = this.records.get_all_db_records.apply(this.records, arguments);
+
+        //  and this makes the index records too?
+        //var buf_indexes = 
+        return arr_records;
+    }
+
+
     // get_all_db_records_bin
     get_all_db_records_bin() {
         // include the indexes here? seems not
-        console.log('get_all_db_records_bin');
+        //console.log('get_all_db_records_bin');
         var buf_records = this.records.get_all_db_records_bin.apply(this.records, arguments);
         //  and this makes the index records too?
         //var buf_indexes = 

@@ -212,23 +212,23 @@ class Table_Record_Collection {
 
 
             each(this.indexes, (index, c) => {
-                    //console.log('index', index);
+                //console.log('index', index);
 
-                    var to_look_up = index_values[c];
-                    //console.log('to_look_up', to_look_up);
-                    //console.log('typeof to_look_up', typeof to_look_up);
-                    // look up that record.
+                var to_look_up = index_values[c];
+                //console.log('to_look_up', to_look_up);
+                //console.log('typeof to_look_up', typeof to_look_up);
+                // look up that record.
 
-                    //console.log('to_look_up', JSON.stringify(to_look_up));
+                //console.log('to_look_up', JSON.stringify(to_look_up));
 
-                    var item = index[JSON.stringify(to_look_up)];
-                    if (!!item) found = true;
-
-
+                var item = index[JSON.stringify(to_look_up)];
+                if (!!item) found = true;
 
 
-                })
-                //console.log('found', found);
+
+
+            })
+            //console.log('found', found);
 
             // Not adding preexisting records through the index lookup.
             //  Seems like index system in Model now actually works.
@@ -394,11 +394,29 @@ class Table_Record_Collection {
             }
         });
         //console.log('get_all_db_records_bin res', res);
-
         return res;
 
     }
 
+
+    get_all_db_records() {
+        var res = [];
+        var that = this;
+        var indexes = this.table.record_def.indexes;
+        each(this.arr_records, (record) => {
+            if (record) {
+                res.push(record.get_own_record());
+                var push_record_indexes = () => {
+                    each(indexes, (index) => {
+                        var indexed_record = [index.record_to_index_arr(record), null];
+                        res.push(indexed_record);
+                    });
+                }
+                push_record_indexes();
+            }
+        });
+        return res;
+    }
 
     get_all_db_records_bin() {
 

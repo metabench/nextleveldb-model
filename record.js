@@ -101,7 +101,7 @@ class Record {
                 console.log('t_spec', t_spec);
                 throw 'stop';
             }
-            
+
 
         } else {
 
@@ -296,7 +296,7 @@ class Record {
         //  Have some kind of array specification in Binary_Encoding.
 
         // Anyway, let's decode this format for the moment.
-        
+
 
 
         // Includes the number of indexes
@@ -348,6 +348,14 @@ class Record {
         return res;
     }
 
+    get_own_record() {
+        let key = [this.table.key_prefix].concat(this.key);
+        return [key, this.value];
+
+        //var res = [this.table.key_prefix];
+        //res = res.concat()
+    }
+
 
     // to_obj
     //  with keys and values.
@@ -363,7 +371,7 @@ class Record {
         var res = {};
 
         //console.log('this.key', this.key);
-        
+
 
         var rec_fields = this.key.concat(this.value);
         each(rec_fields, (field_value, i) => {
@@ -402,7 +410,7 @@ class Record {
     //  Use the index object, and give it the records
     //   Seems better OO now that we have index and field objects.
 
-    
+
 
     // get record arr buffers
     get_key_value_buffers() {
@@ -474,8 +482,12 @@ if (require.main === module) {
             //['name']
             // Key value pair specifying record
             [
-                [['id', 'xas2']],
-                [['name', 'string']]
+                [
+                    ['id', 'xas2']
+                ],
+                [
+                    ['name', 'string']
+                ]
             ],
 
             // Indexes
@@ -508,7 +520,10 @@ if (require.main === module) {
             */
 
             [
-                [['name'], ['id']]
+                [
+                    ['name'],
+                    ['id']
+                ]
             ]
         ]
     });

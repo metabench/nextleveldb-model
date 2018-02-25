@@ -37,7 +37,7 @@ class Primary_Key {
             throw 'Field name expected';
         }
 
-        
+
         //throw 'stop';
 
 
@@ -47,12 +47,13 @@ class Primary_Key {
     }
     set_def(def) {
         var field;
-        var table = this.table, t_item;
+        var table = this.table,
+            t_item;
         var that = this;
 
         var t_def = tof(def);
 
-        console.log('pk set_def', def);
+        //console.log('pk set_def', def);
 
 
         var set_string = (item) => {
@@ -65,7 +66,7 @@ class Primary_Key {
                 // We don't know the type of the pk.
                 //  Assume it is type 0?
                 //   Maybe assume that for primary key (constituent) fields.
-                
+
 
                 // Maybe the wrong place / way to create the field.
                 field = table.add_field(item, -1, XAS2_VALUE_TYPE, true);
@@ -120,7 +121,7 @@ class Primary_Key {
             });
         }
 
-        
+
         return this;
 
     }
