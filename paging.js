@@ -10,6 +10,7 @@ const NO_PAGING = 0;
 const PAGING_RECORD_COUNT = 1;
 // Followed by p number
 const PAGING_BYTE_COUNT = 2;
+const PAGING_TIMED = 3;
 
 // Paging objects could raise events themselves.
 //  
@@ -56,6 +57,17 @@ class Byte_Paging extends Paging {
     }
 }
 
+class Timed_Paging extends Paging {
+    'constructor' (ms_delay) {
+        super();
+        this.ms_delay = ms_delay;
+        this.page_size = ms_delay;
+        this.paging_type = PAGING_TIMED;
+    }
+}
+
+
+
 Paging.read_buffer = function (buf, pos = 0) {
     var paging_option, page_size = 0;
     [paging_option, pos] = x.read(buf_the_rest, pos);
@@ -74,5 +86,8 @@ Paging.Record = Record_Paging;
 
 Paging.Byte_Paging = Byte_Paging;
 Paging.Byte = Byte_Paging;
+
+Paging.Timed_Paging = Timed_Paging;
+Paging.Timed = Timed_Paging;
 
 module.exports = Paging;

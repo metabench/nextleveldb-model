@@ -144,6 +144,22 @@ class Database {
         var incrementors = this.incrementors = [];
         var tables = this.tables = [];
         var map_tables = this.map_tables = {};
+
+        // not giving a spec?
+
+        //console.log('spec', spec);
+
+        if (typeof spec === 'undefined') {
+            //throw 'stop';
+            var inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
+            incrementors.push(inc_incrementor);
+            this.inc_table = this.new_incrementor('table');
+            each(incrementors, (incrementor) => {
+                map_incrementors[incrementor.name] = incrementor;
+            });
+            this.create_db_core_model();
+        }
+
         if (spec === false) {
 
         } else {
@@ -685,6 +701,7 @@ class Database {
 
     get_model_rows_encoded() {
         var model_rows = this.get_model_rows();
+        //console.log('model_rows.length', model_rows.length);
         var arr_simple_encoded = [];
         each(model_rows, (model_row) => {
             // model_rows
