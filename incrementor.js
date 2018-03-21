@@ -150,9 +150,11 @@ class Incrementor {
 
         //var bufs_key = encode_to_buffer([this.id], 0);
 
-        //var buf_val = xas2(this.value).buffer;
-
+        //var buf_val = xas2(this.value + 500).buffer;
         var buf_val = xas2(this.value).buffer;
+        //console.log('this.name', this.name);
+        //console.log('this.value', this.value);
+        //var buf_val = Buffer.concat([xas2(1).buffer, xas2(this.value).buffer, xas2(1).buffer]);
         //  Always point to a single id pk?
         //var buf_val = encode_to_buffer([this.value]); // Longer encoding form. Much more flexible.
 

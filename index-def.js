@@ -330,7 +330,7 @@ class Index_Def {
         return Buffer.concat(arr_res);
     }
 
-    record_to_index_arr() {
+    record_to_index_arr(record) {
         var record_key = record.key;
         var record_value = record.value;
         var data = record.arr_data;

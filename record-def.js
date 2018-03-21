@@ -20,6 +20,13 @@ const encode_to_buffer = Binary_Encoding.encode_to_buffer;
 
 const Record_Value_Def = require('./record-value-def');
 
+const NT_XAS2_NUMBER = 1;
+const NT_DATE = 2;
+const NT_TIME = 3;
+const NT_STRING = 4;
+const NT_FLOAT32_LE = 5;
+
+
 //var Table = require('./table');
 class Record_Def {
 
@@ -204,6 +211,14 @@ class Record_Def {
 
     set_def(obj_record_def) {
 
+        // Not so sure that fields are being set in the model creation.
+
+        // Would add a table according to definition, and also make sure it's fields' types are in there properly.
+
+
+
+
+
         // Possibly will result in creating a new pk incrementor for the table.
 
 
@@ -229,8 +244,6 @@ class Record_Def {
 
 
         if (is_arr_of_strs(obj_record_def)) {
-            //console.log('storage', storage);
-            //console.log('is_arr_of_strs');
 
             // Need to go through each line, adding the appropriate field.
             //  Worth adding indexes too.
@@ -382,20 +395,12 @@ class Record_Def {
 
     add_field(field, id = -1, i_type = null, is_pk = false, fk_to_table) {
         // make the id -1 for no id set here, use incrementor.
-
         // want better parameter handling.
         //  maybe do that later.
-
         //console.log('i_type', i_type);
-
-
-
         // Make choosing the type optional.
         //  Less about enforcing types, more about being able to recognise an xas2 number (or more than one of them) has been given for a field which is a foreign key, that's the right type, put it in.
         //   Then if a string value is given, we can do a lookup. Would need to know something like the name is the identifier, or we are giving it the name value to look up.
-
-        // i_type may be null
-        //i_type = i_type ||
 
         var a = arguments;
         //console.log('add_field arguments', arguments);
@@ -411,6 +416,15 @@ class Record_Def {
 
         // This is Field parsing.
         //  Could move this code to Field.ensure_is_field
+
+        // Depending on the name of the field, the type may be given.
+        //  This is the point where we assign the type of the field if it is indicated in the name.
+
+
+        //let get_field_type_from_name
+
+
+
 
         if (field instanceof Field) {
             item_field = field;
@@ -432,6 +446,7 @@ class Record_Def {
             //  Its record def could be in the midst of being constructed.
             //console.log('field_name', field_name);
 
+            // Or if we give the field a null type, it 
             item_field = new Field(field_name, table, id, i_type, is_pk, fk_to_table);
 
             // Then could receive something back from the field object saying that it has an index?

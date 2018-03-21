@@ -208,6 +208,8 @@ class Table {
             this.db = db = a[1];
             this.id = id = a[2];
 
+            //console.log('this.id', this.id);
+
             // need to go through that array, maybe doing lookups
             //console.log('a[3]', a[3]);
             //console.log('a[3].length', a[3].length);
@@ -272,16 +274,24 @@ class Table {
             if (!this.inc_indexes) this.inc_indexes = db.new_incrementor('inc_idx_' + this.name);
             if (!this.inc_foreign_keys) this.inc_foreign_keys = db.new_incrementor('inc_fk_' + this.name);
 
-
             //var inc_fields = this.inc_fields = this.inc_fields || db.new_incrementor('inc_field_' + this.name);
             //var inc_indexes = this.inc_indexes = this.inc_indexes || db.new_incrementor('inc_idx_' + this.name);
             //var inc_foreign_keys = this.inc_foreign_keys = this.inc_foreign_keys || db.new_incrementor('inc_fk_' + this.name);
 
+            //console.log('this.id', this.id);
+
             if (typeof this.id === 'undefined') {
                 id = this.id = db.map_incrementors['table'].increment();
+                //console.log('id', id);
+                //console.log('name', name);
             }
         } else {
             console.trace();
+
+            // Use a pseudo-incrementor?
+            //  As in we don't add the incrementors to the database (yet)
+            //  For the moment we just want to create the table object, not sure if we want it added to the db.
+
             throw 'Create new incrementors not connected to db';
 
         }
@@ -314,7 +324,6 @@ class Table {
 
         // and create a new incrementor for the table's indexes?
         //  got it already
-
 
         // could use getters to combine the map_fields from the key and value definitions.
         //  

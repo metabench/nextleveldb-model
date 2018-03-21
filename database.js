@@ -107,7 +107,7 @@ var xas2 = require('xas2');
 // should have some connected model classes, extending these.
 
 
-const deep_diff = require('deep-object-diff');
+const deep_diff = require('deep-object-diff').diff;
 
 // However, we should include the native types.
 //  Don't completely correspond to the encoding number
@@ -122,6 +122,7 @@ const deep_diff = require('deep-object-diff');
 // 6 - bool, 1 byte
 // 7 - null. No further data
 // 8 - buffer of binary data
+
 
 const NT_XAS2_NUMBER = 1;
 const NT_DATE = 2;
@@ -144,19 +145,16 @@ class Database {
         var incrementors = this.incrementors = [];
         var tables = this.tables = [];
         var map_tables = this.map_tables = {};
+        let map_tables_by_id = this.map_tables_by_id = {};
 
         // not giving a spec?
 
-        //console.log('spec', spec);
+
+        //console.log('typeof spec', typeof spec);
 
         if (typeof spec === 'undefined') {
             //throw 'stop';
-            var inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
-            incrementors.push(inc_incrementor);
-            this.inc_table = this.new_incrementor('table');
-            each(incrementors, (incrementor) => {
-                map_incrementors[incrementor.name] = incrementor;
-            });
+
             this.create_db_core_model();
         }
 
@@ -166,16 +164,18 @@ class Database {
             // could give a db def as an array.
             //  would have a number of tables that get added.
 
-            var inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
-            incrementors.push(inc_incrementor);
+            //var inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
+            //incrementors.push(inc_incrementor);
 
 
             //incrementors.push(this.new_incrementor('table'));
-            this.inc_table = this.new_incrementor('table');
+            //this.inc_table = this.new_incrementor('table');
+            //incrementors.push(this.inc_table);
 
-            each(incrementors, (incrementor) => {
-                map_incrementors[incrementor.name] = incrementor;
-            });
+
+            //each(incrementors, (incrementor) => {
+            //    map_incrementors[incrementor.name] = incrementor;
+            //});
 
             var t_spec = tof(spec);
             if (t_spec === 'array') {
@@ -186,7 +186,6 @@ class Database {
 
             }
         }
-
     }
 
     get arr_table_ids_and_names() {
@@ -280,28 +279,38 @@ class Database {
     //   The keys from the model will show the necessary database 
 
     create_db_core_model() {
+
+        console.log('create_db_core_model');
         this._init = true;
+        let incrementors = this.incrementors;
+        let map_incrementors = this.map_incrementors
+        let tables = this.tables;
+        let map_tables = this.map_tables;
+        let map_tables_by_id = this.map_tables_by_id;
+
+        let inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
+        incrementors.push(inc_incrementor);
+        this.inc_table = this.new_incrementor('table');
+        each(incrementors, (incrementor) => {
+            map_incrementors[incrementor.name] = incrementor;
+        });
+
         // Only creates the model, rather than does anything connected directly with the db.
         // Much of the core is created using lower level operations.
         //  This is because it is a platform that some higher level operations rely on.
         //  The platform for the higher level commands / oo is not fully in place before the core db has been created.
 
-        var incrementors = this.incrementors;
-        var map_incrementors = this.map_incrementors;
-        // Core incrementors
-        //  Core tables
-        //   The indexes
 
-        var tables = this.tables;
-        var map_tables = this.map_tables;
+        // Seems like it would need to get the id through using the incrementor.
 
-        var tbl_tables = new Table('tables', this);
+        let tbl_tables = new Table('tables', this);
 
         // Don't use add_table, because it will create the relevant table record and table field records. These tables don't yet exist.
         //this.add_table(tbl_tables);
         tables.push(tbl_tables);
 
         map_tables[tbl_tables.name] = tbl_tables;
+        map_tables_by_id[tbl_tables.id] = tbl_tables;
         this.tbl_tables = tbl_tables;
 
         tbl_tables.set_pk('+id');
@@ -317,11 +326,16 @@ class Database {
         tbl_native_types.add_field('+id', -1);
         tbl_native_types.add_field('name', -1, NT_STRING);
         map_tables[tbl_native_types.name] = tbl_native_types;
+        map_tables_by_id[tbl_native_types.id] = tbl_native_types;
         this.tbl_native_types = tbl_native_types;
         tbl_native_types.add_index([
             ['name'],
             ['id']
         ]);
+
+
+        // The table incrementors are broken at some point.
+        //  Need to trace how they get put into the current DB.
 
 
 
@@ -369,20 +383,22 @@ class Database {
             ]
         ]);
         tables.push(tbl_native_types);
-        map_tables[tbl_native_types.name] = tbl_native_types;
+        //map_tables[tbl_native_types.name] = tbl_native_types;
 
         //this.add_table(tbl_native_types);
-        this.tbl_native_types = tbl_native_types;
+        //this.tbl_native_types = tbl_native_types;
 
         var tbl_fields = new Table('table fields', this);
         tables.push(tbl_fields);
         map_tables[tbl_fields.name] = tbl_fields;
+        map_tables_by_id[tbl_fields.id] = tbl_fields;
 
 
         // Should not have its own autoincrementing id, apart from 
         var tbl_table_indexes = this.tbl_indexes = new Table('table indexes', this);
         tables.push(tbl_table_indexes);
         map_tables[tbl_table_indexes.name] = tbl_table_indexes;
+        map_tables_by_id[tbl_table_indexes.id] = tbl_table_indexes;
 
         tbl_fields.set_pk(['table_id', 'id']);
         tbl_fields.set_fk('table_id', tbl_tables);
@@ -498,9 +514,12 @@ class Database {
     add_table(table_def) {
         var a = arguments;
         var tables = this.tables,
-            map_tables = this.map_tables;
+            map_tables = this.map_tables,
+            map_tables_by_id = this.map_tables_by_id;
         var table, name;
         var sig = get_a_sig(a);
+
+        // Should probably get the table id here from using the incrementor, rather than from within the table constructor.
         //console.log('add_table sig', sig);
         //console.log('a', a);
         //console.log('table_def', table_def);
@@ -508,6 +527,17 @@ class Database {
         // the table def maybe does not contain a reference to the database.
         //  That should be added.
         // 
+
+        // Could check that an added table has its fields set up right.
+        //  A more thorough test procedure could do this, all within the model.
+        //  Create a model with core rows, add a table, then check its autoincremented fields are set up right.
+
+        // Maybe they had been right all along, just it had not looked up FK references to find the type of the field.
+        //  
+
+
+
+
 
         if (sig === '[s,a]') {
             name = a[0];
@@ -549,9 +579,19 @@ class Database {
 
         tables.push(table);
         map_tables[table.name] = table;
+        map_tables_by_id[table.id] = table;
 
         // Will also put the table's fields into records.
         //  Relies on the tables table and table fields existing though.
+
+        // Relies on the model init being over.
+        //   Need to be (more) CAREful to do this appropriately.
+
+        //console.log('');
+        //console.log('this._init', this._init);
+        //console.log('table.name', table.name);
+        //console.trace();
+        //console.log('');
 
         if (!this._init) {
             this.add_tables_fields_to_fields_table(table);
@@ -738,7 +778,7 @@ class Database {
         return table.ensure_records_no_overwrite(arr_records);
     }
 
-
+    /*
     diff(model_db) {
         // diffing this against model_table
 
@@ -748,10 +788,11 @@ class Database {
 
         let diff = deep_diff(my_rows, other_rows);
 
-        console.log('diff', diff);
+        //console.log('diff', diff);
 
 
     }
+    */
     // get all model rows...
     //  will be useful for starting a database / loading the right data into place to begin with.
     //  all rows in the database model, to go into the database that's in production.
@@ -871,7 +912,9 @@ var decode_model_rows = (model_rows, remove_kp) => {
         // Incrementors look OK so far.
         //  Let's see how records (keys and values), as well as index records (keys and values) decode with the multi-decoder.
         //console.log('pre decode');
-        res.push(decode_model_row(model_row, remove_kp));
+        let decoded = decode_model_row(model_row, remove_kp);
+        //console.log('decoded', decoded);
+        res.push(decoded);
         //throw 'stop';
         //console.log('post decode');
     });
@@ -883,12 +926,21 @@ var decode_model_rows = (model_rows, remove_kp) => {
 //  More detail about what encoding it starts with, what the result is.
 //  This only does a partial encoding of already binary rows.
 var encode_model_row = (model_row) => {
-    if (model_row[1]) {
-        var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(model_row[1].length).buffer, model_row[1]];
+    //console.log('model_row', model_row);
+
+    if (model_row instanceof Buffer) {
+        var arr_res = [xas2(model_row.length).buffer, model_row, xas2(0).buffer];
     } else {
-        // Value is null / no value set, all index rows are like this.
-        var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(0).buffer];
+        if (model_row[1]) {
+            var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(model_row[1].length).buffer, model_row[1]];
+        } else {
+            // Value is null / no value set, all index rows are like this.
+            var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(0).buffer];
+        }
     }
+
+
+    //console.log('arr_res', arr_res);
     return Buffer.concat(arr_res);
 }
 
@@ -928,8 +980,6 @@ var load_arr_core = (arr_core) => {
     var arr_by_prefix = [];
     each(decoded_core, (row) => {
         var row_copy = clone(row);
-
-
         var arr_row_key = row_copy[0];
         var key_prefix = arr_row_key[0];
         arr_row_key.splice(0, 1);
@@ -959,7 +1009,7 @@ var load_arr_core = (arr_core) => {
 
     // When recreting rows, may need to avoid using an incrementor.
     //console.log('arr_incrementor_rows', arr_incrementor_rows);
-
+    //throw 'stop';
     each(arr_incrementor_rows, (inc_row) => {
         //console.log('inc_row', inc_row);
         var inc_id = inc_row[0][0];
@@ -995,14 +1045,22 @@ var load_arr_core = (arr_core) => {
         }
 
     });
-    //throw 'stop';
+    //
 
 
     //console.log('arr_table_names', arr_table_names);
+    //throw 'stop';
 
     // Make a DB and autoconstruct the core?
     //  Probably best to reconstruct the core out of what's in the database.
     //   Possibly some types could be changed / added?
+
+    let map_system_table_names = {
+        'tables': true,
+        'native types': true,
+        'table fields': true,
+        'table indexes': true
+    }
 
     // Give the table an array of its incrementors too.
     //  Don't have the table recreate its own.
@@ -1019,7 +1077,31 @@ var load_arr_core = (arr_core) => {
         each(arr_table_incrementor_ids, (id) => {
             arr_table_incrementors.push(db.incrementors[id]);
         });
+
+        // Need to switch off the this._init option at the right point.
+
+        if (!map_system_table_names[table_name]) {
+            db._init = false;
+        }
+
         var table = db.add_table(table_name, i, arr_table_incrementors);
+
+        if (table.name === 'tables') {
+            db.tbl_tables = table;
+        }
+        if (table.name === 'native types') {
+            db.tbl_native_types = table;
+        }
+        if (table.name === 'table fields') {
+            db.tbl_fields = table;
+        }
+        if (table.name === 'table indexes') {
+            db.tbl_indexes = table;
+        }
+        if (table.name === 'users') {
+            db.tbl_users = table;
+        }
+
         //console.log('');
         //console.log('table.name', table.name);
         //console.log('table.pk_incrementor', table.pk_incrementor);
@@ -1047,23 +1129,11 @@ var load_arr_core = (arr_core) => {
     //console.log('db.incrementors', db.incrementors);
     //throw 'stop';
 
-    each(db.tables, (table) => {
-        if (table.name === 'tables') {
-            db.tbl_tables = table;
-        }
-        if (table.name === 'native types') {
-            db.tbl_native_types = table;
-        }
-        if (table.name === 'table fields') {
-            db.tbl_fields = table;
-        }
-        if (table.name === 'table indexes') {
-            db.tbl_indexes = table;
-        }
-        if (table.name === 'users') {
-            db.tbl_users = table;
-        }
-    });
+    //each(db.tables, (table) => {
+
+
+    // Then once 
+    //});
 
     // Quite possibly load the system tables first?
     //  Probably not necessary, should be possible to reconstruct the Model structure.
@@ -1075,6 +1145,8 @@ var load_arr_core = (arr_core) => {
     //console.log('1) db.tables', db.tables);
 
 
+
+    // Stop the initialisation at some point, as we need the rest of the tables added in normal mode.
 
 
     // Add the fields to the tables.
@@ -1137,11 +1209,10 @@ var load_arr_core = (arr_core) => {
                 is_pk = table_field_row[1][2];
                 fk_to_table_id = table_field_row[1][3];
             }
-
-
         }
 
         var table = db.tables[table_id];
+        console.log('field read ' + field_name + ': data_type_id', data_type_id);
 
         /*
         console.log('table_id', table_id);
@@ -1241,6 +1312,20 @@ var load_arr_core = (arr_core) => {
         //console.log('idx', idx);
 
     });
+
+
+    /*
+    each(arr_table_native_types_rows, native_type_row => {
+        console.log('native_type_row', native_type_row);
+        // Need to add these native type rows to the model, (with indexing)
+
+
+
+    })
+    */
+
+    db.tbl_native_types.add_records(arr_table_native_types_rows);
+
     //console.log('3) db.tables', db.tables);
     //console.log('arr_table_index_rows.length', arr_table_index_rows.length);
     //throw 'stop';
@@ -1435,8 +1520,8 @@ if (require.main === module) {
         // Simpler encoding... Can get the ll row kvps, and encode them along with some lengths.
         var buf_simple_encoded = db.get_model_rows_encoded();
 
-        console.log('buf_simple_encoded', buf_simple_encoded);
-        console.log('buf_simple_encoded.length', buf_simple_encoded.length);
+        //console.log('buf_simple_encoded', buf_simple_encoded);
+        //console.log('buf_simple_encoded.length', buf_simple_encoded.length);
 
         // Then use streaming / evented decoding.
         //  Functional event driven programming?
@@ -1471,6 +1556,26 @@ if (require.main === module) {
 
     }
     test_full_db_binary_encoding();
+
+    // A test to do with making a new DB and checking if the autoincrementing fields are typed correctly.
+    //  Could include binary encoding and decoding.
+
+    // Will also be useful to specify field types so that values can be checked before they get persisted to make sure they are of the right type.
+
+    // specified field types would definitely help fk-> pk lookups.
+    //  that code could be somewhat complex.
+    //  would be useful for normalising values.
+
+    let test_autoincrement_field_types = () => {
+
+    }
+
+
+
+
+
+
+
 
 } else {
     //console.log('required as a module');

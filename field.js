@@ -59,11 +59,6 @@ class Field {
     // Could store fk info in here.
 
 
-
-
-
-
-
     'constructor' () {
         var a = arguments,
             l = a.length,
@@ -296,6 +291,21 @@ class Field {
                         str_field_name = s_str_field_name[0];
                         fk_table = s_str_field_name[1];
 
+                        // Then the type if the combination of the whole primary key.
+                        //  Some PKs could be composite (2 or more fields) 
+
+                        // Could see if there is just one PK field, and get its type.
+                        // 
+
+                        // Market snapshots looks tricky in some ways. It's got a pk reference to a composite PK.
+
+                        // Let's look up the referred to field type, later on.
+
+
+
+
+
+
                     }
 
                     pos0 = str_field_name.indexOf('(');
@@ -356,6 +366,7 @@ class Field {
 
 
 
+
                 // A unique index here.
                 var idx = this.table.add_index([
                     [this], arr_pk_fields
@@ -377,6 +388,34 @@ class Field {
             if (fk_table) {
 
                 this.fk_to_table = this.table.db.map_tables[fk_table];
+
+                // It's to the primary key
+
+                let fk_pk = this.fk_to_table.pk;
+
+                if (fk_pk.fields.length === 1) {
+                    this.type_id = fk_pk.fields[0].type_id;
+                } else {
+
+
+                    // Would like a composite type id?
+                    //  Composite, then see the fields it refers to?
+                    //  Composite reference type
+                    //   A reference to a PK rather than a field (special case)
+
+
+
+
+                    //console.trace();
+
+                    //console.log('');
+                    //console.log('this.table.name', this.table.name);
+                    //throw 'NYI';
+                }
+
+
+                //let 
+
                 //  The table's database has not been set yet?
                 //  Just give it the table name?
 
