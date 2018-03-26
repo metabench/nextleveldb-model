@@ -908,7 +908,7 @@ var from_buffer = (buf) => {
 var decode_model_rows = (model_rows, remove_kp) => {
     var res = [];
     each(model_rows, (model_row) => {
-        //console.log('model_row', model_row);
+        console.log('model_row', model_row);
         // Incrementors look OK so far.
         //  Let's see how records (keys and values), as well as index records (keys and values) decode with the multi-decoder.
         //console.log('pre decode');

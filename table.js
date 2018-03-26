@@ -407,6 +407,7 @@ class Table {
         return this.records.add_record.apply(this.records, arguments);
     }
     add_records() {
+        console.log('this.records', this.records);
         return this.records.add_records.apply(this.records, arguments);
     }
 
@@ -465,8 +466,15 @@ class Table {
     // and the index instances of the records?
 
     get_map_lookup(field_name) {
+
+        console.log('field_name', field_name);
         // looks it up to the primary key.
         //  don't bother consulting the index right now.
+
+        // Need to use a flattened map of the fields?
+        //  Map of the flattened fields?
+        //  Have an issue here ... but problem is with decoding elsewhere. With loading tables.
+
         var i_field = this.map_fields[field_name].id;
         //console.log('i_field', i_field);
 
@@ -487,6 +495,7 @@ class Table {
 
             var field_value = arr_rec[i_field];
             //console.log('field_value', field_value);
+            //console.log('record.key', record.key);
 
             // get the pk field or fields.
 

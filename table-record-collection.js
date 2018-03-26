@@ -491,8 +491,6 @@ class Table_Record_Collection {
         //  simplest way, just store that.
         var arr_coll_indexes = this.indexes;
 
-
-
         //console.log('index_record def_indexes', def_indexes);
         each(def_indexes, (index, i) => {
 
