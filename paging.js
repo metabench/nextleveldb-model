@@ -8,9 +8,11 @@ var xas2 = require('xas2');
 
 const NO_PAGING = 0;
 const PAGING_RECORD_COUNT = 1;
+const PAGING_KEY_COUNT = 2;
 // Followed by p number
-const PAGING_BYTE_COUNT = 2;
-const PAGING_TIMED = 3;
+const PAGING_BYTE_COUNT = 3;
+const PAGING_TIMED = 4;
+
 
 // Paging objects could raise events themselves.
 //  
@@ -43,6 +45,15 @@ class Record_Paging extends Paging {
         this.num_records = num_records;
         this.page_size = num_records;
         this.paging_type = PAGING_RECORD_COUNT;
+    }
+}
+
+class Key_Paging extends Paging {
+    'constructor' (num_keys) {
+        super();
+        this.num_keys = num_keys;
+        this.page_size = num_keys;
+        this.paging_type = PAGING_KEY_COUNT;
     }
 }
 
@@ -83,6 +94,9 @@ Paging.None = No_Paging;
 
 Paging.Record_Paging = Record_Paging;
 Paging.Record = Record_Paging;
+
+Paging.Key_Paging = Key_Paging;
+Paging.Key = Key_Paging;
 
 Paging.Byte_Paging = Byte_Paging;
 Paging.Byte = Byte_Paging;

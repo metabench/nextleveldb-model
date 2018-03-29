@@ -908,7 +908,7 @@ var from_buffer = (buf) => {
 var decode_model_rows = (model_rows, remove_kp) => {
     var res = [];
     each(model_rows, (model_row) => {
-        console.log('model_row', model_row);
+        //console.log('model_row', model_row);
         // Incrementors look OK so far.
         //  Let's see how records (keys and values), as well as index records (keys and values) decode with the multi-decoder.
         //console.log('pre decode');
@@ -938,8 +938,6 @@ var encode_model_row = (model_row) => {
             var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(0).buffer];
         }
     }
-
-
     //console.log('arr_res', arr_res);
     return Buffer.concat(arr_res);
 }
