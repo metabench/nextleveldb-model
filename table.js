@@ -407,7 +407,7 @@ class Table {
         return this.records.add_record.apply(this.records, arguments);
     }
     add_records() {
-        console.log('this.records', this.records);
+        //console.log('this.records', this.records);
         return this.records.add_records.apply(this.records, arguments);
     }
 

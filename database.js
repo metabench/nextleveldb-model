@@ -100,7 +100,7 @@ var tof = lang.tof;
 var Incrementor = require('./incrementor');
 var Table = require('./table');
 var Record = require('./record');
-
+const deep_equal = require('deep-equal');
 
 var Binary_Encoding = require('binary-encoding');
 var xas2 = require('xas2');
@@ -778,6 +778,21 @@ class Database {
         return table.ensure_records_no_overwrite(arr_records);
     }
 
+    diff(other_model) {
+
+        let my_model_rows = this.get_model_rows_decoded();
+        let their_model_rows = other_model.get_model_rows_decoded();
+
+        console.log('my_model_rows', my_model_rows);
+        console.log('their_model_rows', their_model_rows);
+
+        let res = Database.diff_model_rows(my_model_rows, their_model_rows);
+        return res;
+
+
+
+    }
+
     /*
     diff(model_db) {
         // diffing this against model_table
@@ -907,6 +922,7 @@ var from_buffer = (buf) => {
 
 var decode_model_rows = (model_rows, remove_kp) => {
     var res = [];
+    //console.log('model_rows', model_rows);
     each(model_rows, (model_row) => {
         //console.log('model_row', model_row);
         // Incrementors look OK so far.
@@ -1442,6 +1458,66 @@ var load_buf = (buf) => {
 
 Database.load = (arr_core) => {
     return load_arr_core(arr_core);
+}
+
+Database.diff_model_rows = (orig, current) => {
+    let changed = [],
+        added = [],
+        deleted = [];
+
+    let map_orig = {},
+        map_current = {},
+        map_orig_records = {};
+
+
+    each(orig, (record) => {
+        let [key, value] = record;
+        //console.log('[key, value]', [key, value]);
+        map_orig[key.toString('hex')] = [value];
+        map_orig_records[key.toString('hex')] = record;
+    })
+    //console.log('map_orig', map_orig);
+
+    each(current, (record) => {
+        let [key, value] = record;
+        map_current[key.toString('hex')] = [value];
+
+        // does it appear in orig?
+
+        if (map_orig[key.toString('hex')]) {
+            if (deep_equal(map_orig[key.toString('hex')][0], value)) {
+
+            } else {
+                //changed.push([record]);
+                changed.push([map_orig_records[key.toString('hex')], record]);
+            }
+        } else {
+            added.push(record);
+        }
+
+
+    })
+
+    each(orig, (record) => {
+        let [key, value] = record;
+        //map_orig[key] = value;
+        if (map_current[key.toString('hex')]) {
+
+        } else {
+            deleted.push(record);
+        }
+    })
+
+    let res = {
+        changed: changed,
+        added: added,
+        deleted: deleted
+    }
+
+    return res;
+
+
+
 }
 
 
