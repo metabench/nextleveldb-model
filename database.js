@@ -783,10 +783,13 @@ class Database {
         let my_model_rows = this.get_model_rows_decoded();
         let their_model_rows = other_model.get_model_rows_decoded();
 
-        console.log('my_model_rows', my_model_rows);
-        console.log('their_model_rows', their_model_rows);
+        //console.log('my_model_rows', my_model_rows);
+        //console.log('their_model_rows', their_model_rows);
 
         let res = Database.diff_model_rows(my_model_rows, their_model_rows);
+
+        res.count = res.changed.length + res.added.length + res.deleted.length;
+
         return res;
 
 
