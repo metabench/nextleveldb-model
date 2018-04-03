@@ -107,9 +107,12 @@ class Incrementor {
     //  needs to know the incrementor's value
 
     get_all_db_records_bin() {
+        // Had a bug before.
+
+
         var res = [];
         res.push(this.get_record_bin());
-        res.concat(this.get_index_bin());
+        //res = res.concat(this.get_index_bin());
 
         //console.log('res', res);
         //throw 'stop';

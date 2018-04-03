@@ -853,12 +853,18 @@ var encode_key = (kp, arr_values) => {
 var decode_keys = lang.arrayify(decode_key);
 
 var decode_model_row = (model_row, remove_kp) => {
+
+    //console.log('model_row', model_row);
+
     var buf_key = model_row[0];
     var buf_value = model_row[1];
     var value = null;
     // Decode buffer could tell from odd or even.
     var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
     if (buf_value) {
+        // Could have an empty buffer as a value.
+        //  That seems wrong so far though.
+
         if (key_1st_value === 0) {
             value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
         } else {
@@ -892,6 +898,7 @@ var decode_model_row = (model_row, remove_kp) => {
     if (remove_kp) {
         decoded_key.splice(0, remove_kp);
     }
+    //console.log('[decoded_key, value]', [decoded_key, value]);
     return [decoded_key, value];
     //console.log('decoded_record', decoded_record);
 }
@@ -1033,7 +1040,7 @@ var load_arr_core = (arr_core) => {
         //var inc = new Incrementor
 
         db.add_incrementor(inc_id, inc_name, inc_value);
-
+        console.log('incrementor: inc_id, inc_name, inc_value', inc_id, inc_name, inc_value);
     });
 
     db.inc_incrementor = db.incrementors[0];

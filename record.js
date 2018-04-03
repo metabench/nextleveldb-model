@@ -283,6 +283,9 @@ class Record {
         var record = this;
         var res = [];
         each(indexes, (index) => {
+
+            // Could put it in place so the index records have got [k,v] format, even if v is empty.
+
             res.push(index.record_to_index_buffer(record));;
         });
         return (res);

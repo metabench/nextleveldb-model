@@ -13,14 +13,37 @@ const PAGING_KEY_COUNT = 2;
 const PAGING_BYTE_COUNT = 3;
 const PAGING_TIMED = 4;
 
+const PAGING_AND_EXTENDED_OPTIONS = 5;
 
-// Paging objects could raise events themselves.
-//  
+
+
+
+
+// This is going to allow extended options, such as limit and reverse.
+//  Want it so that it recognises that there are extended paging / results options, and then provides the data in that kind of way.
+
+
+
+
+// Paging objects could raise events themselves. ???
+//  Reverse and limit within paging options would be cool.
+
+
+
+// This will be used to make it easier to get the last value range.
+//  Allows more options to be encoded into the query, while maintaining backwards compatability.
+//  Direction and limit are options that are worth having as parameters.
+
+// Maybe better to change to OO paging reading right now.
+
+// Seems less important with get_last_key_in_table but it would be a useful feature nevertheless.
 
 
 
 class Paging {
     'constructor' (spec) {
+
+
 
     }
     get buffer() {
