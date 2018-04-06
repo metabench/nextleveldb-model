@@ -22,6 +22,8 @@ var Table = require('./table');
 // When a standard record gets added or removed, its index records would also be added or removed.
 
 var Binary_Encoding = require('binary-encoding');
+var database_encoding = require('./encoding');
+
 var xas2 = require('xas2');
 var encode_pair_to_buffers = Binary_Encoding.encode_pair_to_buffers;
 
@@ -324,9 +326,6 @@ class Record {
         return Buffer.concat(arr_res);
     }
 
-
-
-
     get_own_record_bin() {
         // key: table prefix, key side of record
         //  value: value side of record
@@ -341,7 +340,7 @@ class Record {
         //console.log('[this.key, this.value]', [this.key, this.value]);
         //console.log('prefix', prefix);
 
-        var res = encode_pair_to_buffers([this.key, this.value], prefix);
+        var res = database_encoding.encode_pair_to_buffers([this.key, this.value], prefix);
 
         //console.log('this record', this);
         //throw 'stop';

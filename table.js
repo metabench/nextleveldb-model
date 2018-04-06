@@ -20,6 +20,11 @@ var encode_to_buffer = Binary_Encoding.encode_to_buffer;
 var Record_Def = require('./record-def');
 var Table_Record_Collection = require('./table-record-collection');
 
+
+//var Model_Database = require('./database');
+
+var database_encoding = require('./encoding');
+
 // Each table will have its lower level data in the DB, and means of interacting with it here.
 
 const table_table_key_prefix = 2;
@@ -52,7 +57,22 @@ const special_characters = {
 
 // 29/11/2017 - 
 
+const encode_model_row = (model_row) => {
+    //console.log('model_row', model_row);
 
+    if (model_row instanceof Buffer) {
+        var arr_res = [xas2(model_row.length).buffer, model_row, xas2(0).buffer];
+    } else {
+        if (model_row[1]) {
+            var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(model_row[1].length).buffer, model_row[1]];
+        } else {
+            // Value is null / no value set, all index rows are like this.
+            var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(0).buffer];
+        }
+    }
+    //console.log('arr_res', arr_res);
+    return Buffer.concat(arr_res);
+}
 
 
 
@@ -382,18 +402,27 @@ class Table {
     }
     */
 
+
+    get incrementors() {
+        var res;
+        if (this.pk_incrementor) {
+            res = [this.inc_fields, this.inc_indexes, this.inc_foreign_keys, this.pk_incrementor];
+        } else {
+            res = [this.inc_fields, this.inc_indexes, this.inc_foreign_keys];
+        }
+        return res;
+    }
+
     get own_incrementor_ids() {
         var res;
-
         if (this.pk_incrementor) {
             res = [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id, this.pk_incrementor.id];
         } else {
             res = [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id];
         }
-
-
         return res;
     }
+
     add_field() {
         //var args = Array.prototype.slice.call(arguments);
         //args.push(this);
@@ -463,11 +492,96 @@ class Table {
         });
         return res;
     }
+
+    get inward_fk_refs() {
+        let res = [];
+        each(this.db.tables, table => {
+            let has_ref = false;
+            each(table.fields, field => {
+                if (field.fk_to_table === this) {
+                    has_ref = true;
+                }
+            });
+            //if (table.)
+            if (has_ref) {
+                res.push(table.name);
+            }
+        })
+        return res;
+    }
+
+    get structure_record() {
+        /*
+
+        tbl_tables.add_record([
+                [table.id],
+                [table.name, [table.inc_fields.id, table.inc_indexes.id, table.inc_foreign_keys.id]]
+            ]);
+
+            */
+
+        // Table KP
+
+        let incrementor_ids;
+        if (this.pk_incrementor) {
+            incrementor_ids = [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id, this.pk_incrementor.id];
+        } else {
+            incrementor_ids = [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id];
+        }
+
+        let res = [
+            [table_table_key_prefix, this.id],
+            [this.name, incrementor_ids]
+        ]
+        return res;
+
+    }
+
+    get buf_structure_record() {
+        // Encode the model rows.
+        //  Could have separate db-binary-encoding
+        //   That would help to clean up the code a lot.
+
+        var prefix = this.key_prefix;
+
+        //console.log('this.key', this.key);
+        //console.log('prefix', prefix);
+
+        //console.log('[this.key, this.value]', [this.key, this.value]);
+        //console.log('prefix', prefix);
+
+        var res = Binary_Encoding.encode_pair_to_buffers(this.structure_record, prefix);
+        return res;
+
+    }
+
+    get outward_fk_refs() {
+        let res = [];
+        let map = {};
+
+        each(this.fields, field => {
+            if (field.fk_to_table && !map[field.fk_to_table.name]) {
+                map[field.fk_to_table.name] = true;
+                res.push(field.fk_to_table.name);
+            }
+        });
+        return res;
+    }
+
+
+    // A server-side download_full_table_records would be useful
+    //  Even the record in the tables table.
+    //   Could also have some overwrite protection on that side of things.
+    //   Noticed that we may not need the tables incrmementor, with there being a tables id and it autoincrements in the tables table.
+
+
+
+
     // and the index instances of the records?
 
     get_map_lookup(field_name) {
 
-        console.log('field_name', field_name);
+        //console.log('field_name', field_name);
         // looks it up to the primary key.
         //  don't bother consulting the index right now.
 
@@ -564,9 +678,136 @@ class Table {
 
         // Binary_Encoding.encode_to_buffer(arr_values, kp);
         var res = Binary_Encoding.encode_to_buffer(arr_pk_part, this.key_prefix);
-
-
         return res;
+    }
+
+    get buf_structure() {
+        // need the incrementor's records.
+        // table table record
+        // then the table field records
+
+        let all_buf_records = [];
+
+        let buf_inc_records = [];
+
+        let buf_kvs = [];
+        //let bufs_encoded_rows = [];
+
+
+        //throw 'stop';
+
+        console.log('buf_inc_records', buf_inc_records);
+
+
+
+        let ttr = this.structure_record;
+        console.log('ttr', ttr);
+
+        //throw 'stop';
+        // Model_Database.encode_arr_rows_to_buf
+
+        let rows = [];
+
+        rows.push(ttr);
+
+        //bufs_encoded_rows.push(encode_model_row(Binary_Encoding.encode_pair_to_buffers(ttr, 2)));
+
+        each(this.incrementors, incrementor => {
+            //let buf_inc = incrementor.get_all_db_records()[0];
+            //console.log('buf_inc', buf_inc);
+
+
+            let inc_row = incrementor.get_record();
+
+            //each(bufs_inc, b => buf_inc_records.push([b[0],
+            //    []
+            //]))
+
+            //let row = [buf_inc, []]
+
+            rows.push(inc_row);
+
+            //rows.push([bufs_inc[0],
+            //    []
+            //]);
+
+            /*
+            let i_kv_buf = Binary_Encoding.encode_pair_to_buffers([bufs_inc[0],
+                []
+            ]);
+            console.log('i_kv_buf', i_kv_buf);
+            buf_kvs.push(i_kv_buf);
+            bufs_encoded_rows.push(encode_model_row(i_kv_buf));
+            */
+
+
+        });
+        //throw 'stop';
+
+        each(this.fields, field => {
+            let kv_field = field.get_kv_record();
+            rows.push(kv_field);
+
+            //const kp_fields_table = 6;
+
+            //kv_field[0].unshift(kp_fields_table);
+            // Then encode these model rows, with that kp.
+
+            console.log('kv_field', kv_field);
+            //bufs_encoded_rows.push(encode_model_row(Binary_Encoding.encode_pair_to_buffers(kv_field, 6)));
+
+        })
+
+        //throw 'stop';
+
+
+        //all_buf_records = all_buf_records.concat(buf_inc_records);
+        //all_buf_records.push(ttr);
+
+
+
+        //console.log('ttr', ttr);
+
+        //console.log('buf_kvs', buf_kvs);
+        //console.log('rows', JSON.stringify(rows, null, 2));
+
+
+        each(rows, row => console.log('row', row));
+        // Then how to encode the records together?
+
+        //throw 'stop';
+
+
+
+
+        // encode_rows
+
+        let buf_encoded_rows = database_encoding.encode_rows_including_kps_to_buffer(rows);
+
+
+
+        console.log('* buf_encoded_rows', buf_encoded_rows);
+        //throw 'stop';
+
+        return buf_encoded_rows;
+
+        // all_buf_records
+
+
+
+        /*
+        each(all_buf_records, kv_buf_pair => {
+            console.log('kv_buf_pair', kv_buf_pair);
+
+            let encoded_pair = Binary_Encoding.encode_pair_to_buffers(kv_buf_pair, this.key_prefix);
+            console.log('encoded_pair', encoded_pair);
+
+            buf_kbs.push(encode_model_row(encoded_pair));
+        });
+        */
+
+        //console.log('buf_kbs', buf_kbs);
+
 
 
     }

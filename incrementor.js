@@ -5,6 +5,8 @@ var is_array = lang.is_array;
 var arrayify = lang.arrayify;
 var Fns = lang.Fns;
 
+
+const encode_model_row = require('./database').encode_model_row;
 /*
 
 var _inc_key = function(int_incrementor_id) {
@@ -122,19 +124,32 @@ class Incrementor {
     }
 
     get_all_db_records() {
-        var res = [];
-        res.push(this.get_record());
-        res.concat(this.get_index());
+        var res = [this.get_record(), this.get_index()];
         return res;
     }
 
+    // the incrementor indexes...
+    //  not using them right now.
+
     get_record() {
         return [
-            [0, this.id, this.name], this.value
+            [0, this.id, this.name],
+            [this.value]
+        ];
+    }
+
+    get_index() {
+        return [
+            [1, this.name, this.id], null
         ];
     }
 
     get_record_bin() {
+
+        // Want this as an encoded model row.
+        //  ?
+
+
         // key 0 for incrementors prefix, incrementor id
         // Have the 0 as its first item, encoded as an xas2
 
@@ -143,6 +158,8 @@ class Incrementor {
 
         var buf_name = Buffer.from(this.name);
         // STRING
+
+        // 2 xas2 prefixes here
 
         var bufs_key = Buffer.concat([xas2(0).buffer, xas2(this.id).buffer, xas2(STRING).buffer, xas2(buf_name.length).buffer, buf_name]);
 
@@ -163,17 +180,13 @@ class Incrementor {
 
         var res = [bufs_key, buf_val];
 
-        //console.log('res', res);
+        //console.log('incrementor get_record_bin res', res);
         //console.log('this.id', this.id);
         //throw 'stop';
         return res;
     }
 
-    get_index() {
-        return [
-            [this.name, this.id], null
-        ];
-    }
+
 
     // Will also create an index record for an incrementor.
 

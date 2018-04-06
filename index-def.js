@@ -318,7 +318,17 @@ class Index_Def {
         var table_ikp = table.indexes_key_prefix;
 
         var arr_res = [xas2(table_ikp).buffer, xas2(id).buffer];
+
+        // No, think we need to join them differently in a way that encodes the length of the keys and values,
+        //  
+
+        // But the index is only composed of the key part of the LevelDB record.
+
+
         var record_flat_data = record.key.concat(record.value);
+
+        // 
+
         each(this.key_fields, (key_field) => {
             var item_value = record_flat_data[key_field.id];
             arr_res.push(flexi_encode_item(item_value));

@@ -106,6 +106,10 @@ var Binary_Encoding = require('binary-encoding');
 var xas2 = require('xas2');
 // should have some connected model classes, extending these.
 
+let database_encoding = require('./encoding');
+
+let decode_model_rows = database_encoding.decode_model_rows;
+let encode_model_row = database_encoding.encode_model_row;
 
 const deep_diff = require('deep-object-diff').diff;
 
@@ -129,6 +133,14 @@ const NT_DATE = 2;
 const NT_TIME = 3;
 const NT_STRING = 4;
 const NT_FLOAT32_LE = 5;
+
+
+const map_core_table_names = {
+    'tables': true,
+    'native types': true,
+    'table fields': true,
+    'table indexes': true
+}
 
 class Database {
 
@@ -290,7 +302,7 @@ class Database {
 
         let inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
         incrementors.push(inc_incrementor);
-        this.inc_table = this.new_incrementor('table');
+        let inc_table = this.inc_table = this.new_incrementor('table');
         each(incrementors, (incrementor) => {
             map_incrementors[incrementor.name] = incrementor;
         });
@@ -308,6 +320,7 @@ class Database {
         // Don't use add_table, because it will create the relevant table record and table field records. These tables don't yet exist.
         //this.add_table(tbl_tables);
         tables.push(tbl_tables);
+        //inc_table.increment();
 
         map_tables[tbl_tables.name] = tbl_tables;
         map_tables_by_id[tbl_tables.id] = tbl_tables;
@@ -383,6 +396,8 @@ class Database {
             ]
         ]);
         tables.push(tbl_native_types);
+        //inc_table.increment();
+        tbl_native_types.pk_incrementor.value = 4;
         //map_tables[tbl_native_types.name] = tbl_native_types;
 
         //this.add_table(tbl_native_types);
@@ -390,6 +405,7 @@ class Database {
 
         var tbl_fields = new Table('table fields', this);
         tables.push(tbl_fields);
+        //inc_table.increment();
         map_tables[tbl_fields.name] = tbl_fields;
         map_tables_by_id[tbl_fields.id] = tbl_fields;
 
@@ -397,6 +413,7 @@ class Database {
         // Should not have its own autoincrementing id, apart from 
         var tbl_table_indexes = this.tbl_indexes = new Table('table indexes', this);
         tables.push(tbl_table_indexes);
+        //inc_table.increment();
         map_tables[tbl_table_indexes.name] = tbl_table_indexes;
         map_tables_by_id[tbl_table_indexes.id] = tbl_table_indexes;
 
@@ -421,6 +438,8 @@ class Database {
                 [table.id],
                 [table.name, [table.inc_fields.id, table.inc_indexes.id, table.inc_foreign_keys.id]]
             ]);
+            tbl_tables.pk_incrementor.increment();
+
         }
 
         //this.tbl_tables.add_record([[table.id], [table.name, [table.incrementors[0].id, table.incrementors[1].id, table.incrementors[2].id]]]);
@@ -466,6 +485,7 @@ class Database {
             return res;
 
         } else {
+            console.trace();
             throw 'Unexpected incrementor signature, ' + sig;
         }
     }
@@ -790,10 +810,28 @@ class Database {
 
         res.count = res.changed.length + res.added.length + res.deleted.length;
 
+        res.orig = this;
+        reg.other = other_model;
+
         return res;
 
 
 
+    }
+
+    get non_core_table_names() {
+        return this.table_names.filter(name => !map_core_table_names[name]);
+    }
+
+    get map_tables_fk_refs() {
+        let res = {};
+        each(this.tables, table => {
+            let outward_fk_refs = table.outward_fk_refs;
+            if (outward_fk_refs.length > 0) {
+                res[table.name] = outward_fk_refs;
+            }
+        });
+        return res;
     }
 
     /*
@@ -823,186 +861,24 @@ class Database {
     //   Could use an active record to persist them to the DB? Seems unnecessary.
 }
 
-// -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~\\
-
-var decode_key = (buf_key) => {
-    var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
-    var decoded_key;
-    //if (key_1st_value % 2 === 0) {
-    if (key_1st_value % 2 === 0 && key_1st_value > 0) {
-        // even, so it's a table, so 1 prefix
-        // Have incrementor work differently - just xas2s in keys and values.
-        decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
-    } else {
-        // odd, meaning indexes, so 2 prefixes. Includes the incrementors.
-        decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
-    }
-    return decoded_key;
-}
-
-// encode key
-//  encode index key
-//   index_kp, index_id, arr_index_values
-
-var encode_index_key = (index_kp, index_id, arr_index_values) => {
-    var res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
-    return res;
-}
-var encode_key = (kp, arr_values) => {
-    var res = Binary_Encoding.encode_to_buffer(arr_values, kp);
-    return res;
-}
-
-var decode_keys = lang.arrayify(decode_key);
-
-var decode_model_row = (model_row, remove_kp) => {
-
-    //console.log('model_row', model_row);
-
-    var buf_key = model_row[0];
-    var buf_value = model_row[1];
-    var value = null;
-    // Decode buffer could tell from odd or even.
-    var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
-    if (buf_value) {
-        // Could have an empty buffer as a value.
-        //  That seems wrong so far though.
-
-        if (key_1st_value === 0) {
-            value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
-        } else {
-            value = Binary_Encoding.decode_buffer(buf_value);
-        }
-    }
-    // not all of them are 2 deep for indexes though.
-    //  That's where it's a bit tricky.
-    //   Table records have got 1 xas2 prefix
-    //   Table index records have got 2 xas prefixes.
-    //    We need to know which is which.
-    //  Could say one is odd, the other is even.
-    //   That seems like the best way to differentiate between them for the moment.
-
-    // Just can't read it with 2 prefixes as we don't know it has that many.
-
-    //console.log('key_1st_value', key_1st_value);
-    var decoded_key;
-    //if (key_1st_value % 2 === 0) {
-    if (key_1st_value % 2 === 0 && key_1st_value > 0) {
-        // even, so it's a table, so 1 prefix
-        // Have incrementor work differently - just xas2s in keys and values.
-        decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
-    } else {
-        try {
-            decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
-        } catch (err) {
-            decoded_key = '[DECODING ERROR: ' + err + ']';
-        }
-    }
-    if (remove_kp) {
-        decoded_key.splice(0, remove_kp);
-    }
-    //console.log('[decoded_key, value]', [decoded_key, value]);
-    return [decoded_key, value];
-    //console.log('decoded_record', decoded_record);
-}
-
-/*
-
-var from_buffer = (buf) => {
-    console.log('from_buffer\n----------\n');
-
-    Binary_Encoding.evented_get_row_buffers(buf, (arr_row) => {
-        //console.log('arr_row', arr_row);
-
-        var decoded_row = decode_model_row(arr_row);
-        console.log('decoded_row', decoded_row);
-
-        // However, may need to put together the system tables anyway.
-        //  These rows could have values useful for setting some records, but there may be the most basic system model that we need first?
-        //  It may be possible to recreate the core model out of the data we have been provided.
-
-        // However, we may not really want to recreate the core from a buffer.
-        //  The core would be used to properly process other data that comes in.
-        // May want to ignore the core items...
-        //  May be easiest to add the rest of the tables once the core is in place.
-        // The tables table, beyond the first three rows so far, contains non-system information.
-    })
-}
-*/
-
-var decode_model_rows = (model_rows, remove_kp) => {
-    var res = [];
-    //console.log('model_rows', model_rows);
-    each(model_rows, (model_row) => {
-        //console.log('model_row', model_row);
-        // Incrementors look OK so far.
-        //  Let's see how records (keys and values), as well as index records (keys and values) decode with the multi-decoder.
-        //console.log('pre decode');
-        let decoded = decode_model_row(model_row, remove_kp);
-        //console.log('decoded', decoded);
-        res.push(decoded);
-        //throw 'stop';
-        //console.log('post decode');
-    });
-    return res;
-}
 
 
 // Should possibly be renamed
 //  More detail about what encoding it starts with, what the result is.
 //  This only does a partial encoding of already binary rows.
-var encode_model_row = (model_row) => {
-    //console.log('model_row', model_row);
 
-    if (model_row instanceof Buffer) {
-        var arr_res = [xas2(model_row.length).buffer, model_row, xas2(0).buffer];
-    } else {
-        if (model_row[1]) {
-            var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(model_row[1].length).buffer, model_row[1]];
-        } else {
-            // Value is null / no value set, all index rows are like this.
-            var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(0).buffer];
-        }
-    }
-    //console.log('arr_res', arr_res);
-    return Buffer.concat(arr_res);
-}
-
-var get_arr_rows_as_buffer = (arr_rows) => {
-    // for every row, encode it using the Binary_Encoding.
-
-    // They may not have the table key prefix?
-
-}
-
-var encode_arr_rows_to_buf = (arr_rows, key_prefix) => {
-    var res = [];
-    each(arr_rows, (row) => {
-        // encode_model_row
-        res.push(encode_model_row(Binary_Encoding.encode_pair_to_buffers(row, key_prefix)));
-    });
-    return Buffer.concat(res);
-}
-
-var encode_model_rows = (model_rows) => {
-    var res = [];
-
-    each(model_rows, (model_row) => {
-        res.push(encode_model_row(model_row));
-    });
-
-    return Buffer.concat(res);
-}
 
 // filter out index rows.
 
 var load_arr_core = (arr_core) => {
-    var decoded_core = decode_model_rows(arr_core);
+    var decoded_core = database_encoding.decode_model_rows(arr_core);
 
     //console.log('decoded_core', decoded_core);
     // Should have the index table rows showing up in prefix 8
     var arr_by_prefix = [];
     each(decoded_core, (row) => {
+        console.log('row', row);
+
         var row_copy = clone(row);
         var arr_row_key = row_copy[0];
         var key_prefix = arr_row_key[0];
@@ -1010,6 +886,8 @@ var load_arr_core = (arr_core) => {
         arr_by_prefix[key_prefix] = arr_by_prefix[key_prefix] || [];
         arr_by_prefix[key_prefix].push(row_copy);
     });
+
+    //throw 'stop';
 
     var arr_incrementor_rows = arr_by_prefix[0];
     var arr_table_tables_rows = arr_by_prefix[2];
@@ -1038,12 +916,14 @@ var load_arr_core = (arr_core) => {
         //console.log('inc_row', inc_row);
         var inc_id = inc_row[0][0];
         var inc_name = inc_row[0][1];
-        var inc_value = inc_row[1];
+        var inc_value = inc_row[1] || 0;
+
+
 
         //var inc = new Incrementor
-
+        //console.log('incrementor: inc_id, inc_name, inc_value', inc_id, inc_name, inc_value);
         db.add_incrementor(inc_id, inc_name, inc_value);
-        console.log('incrementor: inc_id, inc_name, inc_value', inc_id, inc_name, inc_value);
+
     });
 
     db.inc_incrementor = db.incrementors[0];
@@ -1532,15 +1412,20 @@ Database.diff_model_rows = (orig, current) => {
 
 
 Database.load_buf = load_buf;
-Database.decode_key = decode_key;
-Database.decode_keys = decode_keys;
-Database.decode_model_row = decode_model_row;
-Database.decode_model_rows = decode_model_rows;
-Database.encode_model_row = encode_model_row;
-Database.encode_model_rows = encode_model_rows;
-Database.encode_arr_rows_to_buf = encode_arr_rows_to_buf;
-Database.encode_index_key = encode_index_key;
-Database.encode_key = encode_key;
+
+
+
+
+Database.decode_key = database_encoding.decode_key;
+Database.decode_keys = database_encoding.decode_keys;
+Database.decode_model_row = database_encoding.decode_model_row;
+Database.decode_model_rows = database_encoding.decode_model_rows;
+Database.encode_model_row = database_encoding.encode_model_row;
+Database.encode_model_rows = database_encoding.encode_model_rows;
+Database.encode_arr_rows_to_buf = database_encoding.encode_arr_rows_to_buf;
+Database.encode_index_key = database_encoding.encode_index_key;
+Database.encode_key = database_encoding.encode_key;
+
 //Database.from_buffer = from_buffer;
 
 // encode_arr_model_rows
@@ -1556,7 +1441,7 @@ Database.encode_key = encode_key;
 
 
 var p = Database.prototype;
-p.encode_model_rows = encode_model_rows;
+//p.encode_model_rows = encode_model_rows;
 
 
 if (require.main === module) {
