@@ -13,7 +13,7 @@ const Binary_Encoding = require('binary-encoding');
 
 // xas2, bin enc
 
-
+/*
 
 var buffer_to_buffer_pairs = (buf_encoded) => {
     // read xas2, see the length of the row
@@ -48,7 +48,7 @@ var buffer_to_buffer_pairs = (buf_encoded) => {
     return res;
 }
 
-
+*/
 
 // Decode
 
@@ -400,6 +400,43 @@ let encode_rows_including_kps_to_buffer = rows => {
 
 
 
+
+var buffer_to_row_buffer_pairs = (buf_encoded) => {
+    // read xas2, see the length of the row
+
+    let pos = 0,
+        length, l = buf_encoded.length;
+    let old_pos;
+    let done = false;
+    let res = [];
+    let arr_row;
+    let buf_key, buf_value;
+
+    //console.log('buf_encoded', buf_encoded);
+    while (!done) {
+        [length, pos] = xas2.read(buf_encoded, pos);
+        buf_key = Buffer.alloc(length);
+        buf_encoded.copy(buf_key, 0, pos, pos + length);
+        pos = pos + length;
+
+        [length, pos] = xas2.read(buf_encoded, pos);
+        buf_value = Buffer.alloc(length);
+        buf_encoded.copy(buf_value, 0, pos, pos + length);
+        pos = pos + length;
+        arr_row = [buf_key, buf_value];
+        //console.log('arr_row', arr_row);
+        //cb_row(arr_row);
+        res.push(arr_row);
+        if (pos >= l) {
+            done = true;
+        }
+    }
+    //var res = [buf_key, buf_value];
+    return res;
+}
+
+
+
 // Get this working, then sync the database
 //  Will have a database that stays up-to-date locally with the data gathered.
 //  Then will do analysis and verification of the db.
@@ -507,7 +544,9 @@ let Database_Encoding = {
     'decode_key': decode_key,
     'decode_keys': decode_keys,
 
-    'buffer_to_buffer_pairs': buffer_to_buffer_pairs,
+    'buffer_to_buffer_pairs': buffer_to_row_buffer_pairs,
+
+    'buffer_to_row_buffer_pairs': buffer_to_row_buffer_pairs,
 
     'encode': {
         'key': encode_key,

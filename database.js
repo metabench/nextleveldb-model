@@ -745,6 +745,17 @@ class Database {
         return table.records;
     }
 
+    get non_core_tables() {
+        var res = [];
+        each(this.tables, (table) => {
+            if (!map_core_table_names[table.name]) {
+                res.push(table);
+            }
+
+        })
+        return res;
+    }
+
     get table_names() {
         var res = [];
         each(this.tables, (table) => {
@@ -811,7 +822,7 @@ class Database {
         res.count = res.changed.length + res.added.length + res.deleted.length;
 
         res.orig = this;
-        reg.other = other_model;
+        res.other = other_model;
 
         return res;
 
