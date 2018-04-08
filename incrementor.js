@@ -131,6 +131,8 @@ class Incrementor {
     // the incrementor indexes...
     //  not using them right now.
 
+
+    // Need to be sure that the incrementors' values always get written as xas2.
     get_record() {
         return [
             [0, this.id, this.name],

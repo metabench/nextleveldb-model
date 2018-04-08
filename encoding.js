@@ -7,10 +7,8 @@ const is_defined = lang.is_defined;
 
 
 const Binary_Encoding = require('binary-encoding');
-
+const xas2 = require('xas2');
 // This code will generally cover binary <=> js obj conversion, specifically for the structures used by NextLevelDB.
-
-
 // xas2, bin enc
 
 /*
@@ -85,13 +83,26 @@ var encode_key = (kp, arr_values) => {
 
 var decode_keys = lang.arrayify(decode_key);
 
+// Maybe test this with the newest version of the DB server running.s
+
 var decode_model_row = (model_row, remove_kp) => {
 
+    // The DB could have been started with broken xas2 values, possibly encoded wrong using an older version of the DB code.
+    //  Not sure.
+
+
+
+
     //console.log('model_row', model_row);
+    //console.log('remove_kp', remove_kp);
 
     var buf_key = model_row[0];
     var buf_value = model_row[1];
     var value = null;
+
+    //console.log('buf_key', buf_key);
+    //console.log('buf_value', buf_value);
+
     // Decode buffer could tell from odd or even.
     var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
     if (buf_value) {
@@ -105,6 +116,9 @@ var decode_model_row = (model_row, remove_kp) => {
 
 
             if (buf_value.length > 0) {
+
+                // Has difficulty doing this here.
+
                 value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
             } else {
                 value = null;
@@ -258,10 +272,24 @@ var decode_model_rows = (model_rows, remove_kp) => {
 
 let encode_kv_pair_to_kv_buffer_pair = function (arr_pair, key_prefix) {
 
+    // If this is an incrementor though...
+    //  May be best to throw an error because we don't use this type of encoding for incrementors
+
+    // don't allow key prefix of 0?
+    //  Seem to have a problem when we get the incrementors as records, and then encode them.
+
+
+
     //console.log('arr_pair, key_prefix', arr_pair, key_prefix);
 
 
-    var a = arguments;
+    // can't have the first prefix as 0 and use this.
+    let a = arguments;
+    if (a[1] === 0) {
+        throw 'Can not use encode_kv_pair_to_kv_buffer_pair to encode incrementor rows';
+    }
+
+
     //console.log('a.length', a.length);
     //console.log('a', a);
     //console.log('arguments.length', arguments.length);
@@ -287,6 +315,11 @@ let encode_kv_pair_to_kv_buffer_pair = function (arr_pair, key_prefix) {
     //console.log('prefix_buffers', prefix_buffers);
 
     var res_key = Buffer.concat(prefix_buffers);
+
+    // but for incrementors, it just encodes the value as xas2.
+
+
+
     var res_val = Binary_Encoding.encode_to_buffer(arr_pair[1]);
     var res = [res_key, res_val];
     return res;
@@ -296,7 +329,9 @@ let encode_kv_pair_to_kv_buffer_pair = function (arr_pair, key_prefix) {
 
 
 
-
+// Reading of incrementor records should always read them as XAS2.
+//  This seems like an odd place for a bug, or inconsistncy with older codebase.
+//  Need to get this fully working.
 
 // encode_arr_rows_to_buf
 
@@ -318,6 +353,10 @@ let encode_row_including_kps_to_buffer = row => {
 
 
         if (row_kp === 0) {
+
+
+            // but for incrementors, it just encodes the value as xas2.
+
             //console.log('row[0]', row[0]);
 
             row_kp = row[0].shift();
@@ -328,6 +367,25 @@ let encode_row_including_kps_to_buffer = row => {
             //console.log('row_kp', row_kp);
             //console.log('incrementor_id', incrementor_id);
             //throw 'stop';
+
+
+            // Nope, it should encode the key, and just have an xas2 as the value.
+
+
+            // encode incrementor key
+
+
+            // Possibly the incrementor keys have been put into the DB wrong somehow.
+
+
+
+
+            //let enc_key = encode_incrementor_key(row[0], row_kp, incrementor_id);
+            //let enc_val = xas2(row[1][0]).buffer;
+
+            //console.log('enc_key', enc_key);
+            //console.log('enc_val', enc_val);
+
 
             let kv_buffer_pair = encode_kv_pair_to_kv_buffer_pair(row, row_kp, incrementor_id);
 
@@ -477,6 +535,14 @@ var encode_kv_buffer_pair = (model_row) => {
         //console.log('model_row[1]', model_row[1]); // The values
 
         if (model_row[1]) {
+
+            if (model_row[0][0] === 0) {
+                // It's an incrementor row
+            } else {
+
+            }
+
+
             var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(model_row[1].length).buffer, model_row[1]];
         } else {
             // Value is null / no value set, all index rows are like this.

@@ -262,6 +262,8 @@ class Database {
         // Definition is a list of tables.
         this.create_db_core_model();
 
+        // definition supposes core model already exists.
+
 
         var tables = arr_def;
         var that = this;
@@ -293,6 +295,8 @@ class Database {
     create_db_core_model() {
 
         console.log('create_db_core_model');
+        console.trace();
+
         this._init = true;
         let incrementors = this.incrementors;
         let map_incrementors = this.map_incrementors
@@ -714,6 +718,9 @@ class Database {
 
     // Gets them as binary
     get_model_rows() {
+
+        // Still seems like the tables have been put together wrong.
+
         // incrementor rows...
         var incrementors = this.incrementors;
         var tables = this.tables;
@@ -726,12 +733,19 @@ class Database {
             });
         });
 
+
+        // Tables should be in order.Not sure why it's not.
+        //  Could look into the ordering of tables here.
+        //console.log('this.table_names', this.table_names);
+
         each(tables, (table) => {
+            console.log('get_model_rows table.name', table.name);
             var table_all_db_records = table.get_all_db_records_bin();
             each(table_all_db_records, (table_db_record) => {
                 res.push(table_db_record);
             });
         });
+        //throw 'stop';
         return res;
     }
 
@@ -771,8 +785,14 @@ class Database {
     }
 
     get_model_rows_encoded() {
+
+        // Think this all the model rows though...?
+
         var model_rows = this.get_model_rows();
+
         //console.log('model_rows.length', model_rows.length);
+
+        //throw 'stop';
         var arr_simple_encoded = [];
         each(model_rows, (model_row) => {
             // model_rows
@@ -882,13 +902,22 @@ class Database {
 // filter out index rows.
 
 var load_arr_core = (arr_core) => {
+
+    //console.log('arr_core', arr_core);
+    //console.trace();
+
     var decoded_core = database_encoding.decode_model_rows(arr_core);
 
     //console.log('decoded_core', decoded_core);
+
+    // The core should have been provided with the tables in the right order.
+    //  Don't know why the order of tables has got jumbled.
+
+
     // Should have the index table rows showing up in prefix 8
     var arr_by_prefix = [];
     each(decoded_core, (row) => {
-        console.log('row', row);
+        //console.log('row', row);
 
         var row_copy = clone(row);
         var arr_row_key = row_copy[0];
@@ -902,6 +931,11 @@ var load_arr_core = (arr_core) => {
 
     var arr_incrementor_rows = arr_by_prefix[0];
     var arr_table_tables_rows = arr_by_prefix[2];
+
+
+    //console.log('arr_table_tables_rows', arr_table_tables_rows);
+    //throw 'stop';
+
     var arr_table_native_types_rows = arr_by_prefix[4];
     var arr_table_field_rows = arr_by_prefix[6];
     var arr_table_index_rows = arr_by_prefix[8];
@@ -941,10 +975,14 @@ var load_arr_core = (arr_core) => {
     db.inc_table = db.incrementors[1];
 
 
-    var arr_table_names = [];
+    var arr_table_names = new Array(arr_table_tables_rows.length);
     each(arr_table_tables_rows, (v, i) => {
-        arr_table_names[i] = v[1][0];
+        //console.log('v', v);
+        //console.log('i', i);
+        arr_table_names[v[0][0]] = v[1][0];
     });
+    //console.trace();
+    //throw 'stop';
 
     let map_table_id_incrementors = {};
     let arr_id_incrementors = [];
@@ -999,7 +1037,13 @@ var load_arr_core = (arr_core) => {
             db._init = false;
         }
 
+        //console.log('*table_name', table_name);
+
+
+
         var table = db.add_table(table_name, i, arr_table_incrementors);
+
+        //console.log('db.tables.length', db.tables.length);
 
         if (table.name === 'tables') {
             db.tbl_tables = table;
@@ -1127,7 +1171,7 @@ var load_arr_core = (arr_core) => {
         }
 
         var table = db.tables[table_id];
-        console.log('field read ' + field_name + ': data_type_id', data_type_id);
+        //console.log('field read ' + field_name + ': data_type_id', data_type_id);
 
         /*
         console.log('table_id', table_id);
@@ -1307,7 +1351,22 @@ var load_arr_core = (arr_core) => {
 
 
 
-
+    db.tbl_tables.add_record([
+        [db.tbl_tables.id],
+        [db.tbl_tables.name, db.tbl_tables.own_incrementor_ids]
+    ]);
+    db.tbl_tables.add_record([
+        [db.tbl_native_types.id],
+        [db.tbl_native_types.name, db.tbl_native_types.own_incrementor_ids]
+    ]);
+    db.tbl_tables.add_record([
+        [db.tbl_fields.id],
+        [db.tbl_fields.name, db.tbl_fields.own_incrementor_ids]
+    ]);
+    if (db.tbl_indexes) db.tbl_tables.add_record([
+        [db.tbl_indexes.id],
+        [db.tbl_indexes.name]
+    ]);
 
 
     each(db.tables, (table) => {
@@ -1322,24 +1381,7 @@ var load_arr_core = (arr_core) => {
     });
 
 
-    db.tbl_tables.add_record([
-        [db.tbl_tables.id],
-        [db.tbl_tables.name, db.tbl_tables.own_incrementor_ids]
-    ]);
-    db.tbl_tables.add_record([
-        [db.tbl_native_types.id],
-        [db.tbl_native_types.name, db.tbl_native_types.own_incrementor_ids]
-    ]);
-    db.tbl_tables.add_record([
-        [db.tbl_fields.id],
-        [db.tbl_fields.name, db.tbl_fields.own_incrementor_ids]
-    ]);
 
-
-    if (db.tbl_indexes) db.tbl_tables.add_record([
-        [db.tbl_indexes.id],
-        [db.tbl_indexes.name]
-    ]);
 
 
 
@@ -1353,6 +1395,9 @@ var load_arr_core = (arr_core) => {
 }
 
 var load_buf = (buf) => {
+
+    console.log('*load_buf');
+
     var arr_core = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf);
     return load_arr_core(arr_core);
 }
@@ -1459,7 +1504,10 @@ if (require.main === module) {
 
     //setTimeout(() => {
     var db = new Database();
-    db.create_db_core_model();
+
+    // Gets creates automatically.
+    //db.create_db_core_model();
+    console.log('db.tables.length', db.tables.length);
 
     var view_decoded_rows = () => {
         var model_rows = db.get_model_rows();
@@ -1510,23 +1558,23 @@ if (require.main === module) {
 
         var buf_se_length = buf_simple_encoded.length;
 
-        /*
+
 
         Binary_Encoding.evented_get_row_buffers(buf_simple_encoded, (arr_row) => {
             //console.log('arr_row', arr_row);
 
-            var decoded_row = decode_model_row(arr_row);
+            var decoded_row = database_encoding.decode_model_row(arr_row);
             console.log('decoded_row', decoded_row);
 
         });
 
         // Can try serializing the model to binary, then unserialising / reconstructing it to a model.
         //  Then can compre values from the two.
-        */
+
 
         var db2 = load_buf(buf_simple_encoded);
         //console.log('db2', db2);
-        //console.log('db2.tables.length');
+        console.log('db2.tables.length', db2.tables.length);
 
         var decoded = db2.get_model_rows_decoded();
         //console.log('decoded', decoded);
