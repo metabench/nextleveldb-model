@@ -811,7 +811,7 @@ class Database {
         var res = [];
         each(arr_rows, (row) => {
             // encode_model_row
-            res.push(encode_model_row(Binary_Encoding.encode_pair_to_buffers(row, key_prefix)));
+            res.push(encode_model_row(database_encoding.encode_pair_to_buffers(row, key_prefix)));
         });
         return Buffer.concat(res);
         //res.concat();
@@ -863,6 +863,15 @@ class Database {
             }
         });
         return res;
+    }
+
+    table_id(table) {
+        let t_table = tof(table);
+        if (t_table === 'number') return table;
+        if (t_table === 'string') {
+            return this.map_tables[table].id
+        }
+        return table;
     }
 
     /*
@@ -1454,10 +1463,13 @@ Database.diff_model_rows = (orig, current) => {
         }
     })
 
+
+
     let res = {
         changed: changed,
         added: added,
-        deleted: deleted
+        deleted: deleted,
+        same: changed.length === 0 && added.length === 0 && deleted.length === 0
     }
 
     return res;

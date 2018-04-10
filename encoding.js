@@ -121,7 +121,9 @@ var decode_model_row = (model_row, remove_kp) => {
 
                 value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
             } else {
-                value = null;
+                //value = null;
+                console.trace();
+                throw 'stop';
             }
 
 
@@ -162,7 +164,26 @@ var decode_model_row = (model_row, remove_kp) => {
 
         // Seems like data was encoded wrong in the table buffer.
 
-        decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+        console.log('buf_key', buf_key);
+
+        // If we fail to decode the key?
+
+        // Leave out decoding errors...
+        //console.log('buf_key', buf_key);
+        try {
+
+            //console.log('buf_key', buf_key);
+            decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+        } catch (err) {
+            //console.trace();
+            //throw 'stop';
+            //decoded_key = '[DECODING ERROR: ' + err + ']';
+            return null;
+        }
+
+
+
+
     } else {
         try {
 
@@ -177,7 +198,9 @@ var decode_model_row = (model_row, remove_kp) => {
     if (remove_kp) {
         decoded_key.splice(0, remove_kp);
     }
-    //console.log('[decoded_key, value]', [decoded_key, value]);
+    console.log('[decoded_key, value]', [decoded_key, value]);
+
+
     return [decoded_key, value];
     //console.log('decoded_record', decoded_record);
 }
@@ -214,9 +237,11 @@ var decode_model_rows = (model_rows, remove_kp) => {
         // Incrementors look OK so far.
         //  Let's see how records (keys and values), as well as index records (keys and values) decode with the multi-decoder.
         //console.log('pre decode');
+
+
         let decoded = decode_model_row(model_row, remove_kp);
         //console.log('decoded', decoded);
-        res.push(decoded);
+        if (decoded) res.push(decoded);
         //throw 'stop';
         //console.log('post decode');
     });
@@ -579,7 +604,7 @@ var encode_arr_rows_to_buf = (arr_rows, key_prefix) => {
     var res = [];
     each(arr_rows, (row) => {
         // encode_model_row
-        res.push(encode_model_row(Binary_Encoding.encode_pair_to_buffers(row, key_prefix)));
+        res.push(encode_model_row(Binary_Encoding.encode_kv_pair_to_kv_buffer_pair(row, key_prefix)));
     });
     return Buffer.concat(res);
 }
