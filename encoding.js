@@ -85,13 +85,311 @@ var decode_keys = lang.arrayify(decode_key);
 
 // Maybe test this with the newest version of the DB server running.s
 
+// 
+
+
+
+
+// select_indexes_buffer_from_kv_pair_buffer
+
+//  would do the index selection on both the key and the value, but not decoding the indexed values, only retrieving them.
+//  Will have some more ways to process encoded data with minimal decoding.
+//   That will be faster.
+
+
+let select_indexes_buffer_from_kv_pair_buffer = (buf_kvp, remove_kp, arr_indexes) => {
+
+    // Want to build up a single buffer of the indexed data. Don't decode the data along the way. Just select the data from it.
+
+
+
+
+
+
+    // prob best to split it?
+    //console.log('buf_kvp', buf_kvp);
+    let arr_kvp = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf_kvp)[0];
+    //console.log('arr_kvp', arr_kvp);
+
+    // Then do the selection on each
+
+    var buf_key = arr_kvp[0];
+    var buf_value = arr_kvp[1];
+
+
+    //console.log('buf_key', buf_key);
+
+    var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
+    let buf_selected_key_fields, total_key_fields_count, buf_selected_value_fields, total_value_fields_count;
+
+    if (key_1st_value % 2 === 0 && key_1st_value > 0) {
+        // even, so it's a table, so 1 prefix
+        // Have incrementor work differently - just xas2s in keys and values.
+        //console.log('buf_key', buf_key);
+
+        // Seems like data was encoded wrong in the table buffer.
+
+
+
+
+
+        [buf_selected_key_fields, total_key_fields_count] = Binary_Encoding.buffer_select_from_buffer(buf_key, arr_indexes, 1, 1);
+        //console.log('buf_selected_key_fields, total_key_fields_count', buf_selected_key_fields, total_key_fields_count);
+
+        // We need to have the encoding method of xas2 encoded alongside this data.
+
+        // The selected fields should be encoded alongside their types. Then before that is the length
+
+
+        //  Need the right language for it too to avoid confusion.
+
+
+
+
+        //throw 'stop';
+        // then read the value part.
+
+
+
+
+
+
+        //throw 'stop';
+
+
+
+
+    } else {
+        throw 'NYI';
+    }
+
+    if (buf_value) {
+        // Could have an empty buffer as a value.
+        //  That seems wrong so far though.
+
+        if (key_1st_value === 0) {
+
+            //let decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+            //console.log('decoded_key', decoded_key);
+
+
+            throw 'NYI';
+
+            /*
+
+            if (buf_value.length > 0) {
+
+                // Has difficulty doing this here.
+
+                value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
+            } else {
+                //value = null;
+                console.trace();
+                throw 'stop';
+            }
+            */
+
+
+        } else {
+
+            if (key_1st_value % 2 === 0) {
+
+                //console.log('buf_value', buf_value);
+
+                [buf_selected_value_fields, total_value_fields_count] = Binary_Encoding.buffer_select_from_buffer(buf_value, arr_indexes, 0, 0, total_key_fields_count);
+                //console.log('buf_selected_value_fields, total_value_fields_count', buf_selected_value_fields, total_value_fields_count);
+
+                //console.log('selected_value_fields', selected_value_fields);
+                //console.trace();
+                //throw 'stop';
+
+                //res = selected_key_fields.concat(selected_value_fields);
+
+                res = Buffer.concat([buf_selected_key_fields, buf_selected_value_fields]);
+
+
+            } else {
+
+                throw 'NYI';
+
+                // I think index records have values???
+                //value = Binary_Encoding.decode_buffer(buf_value);
+            }
+
+            // indexed lacking values?
+
+
+
+
+        }
+    }
+
+
+    //console.log('res', res);
+    //throw 'stop';
+
+    // use buffer_select_from_buffer
+
+    return res;
+
+
+
+
+
+}
+
+let select_indexes_from_kvp_buffer = (buf_kvp, remove_kp, arr_indexes) => {
+
+    // Want to build up a single buffer of the indexed data. Don't decode the data along the way. Just select the data from it.
+
+
+    // prob best to split it?
+
+    let bufs_kv = buffer_to_row_buffer_pairs(buf_kvp);
+    console.log('bufs_kv', bufs_kv);
+
+
+
+}
+
+
+
+// And a means to do this without decoding?
+//  Get that data back as binary encoded, ready to transmit?
+
+
+
+
+// This looks like decode_select
+//  could have buffer_select
+
+let select_indexes_from_model_row = (model_row, remove_kp, arr_indexes) => {
+    // Can consider the kp as the first index.
+
+    let res;
+
+    var buf_key = model_row[0];
+    var buf_value = model_row[1];
+
+    var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
+
+
+    // Decode the key, and work out the number of key values
+    let selected_key_fields, total_key_fields_count, selected_value_fields, total_value_fields_count;
+    if (key_1st_value % 2 === 0 && key_1st_value > 0) {
+        // even, so it's a table, so 1 prefix
+        // Have incrementor work differently - just xas2s in keys and values.
+        //console.log('buf_key', buf_key);
+
+        // Seems like data was encoded wrong in the table buffer.
+
+        console.log('buf_key', buf_key);
+
+        // If we fail to decode the key?
+
+        // Leave out decoding errors...
+        //console.log('buf_key', buf_key);
+
+        console.log('arr_indexes', arr_indexes);
+
+        [selected_key_fields, total_key_fields_count] = Binary_Encoding.decode_buffer_select_by_index(buf_key, arr_indexes, 1, 1);
+        console.log('selected_key_fields, total_key_fields_count', selected_key_fields, total_key_fields_count);
+
+
+        // then read the value part.
+
+
+
+
+
+
+        //throw 'stop';
+
+
+
+
+    } else {
+        throw 'NYI';
+    }
+
+
+
+
+    if (buf_value) {
+        // Could have an empty buffer as a value.
+        //  That seems wrong so far though.
+
+        if (key_1st_value === 0) {
+
+            //let decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+            //console.log('decoded_key', decoded_key);
+
+
+            throw 'NYI';
+
+            /*
+
+            if (buf_value.length > 0) {
+
+                // Has difficulty doing this here.
+
+                value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
+            } else {
+                //value = null;
+                console.trace();
+                throw 'stop';
+            }
+            */
+
+
+        } else {
+
+            if (key_1st_value % 2 === 0) {
+
+                // decode_buffer_select_by_index
+
+                //value = Binary_Encoding.decode_buffer(buf_value);
+
+
+                // Number of values to skip too...
+                //  The key indexes are 0 based.
+                //  The value indexes are based on the number of key fields.
+
+                [selected_value_fields, total_value_fields_count] = Binary_Encoding.decode_buffer_select_by_index(buf_value, arr_indexes, 0, 0, total_key_fields_count);
+                console.log('selected_value_fields, total_value_fields_count', selected_value_fields, total_value_fields_count);
+
+                //console.log('selected_value_fields', selected_value_fields);
+                //console.trace();
+                //throw 'stop';
+
+                res = selected_key_fields.concat(selected_value_fields);
+
+
+            } else {
+
+                throw 'NYI';
+
+                // I think index records have values???
+                //value = Binary_Encoding.decode_buffer(buf_value);
+            }
+
+            // indexed lacking values?
+
+
+
+
+        }
+    }
+
+    return res;
+
+
+}
+
 var decode_model_row = (model_row, remove_kp) => {
 
     // The DB could have been started with broken xas2 values, possibly encoded wrong using an older version of the DB code.
     //  Not sure.
-
-
-
 
     //console.log('model_row', model_row);
     //console.log('remove_kp', remove_kp);
@@ -638,6 +936,9 @@ let Database_Encoding = {
     'buffer_to_buffer_pairs': buffer_to_row_buffer_pairs,
 
     'buffer_to_row_buffer_pairs': buffer_to_row_buffer_pairs,
+
+    'select_indexes_from_model_row': select_indexes_from_model_row,
+    'select_indexes_buffer_from_kv_pair_buffer': select_indexes_buffer_from_kv_pair_buffer,
 
     'encode': {
         'key': encode_key,
