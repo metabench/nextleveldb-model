@@ -225,7 +225,7 @@ let select_indexes_buffer_from_kv_pair_buffer = (buf_kvp, remove_kp, arr_indexes
     }
 
 
-    //console.log('res', res);
+    //console.log('5) res', res);
     //throw 'stop';
 
     // use buffer_select_from_buffer
@@ -462,7 +462,7 @@ var decode_model_row = (model_row, remove_kp) => {
 
         // Seems like data was encoded wrong in the table buffer.
 
-        console.log('buf_key', buf_key);
+        //console.log('buf_key', buf_key);
 
         // If we fail to decode the key?
 
@@ -496,7 +496,7 @@ var decode_model_row = (model_row, remove_kp) => {
     if (remove_kp) {
         decoded_key.splice(0, remove_kp);
     }
-    console.log('[decoded_key, value]', [decoded_key, value]);
+    //console.log('[decoded_key, value]', [decoded_key, value]);
 
 
     return [decoded_key, value];
