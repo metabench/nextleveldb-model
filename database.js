@@ -841,8 +841,8 @@ class Database {
 
         res.count = res.changed.length + res.added.length + res.deleted.length;
 
-        res.orig = this;
-        res.other = other_model;
+        //res.orig = this;
+        //res.other = other_model;
 
         return res;
 
@@ -870,6 +870,8 @@ class Database {
         if (t_table === 'number') return table;
         if (t_table === 'string') {
             return this.map_tables[table].id
+        } else {
+            if (table.id !== undefined) return table.id;
         }
         return table;
     }

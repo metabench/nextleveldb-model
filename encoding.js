@@ -53,14 +53,26 @@ var buffer_to_buffer_pairs = (buf_encoded) => {
 
 // -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~\\
 
-var decode_key = (buf_key) => {
+// Option to drop the kp
+
+var decode_key = (buf_key, remove_kp = false) => {
+
+    //console.log('4) remove_kp', remove_kp);
+
     var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
     var decoded_key;
     //if (key_1st_value % 2 === 0) {
     if (key_1st_value % 2 === 0 && key_1st_value > 0) {
         // even, so it's a table, so 1 prefix
         // Have incrementor work differently - just xas2s in keys and values.
-        decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+
+
+        if (remove_kp) {
+            decoded_key = Binary_Encoding.decode_buffer(buf_key, 1).slice(1);
+        } else {
+            decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+        }
+
     } else {
         // odd, meaning indexes, so 2 prefixes. Includes the incrementors.
         decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
@@ -76,8 +88,24 @@ var encode_index_key = (index_kp, index_id, arr_index_values) => {
     var res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
     return res;
 }
-var encode_key = (kp, arr_values) => {
-    var res = Binary_Encoding.encode_to_buffer(arr_values, kp);
+var encode_key = function (kp, arr_values) {
+
+    // May have just given it an array...
+
+    let a = arguments,
+        res;
+    //let sig = get_a_sig(a);
+
+    if (a.length === 1) {
+        let kp = a[0].shift();
+        res = Binary_Encoding.encode_to_buffer(a[0], kp);
+    } else {
+        res = Binary_Encoding.encode_to_buffer(arr_values, kp);
+    }
+
+
+
+
     return res;
 }
 
@@ -470,6 +498,10 @@ var decode_model_row = (model_row, remove_kp) => {
         //console.log('buf_key', buf_key);
         try {
 
+            // Maybe some records got written wrong in a db.
+            //  Could do more of a safety check on startup, or something with a command, that removes any records that are mis-formed.
+            //  Or just point them out.
+
             //console.log('buf_key', buf_key);
             decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
         } catch (err) {
@@ -529,7 +561,7 @@ var from_buffer = (buf) => {
 
 var decode_model_rows = (model_rows, remove_kp) => {
     var res = [];
-    //console.log('model_rows', model_rows);
+    console.log('model_rows', model_rows);
     each(model_rows, (model_row) => {
         //console.log('model_row', model_row);
         // Incrementors look OK so far.

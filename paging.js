@@ -4,7 +4,8 @@
 
 
 var xas2 = require('xas2');
-
+let x = xas2;
+let Binary_Encoding = require('binary-encoding');
 
 const NO_PAGING = 0;
 const PAGING_RECORD_COUNT = 1;
@@ -40,20 +41,80 @@ const PAGING_AND_EXTENDED_OPTIONS = 5;
 
 
 
+// Server Return Processing.
+//  Will cover more than just paging, such as removal of KPs from keys / records.
+//  Set remove kp to be true, then it renders the buffer differently.
+//   On the server-side, it will be parsed differently to include more paging / return options.
+//   Will parse it as a Binary_Encoded array.
+//  This is part of the system that will save on code complexity in the server's binary response handler.
+//   Middleware using this will enable responses to be specified cleanly and in terms of the inner server function that gets called.
+
+
+
+
+
 class Paging {
     'constructor' (spec) {
 
 
 
+
     }
     get buffer() {
-        if (this.paging_type === NO_PAGING) {
-            return xas2(NO_PAGING).buffer;
-        } else {
-            return Buffer.concat([xas2(this.paging_type).buffer, xas2(this.page_size).buffer]);
+
+        let using_extended_options = false;
+
+        if (this.remove_kp !== undefined || this.remove_kps !== undefined) {
+            using_extended_options = true;
         }
+
+        if (using_extended_options) {
+
+
+            let ptb = xas2(PAGING_AND_EXTENDED_OPTIONS).buffer;
+            let ptb2 = xas2(this.paging_type).buffer;
+
+            let arr_args = [];
+
+
+            if (this.paging_type === NO_PAGING) {
+                //return xas2(NO_PAGING).buffer;
+
+
+            } else {
+                arr_args.push(this.page_size || 0);
+                arr_args.push(this.remove_kp || false);
+                // 
+                //return Buffer.concat([xas2(this.paging_type).buffer, xas2(this.page_size).buffer]);
+            }
+            let buf_args = Binary_Encoding.encode_to_buffer(arr_args);
+
+            //console.log('[ptb, ptb2, buf_args]', [ptb, ptb2, buf_args]);
+
+            return Buffer.concat([ptb, ptb2, buf_args]);
+
+
+        } else {
+            if (this.paging_type === NO_PAGING) {
+                return xas2(NO_PAGING).buffer;
+            } else {
+
+                // 
+
+
+                return Buffer.concat([xas2(this.paging_type).buffer, xas2(this.page_size).buffer]);
+            }
+
+        }
+
+
     }
 }
+
+// Changing to item count paging may work better.
+//  Getting rid of key paging effectively.
+//  We get n of them, records or keys, and then sort out the paging as appropriate.
+//   
 
 class No_Paging extends Paging {
     'constructor' (num_records) {
@@ -62,6 +123,7 @@ class No_Paging extends Paging {
     }
 }
 
+// Record_Paging will change to Count_Paging
 class Record_Paging extends Paging {
     'constructor' (num_records) {
         super();
@@ -73,6 +135,7 @@ class Record_Paging extends Paging {
 
 class Key_Paging extends Paging {
     'constructor' (num_keys) {
+        console.log('DEPRACATION WARNING: Key_Paging');
         super();
         this.num_keys = num_keys;
         this.page_size = num_keys;
@@ -103,13 +166,76 @@ class Timed_Paging extends Paging {
 
 
 Paging.read_buffer = function (buf, pos = 0) {
+    //console.log('read_buffer buf', buf);
     var paging_option, page_size = 0;
-    [paging_option, pos] = x.read(buf_the_rest, pos);
+    [paging_option, pos] = x.read(buf, pos);
+    //console.log('paging_option', paging_option);
+
+
+
     if (paging_option > 0) {
-        [page_size, pos] = x.read(buf_the_rest, pos);
+
+        if (paging_option === PAGING_AND_EXTENDED_OPTIONS) {
+            let sub_paging_option;
+            [sub_paging_option, pos] = x.read(buf, pos);
+            let decoded_args = Binary_Encoding.decode_buffer(buf, 0, pos);
+            //console.log('1) decoded_args', decoded_args);
+            page_size = decoded_args.shift();
+            let remove_kps = decoded_args.shift();
+
+            //console.log('page_size', page_size);
+            //console.log('remove_kps', remove_kps);
+            //console.log('2) decoded_args', decoded_args);
+            // These decoded args would provide non-paging args too.
+            pos = buf.length;
+            return [sub_paging_option, page_size, pos, remove_kps, decoded_args];
+        } else {
+            [page_size, pos] = x.read(buf, pos);
+
+        }
+
+    } else {
+
     }
-    return [paging_option, page_size, pos];
+    return [paging_option, page_size, pos, false];
+
 }
+
+
+let Paging_By_Option = {
+    0: No_Paging,
+    1: Record_Paging,
+    2: Key_Paging, // Will be depracated
+    3: Byte_Paging,
+    4: Timed_Paging
+
+
+}
+
+Paging.read = function (buf, pos = 0) {
+    //console.log('read buf', buf);
+    let paging_option, page_size, remove_kps, decoded_args;
+    [paging_option, page_size, pos, remove_kps, decoded_args] = Paging.read_buffer(buf, pos);
+    //console.log('paging_option', paging_option);
+    //console.log('page_size', page_size);
+    //console.log('pos', pos);
+    //console.log('Paging_By_Option', Paging_By_Option);
+    //console.log('Paging_By_Option[paging_option]', Paging_By_Option[paging_option]);
+
+
+
+
+    //if ()
+    let paging = new Paging_By_Option[paging_option](page_size);
+    if (remove_kps) {
+        paging.remove_kps = true;
+    }
+    if (decoded_args) {
+        paging.args = decoded_args;
+    }
+    return [paging, pos];
+}
+
 
 Paging.No_Paging = No_Paging;
 Paging.No = No_Paging;
