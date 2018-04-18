@@ -5,6 +5,7 @@ var clone = lang.clone;
 var tof = lang.tof;
 const is_defined = lang.is_defined;
 
+const Evented_Class = lang.Evented_Class;
 
 const Binary_Encoding = require('binary-encoding');
 const xas2 = require('xas2');
@@ -188,7 +189,7 @@ let select_indexes_buffer_from_kv_pair_buffer = (buf_kvp, remove_kp, arr_indexes
 
 
     } else {
-        throw 'NYI';
+        throw 'select_indexes_buffer_from_kv_pair_buffer NYI';
     }
 
     if (buf_value) {
@@ -325,19 +326,13 @@ let select_indexes_from_model_row = (model_row, remove_kp, arr_indexes) => {
 
 
         // then read the value part.
-
-
-
-
-
-
         //throw 'stop';
 
 
 
 
     } else {
-        throw 'NYI';
+        throw 'select_indexes_from_model_row NYI';
     }
 
 
@@ -561,7 +556,7 @@ var from_buffer = (buf) => {
 
 var decode_model_rows = (model_rows, remove_kp) => {
     var res = [];
-    console.log('model_rows', model_rows);
+    //console.log('model_rows', model_rows);
     each(model_rows, (model_row) => {
         //console.log('model_row', model_row);
         // Incrementors look OK so far.
@@ -940,6 +935,36 @@ var encode_arr_rows_to_buf = (arr_rows, key_prefix) => {
 }
 
 
+
+
+
+let obs_decode = (obs) => {
+    //console.trace();
+    //throw 'NYI';
+    let res = new Evented_Class();
+    obs.on('next', data => {
+        //console.log('data', data);
+
+        // decode_buffer - if we give it an array structure containing buffers, then decode each within the buffer?
+        //  or there must have been some minimal decoding for it to come to the client.
+
+
+
+
+        let decoded = Binary_Encoding.decode_buffer(data);
+        //console.log('**3 decoded', decoded);
+        res.raise('next', decoded);
+    });
+    obs.on('error', err => res.raise('error', err));
+    obs.on('complete', () => res.raise('complete'));
+
+
+    return res;
+
+}
+
+// Decoding observable data?
+
 let Database_Encoding = {
 
 
@@ -971,6 +996,9 @@ let Database_Encoding = {
 
     'select_indexes_from_model_row': select_indexes_from_model_row,
     'select_indexes_buffer_from_kv_pair_buffer': select_indexes_buffer_from_kv_pair_buffer,
+
+
+    'obs_decode': obs_decode,
 
     'encode': {
         'key': encode_key,

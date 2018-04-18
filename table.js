@@ -377,6 +377,16 @@ class Table {
         */
     }
 
+
+    get buf_kp() {
+        if (this._buf_kp) {
+            return this._buf_kp;
+        } else {
+            this._buf_kp = xas2(this.key_prefix).buffer;
+            return this._buf_kp;
+        }
+    }
+
     set_fk() {
         return this.record_def.set_fk.apply(this.record_def, arguments);
     }

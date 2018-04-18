@@ -1,3 +1,9 @@
+// Note: This has gone way beyond just describing paging options, it's a useful part of the system that's being refactored to handle a variety of options.
+//  Expanding this allows for protocol changes while retaining backwards compatabiliy.
+//  New, and simpler to call ways can be made, and the old code removed later on and still used for the moment, for the most part.
+//   Such as specifying a 'limit' option with the count function.
+
+
 // Want to make paging system easy to use, reading from binary buffer that represents a query.
 //  Using OO query parsing on the server may well be better.
 //   Easier to test. Queries get created on the client, and can be parsed there to see if the parsing works correctly.
@@ -51,6 +57,21 @@ const PAGING_AND_EXTENDED_OPTIONS = 5;
 
 
 
+// A 'limit' arg for paging and options could be useful.
+
+
+
+// page_size, remove_kp, decode, limit
+// could all be booleans, with the values then given
+
+// Easiest just to encode all of these into a buffer.
+//  Some more work on Paging / Options writing and parsing will be useful.
+//  Use this code on both the client and the server.
+
+
+
+
+
 
 
 class Paging {
@@ -64,18 +85,26 @@ class Paging {
 
         let using_extended_options = false;
 
-        if (this.remove_kp !== undefined || this.remove_kps !== undefined) {
+        if (this.remove_kp !== undefined || this.remove_kps !== undefined || this.limit > 0) {
             using_extended_options = true;
         }
 
-        if (using_extended_options) {
 
+
+        // Probably will need to extend the extended options some more?
+        // Right now, it is an array with a number of args.
+
+        // Moving away from record or key or binary paging?
+        //  That helps us know what type of data it it.
+        //   It's not really the type of paging.
+
+
+        if (using_extended_options) {
 
             let ptb = xas2(PAGING_AND_EXTENDED_OPTIONS).buffer;
             let ptb2 = xas2(this.paging_type).buffer;
 
             let arr_args = [];
-
 
             if (this.paging_type === NO_PAGING) {
                 //return xas2(NO_PAGING).buffer;
@@ -83,9 +112,18 @@ class Paging {
 
             } else {
                 arr_args.push(this.page_size || 0);
-                arr_args.push(this.remove_kp || false);
+
                 // 
                 //return Buffer.concat([xas2(this.paging_type).buffer, xas2(this.page_size).buffer]);
+            }
+
+            arr_args.push(this.remove_kp || false);
+
+            // optional 3rd argument being the limit?
+            //  could leave it null if it's not there.
+
+            if (this.limit > 0) {
+                arr_args.push(this.limit);
             }
             let buf_args = Binary_Encoding.encode_to_buffer(arr_args);
 
@@ -100,6 +138,8 @@ class Paging {
             } else {
 
                 // 
+
+                // Can't include limit like this.
 
 
                 return Buffer.concat([xas2(this.paging_type).buffer, xas2(this.page_size).buffer]);
