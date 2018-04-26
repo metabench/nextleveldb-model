@@ -4,7 +4,9 @@ var model = {
     'Record': require('./record'),
     'Incrementor': require('./incrementor'),
     'Paging': require('./paging'),
-    'encoding': require('./encoding')
+    'encoding': require('./encoding'),
+    'Command_Message': require('./command-message'),
+    'Command_Response_Message': require('./command-response-message')
 }
 
 module.exports = model;

@@ -149,6 +149,10 @@ class Paging {
 
 
     }
+
+    decode_inner() {
+        return Binary_Encoding.decode_buffer(this.buffer);
+    }
 }
 
 // Changing to item count paging may work better.
@@ -254,6 +258,9 @@ let Paging_By_Option = {
 
 Paging.read = function (buf, pos = 0) {
     //console.log('read buf', buf);
+
+
+
     let paging_option, page_size, remove_kps, decoded_args;
     [paging_option, page_size, pos, remove_kps, decoded_args] = Paging.read_buffer(buf, pos);
     //console.log('paging_option', paging_option);
@@ -261,9 +268,6 @@ Paging.read = function (buf, pos = 0) {
     //console.log('pos', pos);
     //console.log('Paging_By_Option', Paging_By_Option);
     //console.log('Paging_By_Option[paging_option]', Paging_By_Option[paging_option]);
-
-
-
 
     //if ()
     let paging = new Paging_By_Option[paging_option](page_size);
@@ -277,12 +281,18 @@ Paging.read = function (buf, pos = 0) {
 }
 
 
+
 Paging.No_Paging = No_Paging;
 Paging.No = No_Paging;
 Paging.None = No_Paging;
 
+// Going to remove Record Paging and Key Paging.
+///  Rather, change Record_Paging to Count_Paging, remove Key_Paging.
+
 Paging.Record_Paging = Record_Paging;
 Paging.Record = Record_Paging;
+Paging.Count_Paging = Record_Paging;
+Paging.Count = Record_Paging;
 
 Paging.Key_Paging = Key_Paging;
 Paging.Key = Key_Paging;

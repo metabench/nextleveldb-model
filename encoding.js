@@ -56,6 +56,64 @@ var buffer_to_buffer_pairs = (buf_encoded) => {
 
 // Option to drop the kp
 
+// Seems worth making more functionality to test live database tables and records.
+//  Have had at least one record added wrong in bittrex markets.
+//  Could test decoding of all records, if we find a problem, raise it in the observable.
+//  Could also be careful when syncing all / core / structural records that they get added correctly.
+//   I doubt there will be many more problems after this, but it seems as though checking and data reclamation is the next order of business.
+//    Could take a little while as well.
+
+// error_scan
+//  fix errors
+
+// Modelling the errors seems like it would be useful as well.
+//  Could compose an OO list of errors, then display them, propose a remedy, and carry it out.
+
+//  Checking for orpaned rows
+//   Could model mistakes made (record added with wrong id, should be x), and then redo it?
+
+// For the moment, best to do this upon db starting up.
+//  Or could do the error scan (or some of it) from the client.
+//   Could get low level rows and check them
+//    
+
+
+
+// Check table
+// 
+
+
+
+// check for whether keys can or can't be decoded.
+//  have had problem when new coin has launched on bittrex.
+//  If a record has been added wrong, may need to delete it, may be able to fix it.
+
+// Be able to replace a record's key.
+
+// client side safety check - get all keys, then check they have been formed properly.
+//  Inconveniently, it seems like the new market for a new coin has been added wrong.
+
+// scan_table_keys
+//  will raise an event for any malformed keys.
+//   To fix it - find any records that reference this key. Change them to reference something different.
+//   Seems like this will be multi-part checking and changing data. A somewhat large undertaking here.
+//    Changing many rows from one thing to another would take a while, for sure.
+
+
+
+
+
+
+
+// May need to be about how to recover the good data from the DB.
+
+
+
+
+
+
+
+
 var decode_key = (buf_key, remove_kp = false) => {
 
     //console.log('4) remove_kp', remove_kp);
@@ -67,6 +125,10 @@ var decode_key = (buf_key, remove_kp = false) => {
         // even, so it's a table, so 1 prefix
         // Have incrementor work differently - just xas2s in keys and values.
 
+        console.log('buf_key', buf_key);
+
+        // Seems like a key has been put into the DB incorrectly in some cases.
+        //  Checking for and correction various data errors / corruption makes sense.
 
         if (remove_kp) {
             decoded_key = Binary_Encoding.decode_buffer(buf_key, 1).slice(1);
@@ -85,8 +147,28 @@ var decode_key = (buf_key, remove_kp = false) => {
 //  encode index key
 //   index_kp, index_id, arr_index_values
 
-var encode_index_key = (index_kp, index_id, arr_index_values) => {
-    var res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
+//var encode_index_key = (index_kp, index_id, arr_index_values) => {
+var encode_index_key = function (index_kp, index_id, arr_index_values) {
+
+    let a = arguments,
+        l = a.length,
+        res;
+
+    //console.log('l', l);
+    //console.log('arguments', arguments);
+
+    if (l === 1) {
+        arr_index_values = a[0];
+        //console.log('arr_index_values', arr_index_values);
+        index_kp = arr_index_values.shift();
+        index_id = arr_index_values.shift();
+        //console.log('index_kp, index_id', index_kp, index_id);
+        res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
+    } else {
+        res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
+    }
+
+
     return res;
 }
 var encode_key = function (kp, arr_values) {
@@ -414,7 +496,7 @@ var decode_model_row = (model_row, remove_kp) => {
     // The DB could have been started with broken xas2 values, possibly encoded wrong using an older version of the DB code.
     //  Not sure.
 
-    //console.log('model_row', model_row);
+    //console.log('decode_model_row model_row', model_row);
     //console.log('remove_kp', remove_kp);
 
     var buf_key = model_row[0];
@@ -426,6 +508,7 @@ var decode_model_row = (model_row, remove_kp) => {
 
     // Decode buffer could tell from odd or even.
     var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
+    //console.log('key_1st_value', key_1st_value);
     if (buf_value) {
         // Could have an empty buffer as a value.
         //  That seems wrong so far though.
@@ -443,6 +526,10 @@ var decode_model_row = (model_row, remove_kp) => {
                 value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
             } else {
                 //value = null;
+
+                // It's an incrementor row.
+                //  Or an error making it appear that way
+
                 console.trace();
                 throw 'stop';
             }
@@ -452,6 +539,7 @@ var decode_model_row = (model_row, remove_kp) => {
 
             if (key_1st_value % 2 === 0) {
                 value = Binary_Encoding.decode_buffer(buf_value);
+                //console.log('value', value);
             } else {
 
                 // I think index records have values???
@@ -491,6 +579,32 @@ var decode_model_row = (model_row, remove_kp) => {
 
         // Leave out decoding errors...
         //console.log('buf_key', buf_key);
+
+        // Not sure why it's not able to decode the data in the buffer from the server.
+        //  It's the key where there is the problem.
+        //   Maybe it's missing a byte - not sure.
+
+        // Not sure if any dodgy keys have got into the db.
+        //  Could have a maintenance procedure that checks if all keys can be decoded.
+
+        // Wonder if data has got corrupted again through bittrex adding a new coin.
+        //  (another week's work???)
+
+        // Verification that indexes can decode seems like a useful way of doing it.
+        //  could have a can_decode function.
+
+
+        // Client-side verification and fixing could prove to be useful.
+        //  Tricky too maybe.
+
+        // Client-side verification that the DB is in good running order makes sense.
+
+
+
+
+        decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+        /*
+
         try {
 
             // Maybe some records got written wrong in a db.
@@ -500,11 +614,12 @@ var decode_model_row = (model_row, remove_kp) => {
             //console.log('buf_key', buf_key);
             decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
         } catch (err) {
-            //console.trace();
-            //throw 'stop';
+            console.trace();
+            throw 'stop';
             //decoded_key = '[DECODING ERROR: ' + err + ']';
             return null;
         }
+        */
 
 
 
@@ -557,6 +672,10 @@ var from_buffer = (buf) => {
 var decode_model_rows = (model_rows, remove_kp) => {
     var res = [];
     //console.log('model_rows', model_rows);
+    //console.log('model_rows.length', model_rows.length);
+
+    // if there is only one model row....? Or one buffer.
+
     each(model_rows, (model_row) => {
         //console.log('model_row', model_row);
         // Incrementors look OK so far.

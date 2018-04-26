@@ -326,6 +326,29 @@ class Record {
         return Buffer.concat(arr_res);
     }
 
+    get_arr_index_records() {
+        var res = [];
+        //console.log('this.table.name', this.table.name);
+        //console.log('this.table.indexes.length', this.table.indexes.length);
+        //console.trace();
+
+        // Have brought up another problem... what about an unexpected / wrong number of indexes when diagnosing.
+
+
+        // Possibly should have some diagnostic procedures to check the model is as it should be.
+
+        // Does the model load all of the indexes properly?
+
+
+
+        each(this.table.indexes, (index) => {
+            // Could put it in place so the index records have got [k,v] format, even if v is empty.
+
+            res.push(index.record_to_index_arr(this));;
+        });
+        return (res);
+    }
+
     get_own_record_bin() {
         // key: table prefix, key side of record
         //  value: value side of record

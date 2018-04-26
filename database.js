@@ -88,6 +88,11 @@ Then retrieving it.
 
 Want an OO system that presents the data in a form that's easy to use for the programmer.
 
+
+// Having a working CockroachDB would help with loading the data into it, then getting the data out of it.
+
+// could have CockroachDB_Assets_Client
+
 */
 
 
@@ -294,8 +299,8 @@ class Database {
 
     create_db_core_model() {
 
-        console.log('create_db_core_model');
-        console.trace();
+        //console.log('create_db_core_model');
+        //console.trace();
 
         this._init = true;
         let incrementors = this.incrementors;
@@ -759,6 +764,21 @@ class Database {
         return table.records;
     }
 
+    get_idx_records_by_record(arr_record) {
+        let kp = arr_record[0][0];
+        let table_id = (kp - 2) / 2;
+
+        let table = this.map_tables_by_id[table_id];
+
+        arr_record[0].shift();
+
+        let record = new Record(arr_record, table);
+
+        let indexes = record.get_arr_index_records();
+        return indexes;
+
+    }
+
     get non_core_tables() {
         var res = [];
         each(this.tables, (table) => {
@@ -874,6 +894,43 @@ class Database {
             if (table.id !== undefined) return table.id;
         }
         return table;
+    }
+
+    // new_existing_record
+    //  
+
+    create_index_records_by_record(arr_record) {
+
+
+        // generates them.
+
+        let table_pk = arr_record[0][0];
+        let table_id = (table_pk - 2) / 2;
+        //console.log('create_index_records_by_record table_pk', table_pk);
+        //console.log('table_id', table_id);
+
+        // 
+
+        let table = this.map_tables_by_id[table_id];
+
+        let record = new Record(arr_record, table);
+        //console.log('record', record);
+        let idxs = record.get_arr_index_records();
+        //console.log('idxs', idxs);
+
+        return idxs;
+
+
+
+    }
+
+    get index_count_per_table() {
+        let res = [];
+
+        each(this.tables, table => {
+            res.push([table.name, table.indexes.length]);
+        })
+        return res;
     }
 
     /*
@@ -1241,7 +1298,7 @@ var load_arr_core = (arr_core) => {
 
     // arr_table_index_rows
     each(arr_table_index_rows, (table_index_row) => {
-        //console.log('table_index_row', table_index_row);
+        console.log('table_index_row', table_index_row);
 
         // Then reconstruct the index 
 
@@ -1279,7 +1336,7 @@ var load_arr_core = (arr_core) => {
         //console.log('idx_kv', idx_kv);
 
         var idx = table.add_index(index_id, idx_kv);
-        //console.log('idx', idx);
+        console.log('idx', idx);
 
     });
 

@@ -677,7 +677,6 @@ class Record_Def {
         //var index_value_field = idx[1]; // foreign key?
 
         this.indexes.push(idx_2);
-
         //this.add_index_to_index_table(idx_2);
 
 

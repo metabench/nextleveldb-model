@@ -676,7 +676,14 @@ class Table {
         return buf_records;
     }
 
+    // 
+
     get_arr_data_index_records() {
+
+        // Get it for a specific record...
+
+
+
         return this.records.get_arr_data_index_records.apply(this.records, arguments);
     }
 
