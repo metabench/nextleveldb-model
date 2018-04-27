@@ -58,12 +58,35 @@ class Command_Response_Message {
     constructor(spec) {
 
 
+        let a = arguments,
+            l = a.length;
+        if (l === 1) {
+            let t_spec = tof(spec);
 
-        let t_spec = tof(spec);
 
-        if (t_spec === 'buffer') {
-            this._buffer = spec;
+            if (t_spec === 'buffer') {
+                this._buffer = spec;
+            }
+        } else {
+            // (message_id, BINARY_PAGING_NONE, Binary_Encoding.encode_to_buffer(res));
+
+            if (l === 3) {
+                let [message_id, message_type_id, buf_inner] = a;
+                console.log('Command_Response_Message buf_inner', buf_inner);
+                if (message_type_id === BINARY_PAGING_NONE) {
+                    this._buffer = Buffer.concat([xas2(message_id).buffer, xas2(message_type_id).buffer, buf_inner]);
+                } else {
+                    throw 'NYI';
+                }
+
+
+
+
+            }
         }
+
+
+
         // Want this to hold the whole message to avoid problems.
         //  Make sure that this contains the message id.
 
@@ -114,6 +137,21 @@ class Command_Response_Message {
 
     }
 
+    //get buffer
+
+    get buffer() {
+
+        // The whole thing as a buffer.
+
+        // The message id, the message encoding type (message_type_id) ...
+
+        return this._buffer;
+
+
+
+        //return this.value_buffer;
+    }
+
     get value_buffer() {
         let [message_type_id, pos] = xas2.skip(this._buffer, 0);
         let page_number;
@@ -134,6 +172,7 @@ class Command_Response_Message {
             throw 'NYI';
         }
     }
+
 
 
     // Don't really just store the kv records in a single buffer.

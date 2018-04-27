@@ -115,9 +115,15 @@ class Command_Message {
         [command_id, pos] = xas2.read(this._buffer, pos);
 
         let paging;
-        if (map_paging_commands[command_id]) {
-            [paging, pos] = Paging.read(this._buffer, pos);
-        }
+
+        // There is always a byte for paging / comm options.
+
+        //if (map_paging_commands[command_id]) {
+        [paging, pos] = Paging.read(this._buffer, pos);
+        //}
+        //  Otherwise, we use paging.no_paging
+
+
         return paging;
     }
 
@@ -144,16 +150,18 @@ class Command_Message {
 
         let paging;
 
-        if (map_paging_commands[command_id]) {
-            // read the paging object
+        // Always read the paging option.
 
-            // Paging skip would be cool too.
+        //if (map_paging_commands[command_id]) {
+        // read the paging object
+
+        // Paging skip would be cool too.
 
 
 
-            // Future: replace with paging.skip
-            [paging, pos] = Paging.read(this._buffer, pos);
-        }
+        // Future: replace with paging.skip
+        [paging, pos] = Paging.read(this._buffer, pos);
+        //}
 
         // Need to read the paging option.
         //  Depending on its length, may skip it.
@@ -175,6 +183,7 @@ class Command_Message {
     }
 
     decode_inner() {
+        console.log('this.inner_message_buffer', this.inner_message_buffer);
         return Binary_Encoding.decode_buffer(this.inner_message_buffer);
     }
 

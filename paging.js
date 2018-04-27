@@ -239,7 +239,7 @@ Paging.read_buffer = function (buf, pos = 0) {
         }
 
     } else {
-
+        //pos++;
     }
     return [paging_option, page_size, pos, false];
 
