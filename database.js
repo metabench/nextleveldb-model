@@ -913,6 +913,8 @@ class Database {
 
         let table = this.map_tables_by_id[table_id];
 
+        //console.log
+
         let record = new Record(arr_record, table);
         //console.log('record', record);
         let idxs = record.get_arr_index_records();
@@ -921,6 +923,21 @@ class Database {
         return idxs;
 
 
+
+    }
+
+    arr_records_to_records_with_index_records(arr_records) {
+        let res = [];
+
+        //console.log('arr_records', arr_records);
+
+        each(arr_records, record => {
+            //console.log('record', record);
+            res.push(record);
+            let index_records = this.create_index_records_by_record(record);
+            each(index_records, idx_record => res.push(idx_record));
+        })
+        return res;
 
     }
 
@@ -1185,10 +1202,6 @@ var load_arr_core = (arr_core) => {
         // Parse it differently depending on length
 
         var lv = table_field_row[1].length;
-
-
-
-
         var table_id = table_field_row[0][0];
         //console.log('table_id', table_id);
 
@@ -1298,12 +1311,10 @@ var load_arr_core = (arr_core) => {
 
     // arr_table_index_rows
     each(arr_table_index_rows, (table_index_row) => {
-        console.log('table_index_row', table_index_row);
+        //console.log('table_index_row', table_index_row);
 
         // Then reconstruct the index 
-
         // Create an index object with this specification...
-
         // May need to look up the exact fields, create the object references.
 
 
@@ -1336,7 +1347,7 @@ var load_arr_core = (arr_core) => {
         //console.log('idx_kv', idx_kv);
 
         var idx = table.add_index(index_id, idx_kv);
-        console.log('idx', idx);
+        //console.log('idx', idx);
 
     });
 

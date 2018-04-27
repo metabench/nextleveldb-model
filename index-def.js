@@ -2,6 +2,8 @@ var lang = require('lang-mini');
 var tof = lang.tof;
 var each = lang.each;
 
+const clone = lang.clone;
+
 var xas2 = require('xas2');
 var Binary_Encoding = require('binary-encoding');
 var flexi_encode_item = Binary_Encoding.flexi_encode_item;
@@ -51,9 +53,6 @@ class Index_Def {
     // However, for the moment, we still represent the record with [key,value].
     //  Bit on the left is the primary key.
     //  Could possibly hold data on which fields form the primary key while using the indexes of the fields.
-
-
-
 
 
 
@@ -340,8 +339,15 @@ class Index_Def {
         return Buffer.concat(arr_res);
     }
 
-    record_to_index_arr(record) {
-        var record_key = record.key;
+
+    // Seems we have / need a dual system involving using KPs or not.
+
+    record_to_index_arr(record, records_have_kps = false) {
+
+        // Need to remove the kps from the keys
+        // but if the record includes the kp...?
+        //var record_key = record.key.shift();
+
         var record_value = record.value;
         var data = record.arr_data;
         var table = record.table;
@@ -350,7 +356,15 @@ class Index_Def {
         var table_ikp = table.indexes_key_prefix;
 
         var arr_res = [table_ikp, id];
-        var record_flat_data = record.key.concat(record.value);
+
+        let shifted_key = clone(record.key);
+        shifted_key.shift();
+
+        var record_flat_data = shifted_key.concat(record.value);
+        //console.log('record_flat_data', record_flat_data);
+
+        // key fields with no kp...?
+
         each(this.key_fields, (key_field) => {
             var item_value = record_flat_data[key_field.id];
             arr_res.push((item_value));

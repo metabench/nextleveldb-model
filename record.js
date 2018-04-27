@@ -110,7 +110,7 @@ class Record {
             // array[key, value], table
             if (a.length === 2) {
                 //console.log('Table', Table);
-                //console.log('a[0]', a[0]);
+                //console.log('a[1]', a[1]);
                 if (Array.isArray(a[0]) && a[1].__type_name === 'table') {
                     var data = this.arr_data = a[0];
 
@@ -326,7 +326,7 @@ class Record {
         return Buffer.concat(arr_res);
     }
 
-    get_arr_index_records() {
+    get_arr_index_records(records_have_kps = false) {
         var res = [];
         //console.log('this.table.name', this.table.name);
         //console.log('this.table.indexes.length', this.table.indexes.length);
@@ -339,6 +339,8 @@ class Record {
 
         // Does the model load all of the indexes properly?
 
+        // These records should not have KPs to start with.
+        //  At least coming in.
 
 
         each(this.table.indexes, (index) => {
