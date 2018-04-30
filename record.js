@@ -28,6 +28,8 @@ var xas2 = require('xas2');
 var encode_pair_to_buffers = Binary_Encoding.encode_pair_to_buffers;
 
 
+// This Record has got a lot to do with data conversion
+
 // Records will reduce the clutter of many procedures in the database access layers.
 
 // Could define some subclasses of records, but want Record itself to be flexible enough so that much of that would be declarative.
@@ -55,6 +57,22 @@ var encode_pair_to_buffers = Binary_Encoding.encode_pair_to_buffers;
 
 
 // Table definition would likely include a record defintion too.
+
+// A buffer-backed version of Record would be cool.
+//  Would then be easier to transmit the data as it is in the record object.
+
+// Would contain both a key and a value, and those key and value objects could themselves be buffer-backed storage.
+
+
+// Right now, being able to compose a set / list of keys as binary is important / useful.
+
+// Key_List.
+//  Give it the keys, it can compose them to binary.
+
+
+// Bascially a way of holding .key and .value arrays.
+//  Storing the data as buffers, with lazy decoding, would work nicely.
+//  
 
 class Record {
 
@@ -95,8 +113,6 @@ class Record {
                 // Need to decode record from buffer.
                 console.log('spec (Buffer)', spec);
                 throw 'stop. need to decode record from buffer';
-
-
 
             } else {
                 console.trace();

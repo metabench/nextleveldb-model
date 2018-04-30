@@ -77,6 +77,8 @@ let command_ids_with_optional_paging_option = [];
 let map_paging_commands = get_truth_map_from_arr(command_ids_with_paging_option);
 
 
+// Being able to batch messages into one would be useful.
+
 
 class Command_Message {
     constructor(spec) {
@@ -85,6 +87,12 @@ class Command_Message {
         if (t_spec === 'buffer') {
             this._buffer = spec;
         }
+
+
+        // building the command message out of arrays / other things.
+        //  has its paging and communication options, then its method call args.
+
+
     }
 
 
@@ -126,6 +134,9 @@ class Command_Message {
 
         return paging;
     }
+
+    // The inner message, but as separare arr rows
+    //  Need to handle index rows, db rows, incrementor rows
 
 
     // inner message buffer

@@ -325,7 +325,6 @@ class Index_Def {
 
 
         var record_flat_data = record.key.concat(record.value);
-
         // 
 
         each(this.key_fields, (key_field) => {

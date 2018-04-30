@@ -57,6 +57,11 @@ const special_characters = {
 
 // 29/11/2017 - 
 
+// Likely to replace this with some OO code.
+//  Will generally keep the data stored in a Buffer.
+
+
+/*
 const encode_model_row = (model_row) => {
     //console.log('model_row', model_row);
 
@@ -73,6 +78,7 @@ const encode_model_row = (model_row) => {
     //console.log('arr_res', arr_res);
     return Buffer.concat(arr_res);
 }
+*/
 
 
 

@@ -9,6 +9,27 @@ const Evented_Class = lang.Evented_Class;
 
 const Binary_Encoding = require('binary-encoding');
 const xas2 = require('xas2');
+
+
+// Possibly need a version of Binary_Encoding that handles NextLevelDB types
+//  but it makes it less general.
+
+// Binary_Encoding plugin functions look like the right way to add encoding for the moment.
+// Defining a custom range would help. There are not that many types in Binary_Encoding anyway.
+
+// Then there can be NextLevelDB_Binary_Encoding, which will have the plugins loaded.
+
+
+
+
+// May make a new module dor the database encoding, focusing on encode and decode.
+
+
+
+
+
+
+
 // This code will generally cover binary <=> js obj conversion, specifically for the structures used by NextLevelDB.
 // xas2, bin enc
 
@@ -171,6 +192,9 @@ var encode_index_key = function (index_kp, index_id, arr_index_values) {
 
     return res;
 }
+
+//
+
 var encode_key = function (kp, arr_values) {
 
     // May have just given it an array...
@@ -181,13 +205,18 @@ var encode_key = function (kp, arr_values) {
 
     if (a.length === 1) {
         let kp = a[0].shift();
+
+        // then if it's an index...
+
         res = Binary_Encoding.encode_to_buffer(a[0], kp);
     } else {
+
+        // Needs to be able to handle encoding an index key.
+
+
+
         res = Binary_Encoding.encode_to_buffer(arr_values, kp);
     }
-
-
-
 
     return res;
 }
@@ -977,6 +1006,7 @@ var buffer_to_row_buffer_pairs = (buf_encoded) => {
 // encode_kv_buffer_pairs
 
 // This function should probably be renamed to something very specific.
+
 var encode_kv_buffer_pair = (model_row) => {
     //console.log('encode_kv_buffer_pair model_row', model_row);
 
