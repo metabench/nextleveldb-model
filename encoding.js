@@ -181,10 +181,14 @@ var encode_index_key = function (index_kp, index_id, arr_index_values) {
     if (l === 1) {
         arr_index_values = a[0];
         //console.log('arr_index_values', arr_index_values);
-        index_kp = arr_index_values.shift();
-        index_id = arr_index_values.shift();
+
+        //index_kp = arr_index_values.shift();
+        //index_id = arr_index_values.shift();
+
         //console.log('index_kp, index_id', index_kp, index_id);
-        res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
+        //res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
+        res = Binary_Encoding.encode_to_buffer_use_kps(arr_index_values, 2);
+
     } else {
         res = Binary_Encoding.encode_to_buffer(arr_index_values, index_kp, index_id);
     }

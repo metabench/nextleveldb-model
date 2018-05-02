@@ -208,8 +208,25 @@ class Index_Def {
 
     }
 
+
+    // Confused about how this works now.
+
     get key_field_ids() {
+        // Includes own table ID.
+        //  Not very sure why.
+
+        // Will have more capability within Model Index_Record_Key (which represents all the useful part of the index record)
+        //  Will store the data as a Buffer, and have encoding and decoding capababilities.
+
+
+        // 01/05/2018 - Not sure if this change broke anything. Result makes more sense now at least.
         var res = [this.table.id, this.id];
+
+        // No, can't change this right now.
+
+
+
+        //var res = [];
         each(this.key_fields, (key_field) => {
             res.push(key_field.id);
         });
@@ -347,6 +364,8 @@ class Index_Def {
         // but if the record includes the kp...?
         //var record_key = record.key.shift();
 
+        //console.log('record, records_have_kps', record, records_have_kps);
+
         var record_value = record.value;
         var data = record.arr_data;
         var table = record.table;
@@ -356,20 +375,36 @@ class Index_Def {
 
         var arr_res = [table_ikp, id];
 
-        let shifted_key = clone(record.key);
-        shifted_key.shift();
+        //console.log('record.key', record.key);
 
-        var record_flat_data = shifted_key.concat(record.value);
+        //let shifted_key = clone(record.key);
+        //shifted_key.shift();
+
+        var record_flat_data = record.key.concat(record.value);
         //console.log('record_flat_data', record_flat_data);
 
         // key fields with no kp...?
 
+        //let i_mod = 0;
+        //if (!records_have_kps) {
+        //    i_mod = 1;
+        //}
+
+        // the record has kps (by default),
+        // 
+
         each(this.key_fields, (key_field) => {
+            //console.log('key_field.id', key_field.id);
             var item_value = record_flat_data[key_field.id];
             arr_res.push((item_value));
         });
         each(this.value_fields, (value_field) => {
+            //console.log('value_field.id', value_field.id);
+
+
+
             var item_value = record_flat_data[value_field.id];
+            //console.log('item_value', item_value);
             arr_res.push((item_value));
         });
         return (arr_res);

@@ -294,8 +294,8 @@ class Table {
             //  (Table id * 3) + 1.
 
             // When reconstructing database, will be necessary to recreate the incrementors.
-            //  Probably best to create the incrementors separately, in one go, then assign them to the tables.
 
+            //  Probably best to create the incrementors separately, in one go, then assign them to the tables.
             if (!this.inc_fields) this.inc_fields = db.new_incrementor('inc_field_' + this.name);
             if (!this.inc_indexes) this.inc_indexes = db.new_incrementor('inc_idx_' + this.name);
             if (!this.inc_foreign_keys) this.inc_foreign_keys = db.new_incrementor('inc_fk_' + this.name);

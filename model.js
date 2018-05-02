@@ -8,7 +8,8 @@ var model = {
     'Command_Message': require('./command-message'),
     'Command_Response_Message': require('./command-response-message'),
     'Key_List': require('./buffer-backed/key-list'),
-    'Record_List': require('./buffer-backed/record-list')
+    'Record_List': require('./buffer-backed/record-list'),
+    'Index_Record_Key': require('./buffer-backed/index-record-key')
 }
 
 module.exports = model;
