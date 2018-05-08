@@ -146,7 +146,8 @@ var decode_key = (buf_key, remove_kp = false) => {
         // even, so it's a table, so 1 prefix
         // Have incrementor work differently - just xas2s in keys and values.
 
-        console.log('buf_key', buf_key);
+        //console.log('buf_key', buf_key);
+        //console.log('key_1st_value', key_1st_value);
 
         // Seems like a key has been put into the DB incorrectly in some cases.
         //  Checking for and correction various data errors / corruption makes sense.
@@ -162,6 +163,81 @@ var decode_key = (buf_key, remove_kp = false) => {
         decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
     }
     return decoded_key;
+}
+
+var key_length = (buf_key) => {
+    let pos = 0,
+        key_1st_value;
+    [key_1st_value, pos] = xas2.read(buf_key, pos);
+
+    // 0th value really here.
+
+    if (key_1st_value % 2 === 0 && key_1st_value > 0) {
+        // even, so it's a table, so 1 prefix
+        // Have incrementor work differently - just xas2s in keys and values.
+
+        //console.log('buf_key', buf_key);
+        //console.log('pos', pos);
+
+        // Then skip through, or better count the items.
+        //  Including skipping KPs.
+
+        // count_encoded_items
+
+
+
+        let count = Binary_Encoding.count_encoded_items(buf_key, pos);
+        //console.log('count', count);
+
+        return count;
+
+
+
+        // 
+
+    } else {
+        throw 'NYI';
+    }
+
+}
+
+// Still encoded
+
+let key_value_at = (buf_key, idx) => {
+    let pos = 0,
+        key_1st_value;
+    [key_1st_value, pos] = xas2.read(buf_key, pos);
+
+
+    if (key_1st_value % 2 === 0 && key_1st_value > 0) {
+        // even, so it's a table, so 1 prefix
+        // Have incrementor work differently - just xas2s in keys and values.
+
+        //console.log('buf_key', buf_key);
+        //console.log('pos', pos);
+
+        // Then skip through, or better count the items.
+        //  Including skipping KPs.
+
+        // count_encoded_items
+
+        let ith_value = Binary_Encoding.get_value_at(buf_key, idx, pos);
+
+
+        //let count = Binary_Encoding.count_encoded_items(buf_key, pos);
+        //console.log('count', count);
+
+        //return count;
+        return ith_value;
+
+
+
+        // 
+
+    } else {
+        throw 'NYI';
+    }
+
 }
 
 // encode key
@@ -1149,6 +1225,9 @@ let Database_Encoding = {
 
     'select_indexes_from_model_row': select_indexes_from_model_row,
     'select_indexes_buffer_from_kv_pair_buffer': select_indexes_buffer_from_kv_pair_buffer,
+
+    'key_length': key_length,
+    'key_value_at': key_value_at,
 
 
     'obs_decode': obs_decode,

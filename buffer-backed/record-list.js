@@ -194,11 +194,17 @@ class Record_List {
                                     let enc = Buffer.concat([xas2(enc_inner.length).buffer, enc_inner, xas2(0).buffer]);
                                     //console.log('enc', enc);
                                     arr_bufs.push(enc);
+                                } else {
+                                    console.trace();
+                                    throw 'NYI';
+
                                 }
                             }
                         }
                         // If so, encode it as key and value.
                     }
+
+
                 }
             }
 

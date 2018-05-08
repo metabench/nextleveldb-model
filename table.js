@@ -693,6 +693,35 @@ class Table {
         return this.records.get_arr_data_index_records.apply(this.records, arguments);
     }
 
+    // Function to provide index records made from an actual record.
+    //  Probably no need to refer to this.records.
+    //   May change internal mechanisms to use encoded records.
+
+
+    // Would go through each index making such a record.
+
+    get_record_bb_index_records(record) {
+        let i = this.indexes,
+            l = i.length;
+        let res = new Array(l);
+        for (let c = 0; c < l; c++) {
+            res[c] = i[c].bb_record_to_bb_index_record(record);
+        }
+        //console.log('get_record_bb_index_records res', res);
+
+
+
+
+
+        //throw 'stop';
+        return res;
+    }
+
+
+
+
+
+
     buf_pk_query(arr_pk_part) {
         //var res = [xas2(this.key_prefix).buffer];
         //console.log('Database', Database);

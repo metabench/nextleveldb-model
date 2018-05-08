@@ -13,7 +13,7 @@ var flexi_encode_item = Binary_Encoding.flexi_encode_item;
 // Will have actual OO index records.
 //  Ability to tell them from other objects
 //  Will basically have an array 
-
+const BB_Record = require('./buffer-backed/record');
 
 class Index_Def {
     // All of the index capability takes place within the key.
@@ -278,6 +278,15 @@ class Index_Def {
     //   each refers to the table, and the field id
     //   
 
+
+
+    // record to index bb records
+    //  the buffer backed record style is more efficient in many cases as it only decodes upon demand.
+
+
+
+
+
     'record_to_key_string' (record) {
         var record_key = record.key;
         var data = record.arr_data;
@@ -294,6 +303,108 @@ class Index_Def {
 
     }
 
+    // bb record to bb index records
+    //  should be easy to use like the array format, but with the efficiency of buffers. Likely easier to use than the arrays as it has OO convenience functions.
+    //  With the bb versions set to have wider use, it will increase efficiency as well as ease of coding
+
+    'bb_record_to_bb_index_record' (bb_record) {
+        // 
+
+        // Think this fn will take a little while + more focus to get right.
+        //  It fits in generally with keeping data encoded as binary until it's needed.
+        //  Faster internal processing because it will involve copying and comparing buffer values.
+
+        // only to one index record here.
+
+
+        // This will be useful server-side too.
+        //  We have wanted this for standard put.
+
+
+        // Should use selection from the buffers in an efficient way.
+        //  should have an array of field positions.
+        //   then we can lookup and read the fields quickly.
+
+        // when referring to fields, its basically keys and values put together, excluding the KPs from the keys (there are no KPs in the values)
+
+        // Could use an Index_Key class?
+        //  Or just make it so that Key covers index key logic automatically.
+
+        // 
+
+        // no need for Field_Value bb object (yet);
+
+        // We could do the full lookup at once.
+        //  That would be more efficient.
+        //  Harder to verify though.
+
+        // Position tables would help.
+        //  The position table can be found with a scan.
+
+        // what about extracting all field values at once?
+
+
+        // table kp + 1, index id
+
+
+        // need to include the KPs in the index record.
+        //  may be worth specifically making an index_record class?
+
+        let res = new Array(this.key_fields.length + this.value_fields.length);
+
+        let i_f = 0;
+
+        let l = this.key_fields.length;
+
+        each(this.key_fields, (key_field) => {
+            //console.log('key_field', key_field);
+            console.log('key_field.id', key_field.id);
+
+            let fv = bb_record.get_field_value(key_field.id);
+            console.log('1) fv', fv);
+
+            res[i_f++] = fv;
+
+
+
+            // fish out the field value from the bb_record
+
+
+
+            //var item_value = record_flat_data[key_field.id];
+            //arr_res.push((item_value));
+        });
+        //console.log('this.value_fields', this.value_fields);
+        each(this.value_fields, (value_field) => {
+            //console.log('value_field', value_field);
+            console.log('value_field.id', value_field.id);
+            //ar item_value = record_flat_data[value_field.id];
+
+            let fv = bb_record.get_field_value(value_field.id);
+            //arr_res.push((item_value));
+            console.log('2) fv', fv);
+            res[i_f++] = fv;
+        });
+
+        // need the kp first
+
+        console.log('this.table.indexes_key_prefix', this.table.indexes_key_prefix);
+        console.log('this.id', this.id);
+
+        let buf_kps = Buffer.concat([xas2(this.table.indexes_key_prefix).buffer, xas2(this.id).buffer]);
+        let buf_full = Buffer.concat([buf_kps, Buffer.concat(res)]);
+
+        let res_record = new BB_Record(buf_full);
+
+        return res_record;
+        //throw 'stop';
+
+        //return res;
+
+
+    }
+
+
     'arr_record_to_index_arr_data' (arr_record, num_pk_fields = 1) {
         var table = this.table;
         var table_ikp = table.indexes_key_prefix;
@@ -302,6 +413,10 @@ class Index_Def {
             var item_value = arr_record[key_field.id - num_pk_fields];
             arr_res.push((item_value));
         });
+
+        // And the value fields?
+
+        throw 'NYI';
         return arr_res;
     }
 
@@ -339,11 +454,8 @@ class Index_Def {
         //  
 
         // But the index is only composed of the key part of the LevelDB record.
-
-
         var record_flat_data = record.key.concat(record.value);
         // 
-
         each(this.key_fields, (key_field) => {
             var item_value = record_flat_data[key_field.id];
             arr_res.push(flexi_encode_item(item_value));
