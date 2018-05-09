@@ -74,8 +74,6 @@ class Record {
 
         // Can get the key or the value from each of those buffers.
 
-
-
     }
 
     get key() {
@@ -167,9 +165,28 @@ class Record {
         //console.log('this.key_length', kl);
         //console.log('idx', idx);
 
+        //console.log('');
+        //console.log('idx', idx);
+        //console.log('kl', kl);
+        //console.log('');
+
+
+
         if (idx < kl) {
+
+
             return this.key.get_value_at(idx);
         } else {
+
+            //console.log('this.value', this.value);
+            //let r_idx = idx - kl;
+            //let res = this.value.get_value_at(r_idx);
+
+            //console.log('r_idx', r_idx);
+            //console.log('res', res);
+
+            //return res;
+
             return this.value.get_value_at(idx - kl);
         }
 

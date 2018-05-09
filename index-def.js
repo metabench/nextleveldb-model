@@ -307,7 +307,19 @@ class Index_Def {
     //  should be easy to use like the array format, but with the efficiency of buffers. Likely easier to use than the arrays as it has OO convenience functions.
     //  With the bb versions set to have wider use, it will increase efficiency as well as ease of coding
 
+
+    // Are the index records in the Model or the DB wrong?
+
+    // That could account for some problems which are being faced currently.
+
+
+
     'bb_record_to_bb_index_record' (bb_record) {
+
+
+        console.log('this.table.name', this.table.name);
+
+
         // 
 
         // Think this fn will take a little while + more focus to get right.
@@ -358,10 +370,10 @@ class Index_Def {
 
         each(this.key_fields, (key_field) => {
             //console.log('key_field', key_field);
-            console.log('key_field.id', key_field.id);
+            //console.log('* key_field.id', key_field.id);
 
             let fv = bb_record.get_field_value(key_field.id);
-            console.log('1) fv', fv);
+            //console.log('1) fv', fv);
 
             res[i_f++] = fv;
 
@@ -377,19 +389,19 @@ class Index_Def {
         //console.log('this.value_fields', this.value_fields);
         each(this.value_fields, (value_field) => {
             //console.log('value_field', value_field);
-            console.log('value_field.id', value_field.id);
+            //console.log('value_field.id', value_field.id);
             //ar item_value = record_flat_data[value_field.id];
 
             let fv = bb_record.get_field_value(value_field.id);
             //arr_res.push((item_value));
-            console.log('2) fv', fv);
+            //console.log('2) fv', fv);
             res[i_f++] = fv;
         });
 
         // need the kp first
 
-        console.log('this.table.indexes_key_prefix', this.table.indexes_key_prefix);
-        console.log('this.id', this.id);
+        //console.log('this.table.indexes_key_prefix', this.table.indexes_key_prefix);
+        //console.log('this.id', this.id);
 
         let buf_kps = Buffer.concat([xas2(this.table.indexes_key_prefix).buffer, xas2(this.id).buffer]);
         let buf_full = Buffer.concat([buf_kps, Buffer.concat(res)]);

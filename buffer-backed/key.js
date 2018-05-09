@@ -30,7 +30,8 @@ class Key {
 
         // this._pos_value_beginning
 
-        console.log('KEY get_value_at', idx);
+        //console.log('KEY get_value_at', idx);
+
 
         return database_encoding.key_value_at(this._buffer, idx);
 

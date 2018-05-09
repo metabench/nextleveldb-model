@@ -1,6 +1,9 @@
+//"use strict";
 let Binary_Encoding = require('binary-encoding');
 let xas2 = require('xas2');
 
+
+let Record = require('./record');
 // Could have option of encoding this as its own item type.
 //  However, by default will encode itself as an array of keys.
 //  It looks like a specific encoding item type for 'key' is necessary
@@ -32,6 +35,9 @@ class Key_List {
 
         let arr_key_items;
 
+        // And key-list could take a record-list.
+        //  Would extract or reference the keys.
+
         if (l > 1) {
             // have been given an array of key items
             arr_key_items = a;
@@ -46,12 +52,18 @@ class Key_List {
         }
 
         let process_key_item_to_buffer = (key_item) => {
+
+            //console.log('process_key_item_to_buffer', key_item);
             // Will say each key is encoded as its own buffer.
             //  These key items should all decode to buffers, and then decode to individual rows.
             // Iterate / read through the buffers. Could use generator. Then could decode each of them.
             // then depending on the type of the key item.
             // if it's an array
             let res;
+
+
+
+
             if (Array.isArray(key_item)) {
                 // depending on if it's an INCREMENTOR_KEY, RECORD_KEY, INDEX_KEY
                 //  Inc key: var bufs_key = Buffer.concat([xas2(0).buffer, xas2(this.id).buffer, xas2(STRING).buffer, xas2(buf_name.length).buffer, buf_name]);
@@ -106,21 +118,28 @@ class Key_List {
                         res = buf_item;
                     }
                 }
+            } else if (key_item instanceof Buffer) {
+                // Encode it as a buffer with length?
+
+                // Could check that it starts with BUFFER, then its length, and that it matches that length?
+                //  If not, wrap that way.
+
+
+                //  ensure that it is encoded with BUFFER TYPE, LENGTH, CONTENT
+                // Yes, encoding its length makes sense... but BE.ensure_length_encoded(key_item)
+
+                //let buf_item = Buffer.concat([xas2(BUFFER).buffer, xas2(buf_key.length).buffer, key_item]);
+
+                //res = buf_item;
+                throw 'NYI';
+
+            } else if (key_item instanceof Record) {
+                let buf_key = key_item.kvp_bufs[0];
+                res = Buffer.concat([xas2(BUFFER).buffer, xas2(buf_key.length).buffer, buf_key]);
             } else {
-                if (key_item instanceof Buffer) {
-                    // Encode it as a buffer with length?
-
-                    // Could check that it starts with BUFFER, then its length, and that it matches that length?
-                    //  If not, wrap that way.
-
-
-                    //  ensure that it is encoded with BUFFER TYPE, LENGTH, CONTENT
-                    // Yes, encoding its length makes sense... but BE.ensure_length_encoded(key_item)
-
-                    res = key_item;
-                }
+                throw 'NYI';
             }
-            console.log('key res', res);
+            //console.log('key res', res);
             return res;
         }
 
@@ -138,14 +157,82 @@ class Key_List {
         }
 
         if (arr_key_items) {
+
+            // but are they all buffers?
+
+            //console.log('arr_key_items', arr_key_items);
+
+            // what if they are of type 'Record'?
+
+
+
             this._buffer = process_arr_key_items_to_buffer(arr_key_items);
         }
 
     }
 
+    get length() {
+        return Binary_Encoding.count_encoded_items(this._buffer);
+    }
+
     get buffer() {
         return this._buffer;
     }
+
+    /*
+    [Symbol.iterator]() {
+
+        yield 1;
+        yield 2;
+        yield 3;
+
+    }
+    */
+
+    * iterator() {
+        //for (let key in this.elements) {
+        //    var value = this.elements[key];
+        //    yield value;
+        //}
+        //yield 1;
+        //yield 2;
+        //yield 3;
+
+        // need to read through the items.
+
+        let pos = 0;
+        let complete = false;
+        let l = this._buffer.length;
+
+        let type_id, buf_l;
+        let b = this._buffer;
+
+        while (pos < l) {
+            //[type_]
+            [type_id, pos] = xas2.read(b, pos);
+            [buf_l, pos] = xas2.read(b, pos);
+            // then can copy alloc and copy to the new buf
+            let item_buf = Buffer.alloc(buf_l);
+            b.copy(item_buf, 0, pos, pos + buf_l);
+            //console.log('* item_buf', item_buf);
+            yield item_buf;
+            pos = pos + buf_l;
+
+        }
+
+    }
+
+    [Symbol.iterator]() {
+        return this.iterator();
+    }
+
+
+
+    // 
+
+    // Need to be able to iterate through these keys.
+
+    // buffer type code, buffer length, buffer itself
 
     // Could get the buffer-backed keys as an array
     // Iterate through them as an array
