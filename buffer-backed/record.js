@@ -93,18 +93,7 @@ class Record {
     }
 
     // validate encoding...
-    validate_encoding() {
-        let res = true;
-        try {
 
-            // don't want tracing done, not sure why it sometimes happens. Trae that!
-            let decoded = this.decoded;
-        } catch (err) {
-            //console.trace();
-            res = false;
-        }
-        return res;
-    }
 
     get decoded() {
         return [this.key.decoded, this.value.decoded];
@@ -155,6 +144,19 @@ class Record {
 
     }
 
+    validate_encoding() {
+        let res = true;
+        try {
+
+            // don't want tracing done, not sure why it sometimes happens. Trae that!
+            let decoded = this.decoded;
+        } catch (err) {
+            //console.trace();
+            res = false;
+        }
+        return res;
+    }
+
 
 
 
@@ -189,8 +191,6 @@ class Record {
 
             return this.value.get_value_at(idx - kl);
         }
-
-
     }
 
 

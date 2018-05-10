@@ -779,6 +779,10 @@ class Database {
 
     }
 
+    get_table_kv_field_names(table_name) {
+        return this.map_tables[table_name].kv_field_names;
+    }
+
     get non_core_tables() {
         var res = [];
         each(this.tables, (table) => {
@@ -976,6 +980,8 @@ class Database {
     //  Don't get decoded to OO right now?
     //   Could use an active record to persist them to the DB? Seems unnecessary.
 }
+
+
 
 
 

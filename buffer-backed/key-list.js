@@ -4,6 +4,7 @@ let xas2 = require('xas2');
 
 
 let Record = require('./record');
+let Key = require('./key');
 // Could have option of encoding this as its own item type.
 //  However, by default will encode itself as an array of keys.
 //  It looks like a specific encoding item type for 'key' is necessary
@@ -189,6 +190,8 @@ class Key_List {
     }
     */
 
+
+
     * iterator() {
         //for (let key in this.elements) {
         //    var value = this.elements[key];
@@ -206,19 +209,33 @@ class Key_List {
 
         let type_id, buf_l;
         let b = this._buffer;
+        //console.log('l', l);
 
         while (pos < l) {
             //[type_]
+            //console.log('2) pos', pos);
             [type_id, pos] = xas2.read(b, pos);
             [buf_l, pos] = xas2.read(b, pos);
             // then can copy alloc and copy to the new buf
             let item_buf = Buffer.alloc(buf_l);
             b.copy(item_buf, 0, pos, pos + buf_l);
             //console.log('* item_buf', item_buf);
-            yield item_buf;
+
+            // Could yield a proper key instead.
+
+            let item = new Key(item_buf);
+
+
+            yield item;
             pos = pos + buf_l;
 
+            //console.log('buf_l', buf_l);
+            //console.log('3) pos', pos);
+
+
         }
+        //console.log('while complete');
+
 
     }
 

@@ -2,6 +2,8 @@ let Binary_Encoding = require('binary-encoding');
 let database_encoding = require('../encoding');
 let xas2 = require('xas2');
 
+let Record = require('./record');
+
 let lang = require('lang-mini');
 let each = lang.each;
 let get_a_sig = lang.get_a_sig;
@@ -82,10 +84,6 @@ class Record_List {
         //  Can't be decoded as a normal array, so no.
 
         // Seems like the whole things needs to be wrapped in a Buffer.
-
-
-
-
 
         // Each record in the list to get encoded as a buffer.
 
@@ -240,6 +238,97 @@ class Record_List {
         }
     }
 
+    get_nth(n) {
+        // needs to skip through length item encoded buffer.
+        let pos = 0;
+        let item_length;
+        let c = 0;
+        let b_found;
+
+        while (c < n + 1) {
+            [item_length, pos] = xas2.read(this._buffer, pos);
+
+            //console.log('item_length, pos', item_length, pos);
+
+            if (c === n) {
+                b_found = Buffer.alloc(item_length);
+                this._buffer.copy(b_found, 0, pos, pos + item_length);
+            }
+
+            pos = pos + item_length;
+            c++;
+        }
+
+        //console.log('b_found', b_found);
+
+        return b_found;
+    }
+
+    // Need to iterate through the items.
+    //  Iterate through buffer backed records.
+
+    * iterator() {
+
+        let pos = 0;
+        let complete = false;
+        let l = this._buffer.length;
+
+
+
+        let type_id, buf_l_key, buf_l_value;
+        let b = this._buffer;
+        //console.log('l', l);
+        //console.log('this._buffer', this._buffer);
+        //throw 'stop';
+
+        while (pos < l) {
+            //[type_]
+            //console.log('2) pos', pos);
+            //[type_id, pos] = xas2.read(b, pos); 
+
+            [buf_l_key, pos] = xas2.read(b, pos);
+
+            // then can copy alloc and copy to the new buf
+            let key_buf = Buffer.alloc(buf_l_key);
+            b.copy(key_buf, 0, pos, pos + buf_l_key);
+            pos = pos + buf_l_key;
+
+            [buf_l_value, pos] = xas2.read(b, pos);
+            // then can copy alloc and copy to the new buf
+            let key_value = Buffer.alloc(buf_l_value);
+            b.copy(key_value, 0, pos, pos + buf_l_value);
+            pos = pos + buf_l_value;
+
+            //console.log('key_buf', key_buf);
+            //console.log('key_value', key_value);
+
+            //console.log('* item_buf', item_buf);
+
+            // Could yield a proper key instead.
+
+            let item = new Record([key_buf, key_value]);
+
+            //console.log('item', item);
+            //throw 'stop';
+            yield item;
+
+
+            //console.log('buf_l', buf_l);
+            //console.log('3) pos', pos);
+
+
+        }
+        //console.log('while complete');
+
+
+    }
+
+    [Symbol.iterator]() {
+        return this.iterator();
+    }
+
+
+
     get buffer() {
         return this._buffer;
     }
@@ -282,17 +371,10 @@ class Record_List {
         //   That would handle both key only records, as well as full records.
 
         // then get the key value pairs out of it.
-
         //let arr_buf_items = Binary_Encoding.split_length_item_encoded_buffer(buf_inner);
 
-
         // Doesn't look right here.
-
         // Need to be careful and specific in how records get sent to or from the server.
-
-
-
-
 
         each(kvps, kvp => {
             // split it as a key value pair.

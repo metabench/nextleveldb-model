@@ -509,6 +509,10 @@ class Table {
         return res;
     }
 
+    get kv_field_names() {
+        return this.record_def.kv_field_names;
+    }
+
     get inward_fk_refs() {
         let res = [];
         each(this.db.tables, table => {
@@ -715,6 +719,54 @@ class Table {
 
         //throw 'stop';
         return res;
+    }
+
+
+
+    // find out which index record by id represents a field by name
+
+    get_index_id_by_field_name(field_name) {
+        //console.log('field_name', field_name);
+        let field_id = this.map_fields[field_name];
+
+        return this.get_index_id_by_field_id(field_id);
+    }
+
+    get_index_id_by_field_id(field_id) {
+        // An index which has got that field first.
+
+        // Could have a map of them easily.
+
+        // An index could hold multiple key fields.
+
+
+        // Memoifying this fn could help.
+
+        //console.log('get_index_id_by_field_id field_id', field_id);
+        //console.trace();
+
+        let res;
+
+        each(this.indexes, (index, i, stop) => {
+            //console.log('index', index);
+            if (index.key_fields.length === 1) {
+                let kf0 = index.key_fields[0];
+                //console.log('Object.keys(kf0)', Object.keys(kf0));
+
+                if (kf0.id === field_id) {
+                    res = index.id;
+                    stop();
+                }
+
+
+            } else {
+                throw 'NYI';
+            }
+        })
+
+        return res;
+
+
     }
 
 

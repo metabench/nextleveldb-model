@@ -470,6 +470,8 @@ class Record_Def {
 
                     // Ensure the table has got a pk incrementor?
 
+                } else {
+                    this.value.add_field(item_field);
                 }
             }
 
@@ -717,6 +719,27 @@ class Record_Def {
         each(this.fields, (field) => {
             res.push(field.name);
         });
+        return res;
+    }
+
+
+    get kv_field_names() {
+        let res = [
+            [],
+            []
+        ];
+
+        each(this.pk.fields, pk_field => {
+            res[0].push(pk_field.name);
+        })
+        //console.log('this.pk.fields.length', this.pk.fields.length);
+        //console.log('this.value.fields.length', this.value.fields.length);
+        each(this.value.fields, value_field => {
+            res[1].push(value_field.name);
+        })
+
+        //console.log('kv_field_names res', res);
+
         return res;
     }
 

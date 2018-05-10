@@ -288,7 +288,19 @@ var encode_key = function (kp, arr_values) {
 
         // then if it's an index...
 
-        res = Binary_Encoding.encode_to_buffer(a[0], kp);
+        //console.log('kp', kp);
+
+        if (kp % 2 !== 0) {
+            // its odd, so an index
+            let idx_id = a[0].shift();
+            res = Binary_Encoding.encode_to_buffer(a[0], kp, idx_id);
+        } else {
+            res = Binary_Encoding.encode_to_buffer(a[0], kp);
+        }
+
+
+
+
     } else {
 
         // Needs to be able to handle encoding an index key.
@@ -1213,14 +1225,10 @@ let Database_Encoding = {
 
     'decode_model_rows': decode_model_rows,
     'decode_model_row': decode_model_row,
-
     'encode_key': encode_key,
-
     'decode_key': decode_key,
     'decode_keys': decode_keys,
-
     'buffer_to_buffer_pairs': buffer_to_row_buffer_pairs,
-
     'buffer_to_row_buffer_pairs': buffer_to_row_buffer_pairs,
 
     'select_indexes_from_model_row': select_indexes_from_model_row,
@@ -1228,8 +1236,6 @@ let Database_Encoding = {
 
     'key_length': key_length,
     'key_value_at': key_value_at,
-
-
     'obs_decode': obs_decode,
 
     'encode': {

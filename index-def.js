@@ -317,7 +317,7 @@ class Index_Def {
     'bb_record_to_bb_index_record' (bb_record) {
 
 
-        console.log('this.table.name', this.table.name);
+        //console.log('this.table.name', this.table.name);
 
 
         // 
@@ -376,12 +376,7 @@ class Index_Def {
             //console.log('1) fv', fv);
 
             res[i_f++] = fv;
-
-
-
             // fish out the field value from the bb_record
-
-
 
             //var item_value = record_flat_data[key_field.id];
             //arr_res.push((item_value));
@@ -391,13 +386,11 @@ class Index_Def {
             //console.log('value_field', value_field);
             //console.log('value_field.id', value_field.id);
             //ar item_value = record_flat_data[value_field.id];
-
             let fv = bb_record.get_field_value(value_field.id);
             //arr_res.push((item_value));
             //console.log('2) fv', fv);
             res[i_f++] = fv;
         });
-
         // need the kp first
 
         //console.log('this.table.indexes_key_prefix', this.table.indexes_key_prefix);
@@ -405,14 +398,10 @@ class Index_Def {
 
         let buf_kps = Buffer.concat([xas2(this.table.indexes_key_prefix).buffer, xas2(this.id).buffer]);
         let buf_full = Buffer.concat([buf_kps, Buffer.concat(res)]);
-
         let res_record = new BB_Record(buf_full);
-
         return res_record;
         //throw 'stop';
-
         //return res;
-
 
     }
 
@@ -425,7 +414,6 @@ class Index_Def {
             var item_value = arr_record[key_field.id - num_pk_fields];
             arr_res.push((item_value));
         });
-
         // And the value fields?
 
         throw 'NYI';
