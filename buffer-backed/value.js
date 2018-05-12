@@ -14,6 +14,10 @@ class Value {
 
     }
 
+    get buffer() {
+        return this._buffer;
+    }
+
     get decoded() {
         return Binary_Encoding.decode_buffer(this._buffer);
     }

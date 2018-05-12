@@ -57,7 +57,7 @@ class Index_Def {
 
 
 
-    'constructor' (spec) {
+    'constructor'(spec) {
         //console.log('\nIndex constructor');
         var a = arguments;
         var l = arguments.length,
@@ -253,7 +253,7 @@ class Index_Def {
     // 
 
 
-    'to_arr_record_def' () {
+    'to_arr_record_def'() {
         // [table_id, index_id (within table)][arr_key_fields, arr_value_fields]
         //  [arr_key_fields, arr_value_fields] are encoded as numbers, each field is just the field id
 
@@ -266,7 +266,7 @@ class Index_Def {
 
     }
 
-    'index_record' (record) {
+    'index_record'(record) {
         // This should be called when adding data to a model.
 
         console.log('index_record_data', record);
@@ -287,7 +287,7 @@ class Index_Def {
 
 
 
-    'record_to_key_string' (record) {
+    'record_to_key_string'(record) {
         var record_key = record.key;
         var data = record.arr_data;
         var table = record.table;
@@ -314,7 +314,7 @@ class Index_Def {
 
 
 
-    'bb_record_to_bb_index_record' (bb_record) {
+    'bb_record_to_bb_index_record'(bb_record) {
 
 
         //console.log('this.table.name', this.table.name);
@@ -368,9 +368,12 @@ class Index_Def {
 
         let l = this.key_fields.length;
 
+        //console.log('bb_record', bb_record);
+
         each(this.key_fields, (key_field) => {
             //console.log('key_field', key_field);
             //console.log('* key_field.id', key_field.id);
+
 
             let fv = bb_record.get_field_value(key_field.id);
             //console.log('1) fv', fv);
@@ -406,7 +409,7 @@ class Index_Def {
     }
 
 
-    'arr_record_to_index_arr_data' (arr_record, num_pk_fields = 1) {
+    'arr_record_to_index_arr_data'(arr_record, num_pk_fields = 1) {
         var table = this.table;
         var table_ikp = table.indexes_key_prefix;
         var arr_res = [];
@@ -420,7 +423,7 @@ class Index_Def {
         return arr_res;
     }
 
-    'record_to_index_arr_data' (record) {
+    'record_to_index_arr_data'(record) {
         var table = this.table;
         var table_ikp = table.indexes_key_prefix;
         var arr_res = [(table_ikp), this.id];
@@ -439,7 +442,7 @@ class Index_Def {
         return arr_res;
     }
 
-    'record_to_index_buffer' (record) {
+    'record_to_index_buffer'(record) {
         var record_key = record.key;
         var record_value = record.value;
         var data = record.arr_data;

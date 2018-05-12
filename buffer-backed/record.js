@@ -96,7 +96,22 @@ class Record {
 
 
     get decoded() {
-        return [this.key.decoded, this.value.decoded];
+
+        if (this.kp === 0) {
+            // Incrementor records.
+            console.log('this.value.buffer', this.value.buffer);
+            return [this.key.decoded, xas2.read(this.value.buffer)];
+        } else {
+            return [this.key.decoded, this.value.decoded];
+        }
+
+
+    }
+
+    get decoded_no_kp() {
+        let decoded = this.decoded;
+        decoded[0].shift();
+        return decoded;
     }
 
     get bpair() {
@@ -106,6 +121,8 @@ class Record {
     get kp() {
         // read first xas2 from the key
         //let res = xas2.read(this.kvp_bufs[0]);
+        //console.log('this.kvp_bufs', this.kvp_bufs);
+        //console.log('this', this);
         return xas2.read(this.kvp_bufs[0]);
     }
 

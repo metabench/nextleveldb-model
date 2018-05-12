@@ -1,6 +1,7 @@
 const Binary_Encoding = require('binary-encoding');
 const xas2 = require('xas2');
 
+// Maybe phase this out.
 class Index_Record_Key {
     constructor(spec) {
 

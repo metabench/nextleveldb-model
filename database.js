@@ -997,7 +997,12 @@ var load_arr_core = (arr_core) => {
     //console.log('arr_core', arr_core);
     //console.trace();
 
-    var decoded_core = database_encoding.decode_model_rows(arr_core);
+
+
+    //var decoded_core = database_encoding.decode_model_rows(arr_core);
+
+
+
 
     //console.log('decoded_core', decoded_core);
 
@@ -1007,15 +1012,33 @@ var load_arr_core = (arr_core) => {
 
     // Should have the index table rows showing up in prefix 8
     var arr_by_prefix = [];
-    each(decoded_core, (row) => {
-        //console.log('row', row);
 
-        var row_copy = clone(row);
-        var arr_row_key = row_copy[0];
-        var key_prefix = arr_row_key[0];
-        arr_row_key.splice(0, 1);
-        arr_by_prefix[key_prefix] = arr_by_prefix[key_prefix] || [];
-        arr_by_prefix[key_prefix].push(row_copy);
+    // simple to get the kp from each row now.
+    each(arr_core, (row) => {
+        //console.log('row', row);
+        //console.log('row.kp', row.kp);
+        //console.log('row.decoded', row.decoded);
+
+        //console.log('row.decoded_no_kp', row.decoded_no_kp);
+
+        // decoded_no_kp
+
+
+
+        //throw 'stop'
+
+        //var row_copy = clone(row);
+        //var arr_row_key = row_copy[0];
+        //var key_prefix = arr_row_key[0];
+        //arr_row_key.splice(0, 1);
+
+
+        arr_by_prefix[row.kp] = arr_by_prefix[row.kp] || [];
+
+        // could keep the row here in the model in binary format and decode it as needed.
+        //  for the moment, will use the decoded row, thats what it expects here.
+
+        arr_by_prefix[row.kp].push(row.decoded_no_kp);
     });
 
     //throw 'stop';
@@ -1047,7 +1070,7 @@ var load_arr_core = (arr_core) => {
 
     // When recreting rows, may need to avoid using an incrementor.
     //console.log('arr_incrementor_rows', arr_incrementor_rows);
-    //throw 'stop';
+
     each(arr_incrementor_rows, (inc_row) => {
         //console.log('inc_row', inc_row);
         var inc_id = inc_row[0][0];
@@ -1061,6 +1084,7 @@ var load_arr_core = (arr_core) => {
         db.add_incrementor(inc_id, inc_name, inc_value);
 
     });
+    //throw 'stop';
 
     db.inc_incrementor = db.incrementors[0];
     db.inc_table = db.incrementors[1];
@@ -1357,84 +1381,7 @@ var load_arr_core = (arr_core) => {
 
     });
 
-
-    /*
-    each(arr_table_native_types_rows, native_type_row => {
-        console.log('native_type_row', native_type_row);
-        // Need to add these native type rows to the model, (with indexing)
-
-
-
-    })
-    */
-
     db.tbl_native_types.add_records(arr_table_native_types_rows);
-
-    //console.log('3) db.tables', db.tables);
-    //console.log('arr_table_index_rows.length', arr_table_index_rows.length);
-    //throw 'stop';
-
-    /*
-    each(arr_table_field_rows, (table_field_row) => {
-        console.log('table_field_row', table_field_row);
-        var key = table_field_row[0], value = table_field_row[1];
-
-        var table_id = key[0], field_id = key[1];
-
-        var name = value[0];
-        var i_type = value[1];
-        var is_pk = value[2];
-        var fk_to_table_id = value[3];
-
-        // should be able to do db.add_table_field_row?
-
-        var table = db.tables[table_id];
-
-        // (field, id = -1, i_type = null, is_pk = false)
-        table.add_field(name, table, field_id, i_type, is_pk, fk_to_table_id);
-
-
-
-
-        // 
-        
-
-
-
-    });
-    */
-    //throw 'stop';
-
-
-    // (field, i_type = null, is_pk = false)
-
-    //console.log('db.tables.length', db.tables.length);
-    //throw 'stop';
-
-    // Doesn't have the native type records loaded.
-    //  
-
-
-    // Recreating its own db representation.
-    //  This looks like the part where we should reset some incrementors
-
-
-    //  Couldn't we load those tables up anyway.
-    // Should we even need to add these?
-
-
-
-    // Can't we have all these records loaded anyway when we load the core?
-
-    // Go through the table fields and the table indices.
-    //  Recreate them from keys.
-    //  Don't use add_tables_fields_to_fields_table as that uses the current values of the incrementors to assign some keys. Want to use the pre-existing values
-
-
-
-    // It's the creation of these index and fields records which are the problem.
-
-
 
     db.tbl_tables.add_record([
         [db.tbl_tables.id],
@@ -1488,6 +1435,11 @@ var load_buf = (buf) => {
 }
 
 Database.load = (arr_core) => {
+
+    console.log('arr_core', arr_core);
+
+    // Load it differently - in fact it would require less code as it's easier to decode now.
+
     return load_arr_core(arr_core);
 }
 

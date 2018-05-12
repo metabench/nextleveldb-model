@@ -55,12 +55,41 @@ class Key {
 
         //console.log('KEY get_value_at', idx);
 
+        // But it's maybe an index record key. Can it handle getting the value like this?
 
         return database_encoding.key_value_at(this._buffer, idx);
 
 
 
 
+    }
+
+    validate() {
+        try {
+            let d = this.decoded;
+        } catch (err) {
+            return false;
+        }
+        return true;
+    }
+
+    get kp() {
+        //console.log('xas2.read(this._buffer)', xas2.read(this._buffer));
+        return xas2.read(this._buffer);
+    }
+    get table_kp() {
+
+        let kp = this.kp;
+        if (kp % 2 === 0) {
+            return kp;
+        } else {
+            return kp - 1;
+        }
+
+
+    }
+    get table_id() {
+        return (this.table_kp - 2) / 2;
     }
 
     // then need to be able to get decoded value
