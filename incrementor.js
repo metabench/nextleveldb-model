@@ -7,6 +7,9 @@ var Fns = lang.Fns;
 
 
 const encode_model_row = require('./database').encode_model_row;
+
+const B_Record = require('./buffer-backed/record');
+
 /*
 
 var _inc_key = function(int_incrementor_id) {
@@ -122,6 +125,15 @@ class Incrementor {
         //console.log('');
         return res;
     }
+
+    // get records
+
+    // or record
+
+    get record() {
+        return new B_Record(this.get_record_bin());
+    }
+
 
     get_all_db_records() {
         var res = [this.get_record(), this.get_index()];

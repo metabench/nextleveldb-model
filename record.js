@@ -28,6 +28,8 @@ var xas2 = require('xas2');
 var encode_pair_to_buffers = Binary_Encoding.encode_pair_to_buffers;
 
 
+const B_Record = require('./buffer-backed/record');
+
 // This Record has got a lot to do with data conversion
 
 // Records will reduce the clutter of many procedures in the database access layers.
@@ -97,17 +99,9 @@ class Record {
             if (t_spec === 'object') {
                 this.storage = spec.storage;
                 // storage should hold the key, value, and indexing definitions.
-
-
-
                 if (spec.table) this.table = spec.table;
-
-
                 // i_table_id
                 // i_table_key_prefix
-
-
-
             } else if (t_spec === 'buffer') {
 
                 // Need to decode record from buffer.
@@ -251,6 +245,11 @@ class Record {
     }
 
 
+    to_b_record() {
+        return new B_Record(this.get_own_record_bin());
+    }
+
+
 
     // to buffer, with indexes
     //  Would need a somewhat more complex format...?
@@ -301,24 +300,18 @@ class Record {
         var record = this;
         var res = [];
         each(indexes, (index) => {
-
             // Could put it in place so the index records have got [k,v] format, even if v is empty.
-
             res.push(index.record_to_index_buffer(record));;
         });
         return (res);
     }
 
     index_db_records_to_buffer() {
-
-
         // Could do this much more simply.
         // Have all records as key value pairs.
         //  Have some kind of array specification in Binary_Encoding.
 
         // Anyway, let's decode this format for the moment.
-
-
 
         // Includes the number of indexes
 

@@ -3,6 +3,8 @@ let xas2 = require('xas2');
 let Key = require('./key');
 let Value = require('./value');
 
+const database_encoding = require('../encoding');
+
 const XAS2 = 0;
 const STRING = 4;
 const BUFFER = 9;
@@ -12,7 +14,6 @@ class Record {
     constructor() {
         let a = arguments,
             l = a.length;
-
 
         //console.log('Record l', l);
         //console.log('a', a);
@@ -25,6 +26,9 @@ class Record {
         if (l === 1) {
             if (a[0] instanceof Buffer) {
 
+                // a buffer that can be split?
+
+
                 // one buffer
                 // odd kp, it has no 'value'
                 //  has a key
@@ -36,18 +40,28 @@ class Record {
                 //throw 'NYI'
             } else {
                 if (Array.isArray(a[0])) {
-                    if (a[0].length === 2) {
+                    if (a[0].length === 2 && a[0][0] instanceof Buffer && a[0][1] instanceof Buffer) {
                         // Check they are both buffers.
 
-                        if (a[0][0] instanceof Buffer && a[0][1] instanceof Buffer) {
-                            this.kvp_bufs = a[0];
+                        this.kvp_bufs = a[0];
+
+
+                    } else {
+
+                        if (Array.isArray(a[0][0]) && Array.isArray(a[0][1])) {
+                            console.log('both arrays');
+                            this.kvp_bufs = database_encoding.encode_model_row(a[0]);
+
                         } else {
                             throw 'NYI';
                         }
 
+                        // an array of arrays.
+                        //  in that case, we will need to use database_encoding.encode_record
 
-                    } else {
-                        throw 'NYI';
+
+
+                        //throw 'NYI';
                     }
 
                 } else {
@@ -208,6 +222,22 @@ class Record {
 
             return this.value.get_value_at(idx - kl);
         }
+    }
+
+
+    // make iterable...
+    //  just a key and value
+
+    * iterator() {
+
+        yield this.kvp_bufs[0];
+        yield this.kvp_bufs[1];
+
+
+    }
+
+    [Symbol.iterator]() {
+        return this.iterator();
     }
 
 

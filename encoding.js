@@ -1113,6 +1113,8 @@ var encode_kv_buffer_pair = (model_row) => {
 
             if (model_row[0][0] === 0) {
                 // It's an incrementor row
+
+
             } else {
 
             }

@@ -214,16 +214,12 @@ class Record_Def {
         // Not so sure that fields are being set in the model creation.
 
         // Would add a table according to definition, and also make sure it's fields' types are in there properly.
-
-
-
-
-
         // Possibly will result in creating a new pk incrementor for the table.
 
+        //console.log('set_def obj_record_def', obj_record_def);
 
+        //throw 'stop';
 
-        //console.log('set_def', obj_record_def);
         var pk = this.pk
         var that = this,
             new_field;
@@ -333,7 +329,6 @@ class Record_Def {
                 console.trace();
                 throw 'stop';
             }
-
             var f;
 
             each(kv_def[0], (key_field, i) => {
@@ -349,7 +344,6 @@ class Record_Def {
                 that.add_field(value_field);
             });
 
-
             //console.log('indexes_defs', indexes_defs);
             //console.log('kv_def', kv_def);
             each(indexes_defs, (index_def) => {
@@ -359,15 +353,12 @@ class Record_Def {
                 //indexes.push(new_index);
             });
             //throw 'stop';
-
             //console.log('kv_def', kv_def);
             //console.log('kv_def[0]', kv_def[0]);
             //console.log('kv_def[1]', kv_def[1]);
-
             // Adding fields should maybe put the field into the fields table.
             // check the typr of these...
             //console.log('tof(kv_def[0])', tof(kv_def[0]));
-
         }
     }
 

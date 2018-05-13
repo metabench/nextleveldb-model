@@ -645,6 +645,7 @@ class Database {
 
     ensure_table(table_def) {
         var sig = get_a_sig(table_def);
+        console.log('Database ensure_table table_def sig', sig);
         if (sig === '[s,a]') {
             let name = a[0];
             if (this.table_exists(name)) {
@@ -752,6 +753,22 @@ class Database {
         });
         //throw 'stop';
         return res;
+    }
+
+
+    // or records?
+    get rows() {
+        var incrementors = this.incrementors;
+        var tables = this.tables;
+        var res = [];
+
+        // these are definitions, not the table records themselves.
+        each(incrementors, (incrementor) => res.push(incrementor.record));
+        each(tables, table => res.push.apply(res, table.b_records));
+        // 
+
+        return res;
+
     }
 
     get_table_records_length(table_name) {
@@ -1453,8 +1470,18 @@ Database.diff_model_rows = (orig, current) => {
         map_current = {},
         map_orig_records = {};
 
+    //console.log('orig', orig);
+    //console.log('current', current);
+    //console.log('orig.length', orig.length);
+    //console.log('current.length', current.length);
+
 
     each(orig, (record) => {
+
+        //console.log('record', record);
+
+        // so make a record iterable, and it's just the key and the value.
+
         let [key, value] = record;
         //console.log('[key, value]', [key, value]);
         map_orig[key.toString('hex')] = [value];

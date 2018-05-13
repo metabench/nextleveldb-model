@@ -44,7 +44,7 @@ var encode_to_buffer = Binary_Encoding.encode_to_buffer;
 
 
 class Table_Record_Collection {
-    'constructor' (table) {
+    'constructor'(table) {
 
         this.table = table;
 
@@ -634,6 +634,13 @@ class Table_Record_Collection {
         //console.log('record', record);
 
         if (!(record instanceof Record)) {
+
+
+            // is it a single array, containing only non-array items?
+
+
+
+
             // is the record shorter by 1?
             //console.log('record', record);
 
@@ -671,6 +678,8 @@ class Table_Record_Collection {
 
             } else {
                 // The Record should know the field name and number for all its data?
+
+                // Table doesn't have defined fields in one case?
                 var data_length = this.table.record_def.fields.length;
                 // be able to get the fields from the table...?
 

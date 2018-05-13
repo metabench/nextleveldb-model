@@ -122,8 +122,11 @@ class Table {
             sig;
         a.l = a.length;
 
-        //console.log('Table constructor 
+        sig = get_a_sig(a);
 
+
+        //console.log('Table constructor sig', sig);
+        //console.log('Table constructor a', a);
 
         // Indexes could apply to the record def anyway?
         //  Table handles the intersection of the record_def and records themselves.
@@ -151,8 +154,7 @@ class Table {
         var spec_record_def;
 
         // And a constructor where we give the table the actual incrementor.
-        sig = get_a_sig(a);
-        //console.log('Table constructor sig', sig);
+
 
         // Could have something in the record def to see if there is an autoincremeinting pk field.
 
@@ -229,12 +231,6 @@ class Table {
         // Reconstruction of table pk incrementors?
         //  That may be better in the short term.
         //  Could find the highest key value in the tables.
-
-
-
-
-
-
 
 
 
@@ -723,6 +719,33 @@ class Table {
     }
 
 
+
+    get b_records() {
+
+        // Will change to Buffer_Backed records.
+        //  Easy to decode, has the data already in binary.
+
+
+        /*
+        collect()
+        */
+
+        /*
+
+        let res = [];
+        each(this.records, record => {
+            res.push(record.to_b_record());
+        });
+
+        return res;
+        */
+
+        //console.log('this.records', this.records);
+
+        return this.records.arr_records.map(x => x.to_b_record());
+    }
+
+
     // get_all_db_records_bin
     get_all_db_records_bin() {
         // include the indexes here? seems not
@@ -759,11 +782,6 @@ class Table {
             res[c] = i[c].bb_record_to_bb_index_record(record);
         }
         //console.log('get_record_bb_index_records res', res);
-
-
-
-
-
         //throw 'stop';
         return res;
     }
@@ -775,18 +793,13 @@ class Table {
     get_index_id_by_field_name(field_name) {
         //console.log('field_name', field_name);
         let field_id = this.map_fields[field_name];
-
         return this.get_index_id_by_field_id(field_id);
     }
 
     get_index_id_by_field_id(field_id) {
         // An index which has got that field first.
-
         // Could have a map of them easily.
-
         // An index could hold multiple key fields.
-
-
         // Memoifying this fn could help.
 
         //console.log('get_index_id_by_field_id field_id', field_id);
@@ -804,21 +817,13 @@ class Table {
                     res = index.id;
                     stop();
                 }
-
-
             } else {
                 throw 'NYI';
             }
         })
 
         return res;
-
-
     }
-
-
-
-
 
 
     buf_pk_query(arr_pk_part) {
@@ -842,9 +847,7 @@ class Table {
         // then the table field records
 
         let all_buf_records = [];
-
         let buf_inc_records = [];
-
         let buf_kvs = [];
         //let bufs_encoded_rows = [];
 
