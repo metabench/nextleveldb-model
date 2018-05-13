@@ -588,6 +588,43 @@ class Table {
         return res;
     }
 
+    get fields_info() {
+        let table = this;
+
+        //console.log('table', table);
+        let fields = table.fields;
+        //console.log('fields', fields);
+        let res = [];
+
+        each(fields, field => {
+            let id = field.id;
+            let name = field.name;
+            let fk_to_table = field.fk_to_table;
+            let type_id = field.type_id;
+            let obj_res = {
+                'id': id,
+                'name': name,
+                'type_id': type_id
+            }
+            if (fk_to_table) {
+                let fk_pk = fk_to_table.pk;
+                let fk_pk_fields = fk_pk.fields;
+                let fk_to_fields = [];
+                each(fk_pk_fields, fk_to_field => {
+                    fk_to_fields.push([fk_to_field.id, fk_to_field.name, fk_to_field.type_id]);
+                })
+                obj_res.fk_to = {
+                    'table_name': fk_to_table.name,
+                    'table_id': fk_to_table.id,
+                    'fields': fk_to_fields
+                }
+            }
+            res.push(obj_res);
+        });
+
+        return res;
+    }
+
 
     // A server-side download_full_table_records would be useful
     //  Even the record in the tables table.

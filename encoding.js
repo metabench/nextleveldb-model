@@ -173,21 +173,7 @@ var key_length = (buf_key) => {
     // 0th value really here.
 
     if (key_1st_value % 2 === 0 && key_1st_value > 0) {
-        // even, so it's a table, so 1 prefix
-        // Have incrementor work differently - just xas2s in keys and values.
-
-        console.log('buf_key', buf_key);
-        console.log('pos', pos);
-
-        // Then skip through, or better count the items.
-        //  Including skipping KPs.
-
-        // count_encoded_items
-
-        let count = Binary_Encoding.count_encoded_items(buf_key, pos);
-        //console.log('count', count);
-
-        return count;
+        return Binary_Encoding.count_encoded_items(buf_key, pos);
 
         // 
 

@@ -744,7 +744,7 @@ class Database {
         //console.log('this.table_names', this.table_names);
 
         each(tables, (table) => {
-            console.log('get_model_rows table.name', table.name);
+            //console.log('get_model_rows table.name', table.name);
             var table_all_db_records = table.get_all_db_records_bin();
             each(table_all_db_records, (table_db_record) => {
                 res.push(table_db_record);
@@ -1429,6 +1429,7 @@ var load_arr_core = (arr_core) => {
 var load_buf = (buf) => {
 
     console.log('*load_buf');
+    throw 'stop - likely to need fixing';
 
     var arr_core = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf);
     return load_arr_core(arr_core);
@@ -1436,7 +1437,7 @@ var load_buf = (buf) => {
 
 Database.load = (arr_core) => {
 
-    console.log('arr_core', arr_core);
+    //console.log('arr_core', arr_core);
 
     // Load it differently - in fact it would require less code as it's easier to decode now.
 

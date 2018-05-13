@@ -61,5 +61,7 @@ typings/
 .DS_Store
 
 # NPM package lock
+
 package-lock.json
-package-lock.json
+
+

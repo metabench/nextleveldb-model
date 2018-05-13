@@ -99,7 +99,7 @@ class Record {
 
         if (this.kp === 0) {
             // Incrementor records.
-            console.log('this.value.buffer', this.value.buffer);
+            //console.log('this.value.buffer', this.value.buffer);
             return [this.key.decoded, xas2.read(this.value.buffer)];
         } else {
             return [this.key.decoded, this.value.decoded];
