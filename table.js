@@ -425,6 +425,15 @@ class Table {
     */
 
 
+    get unique_fields() {
+        throw 'NYI';
+        // Can't specify unique field constraints / indexes right now.
+
+        //return this.record_def.fields.filter(field => field.is_unique);
+        return this.record_def.unique_fields;
+    }
+
+
     get incrementors() {
         var res;
         if (this.pk_incrementor) {

@@ -9,6 +9,10 @@ const special_characters = {
     '+': true
 }
 
+// Index type IDs?
+//  Not really sure of the use for these.
+//  They are already encoded into the system. Could say that they are all unique indexes so far and introduce other index types too.
+
 const NT_XAS2_NUMBER = 1;
 const NT_DATE = 2;
 const NT_TIME = 3;
@@ -32,12 +36,10 @@ class Field {
     //   Links to the incrementor where needed.
     //   Looks like it should link back to the table, to access incrementors, the db's new incrementor.
 
-
     // name
 
     // Generally field objects should be given IDs.
     //  They are ids within tables. They'll be represented with xas2 at some point.
-
 
     // name, id
     //  its id is the order within the table.
@@ -53,13 +55,11 @@ class Field {
     //  the incrementor increments using xas2 +ve integers including 0, onwards
 
     // name, id, type, incrementor
-
     // We use the incrementors at a later point in time, but it's worth having reference to them.
 
     // Could store fk info in here.
 
-
-    'constructor' () {
+    'constructor'() {
         var a = arguments,
             l = a.length,
             t;
@@ -74,13 +74,9 @@ class Field {
         this.__type_name = 'field';
 
         // More Field constructor options for parsing field definitions, such as string fields, primary keys, unique indexes with incrementors.
-
-
-
         // foreign key to table...
 
         this.fk_to_table = false;
-
 
         // Basically always need a table reference.
         //  Foreign key field should be possible.
@@ -91,7 +87,6 @@ class Field {
         // The field will have a type.
         //  Often it won't be specified.
         //  Sometimes it will be.
-
 
         this.type_id = null;
 
@@ -113,8 +108,6 @@ class Field {
             throw 'stop - field now reqires an id to be provided';
         }
 
-
-
         if (l === 3) {
             str_field = a[0];
             var table = this.table = a[1];
@@ -133,9 +126,6 @@ class Field {
 
             // Will be fine to encode null when we have no table type.
             // tbl_native_types.add_records([[[0], ['xas2']], [[1], ['date']], [[2], ['string']], [[3], ['float32le']]]);
-
-
-
             this.type_id = a[3];
 
 
@@ -264,77 +254,61 @@ class Field {
         var t_field = tof(str_field);
         //console.log('t_field', t_field);
         if (t_field === 'string') {
-
-
-
             // Also split out the part in brackets.
             var str_type;
             var str_prefix_code, field_name, fk_table;
 
             // parse the field name.
-
             var parse_field_name = (str_field_name) => {
-                    //console.log('str_field_name', str_field_name);
-                    // Check to see if there is ' fk=> '
-                    //  If so, we split in two and have a fk_table var
+                //console.log('str_field_name', str_field_name);
+                // Check to see if there is ' fk=> '
+                //  If so, we split in two and have a fk_table var
 
-                    var fk_table = null;
+                var fk_table = null;
 
-                    var pos0, pos1;
-                    var str_type = null;
-                    var str_prefix_code = null,
-                        field_name, first_char;
+                var pos0, pos1;
+                var str_type = null;
+                var str_prefix_code = null,
+                    field_name, first_char;
 
-                    pos0 = str_field_name.indexOf(' fk=> ');
-                    if (pos0 > 0) {
-                        var s_str_field_name = str_field_name.split(' fk=> ');
-                        str_field_name = s_str_field_name[0];
-                        fk_table = s_str_field_name[1];
+                pos0 = str_field_name.indexOf(' fk=> ');
+                if (pos0 > 0) {
+                    var s_str_field_name = str_field_name.split(' fk=> ');
+                    str_field_name = s_str_field_name[0];
+                    fk_table = s_str_field_name[1];
 
-                        // Then the type if the combination of the whole primary key.
-                        //  Some PKs could be composite (2 or more fields) 
+                    // Then the type if the combination of the whole primary key.
+                    //  Some PKs could be composite (2 or more fields) 
 
-                        // Could see if there is just one PK field, and get its type.
-                        // 
+                    // Could see if there is just one PK field, and get its type.
+                    // 
 
-                        // Market snapshots looks tricky in some ways. It's got a pk reference to a composite PK.
-
-                        // Let's look up the referred to field type, later on.
-
-
-
-
-
-
-                    }
-
-                    pos0 = str_field_name.indexOf('(');
-                    if (pos0 > -1) {
-                        pos0++;
-                        pos1 = str_field_name.indexOf(')', pos0);
-                        str_type = str_field_name.substring(pos0, pos1);
-                        pos0--;
-                    } else {
-                        pos0 = str_field_name.length;
-                    }
-
-                    if (special_characters[str_field_name[0]]) {
-                        str_prefix_code = str_field_name[0];
-
-
-                        field_name = str_field_name.substring(1, pos0);
-                    } else {
-                        field_name = str_field_name.substring(0, pos0);
-                    }
-
-                    return [str_prefix_code, field_name, str_type, fk_table];
+                    // Market snapshots looks tricky in some ways. It's got a pk reference to a composite PK.
+                    // Let's look up the referred to field type, later on.
 
                 }
-                [str_prefix_code, field_name, str_type, fk_table] = parse_field_name(str_field);
+
+                pos0 = str_field_name.indexOf('(');
+                if (pos0 > -1) {
+                    pos0++;
+                    pos1 = str_field_name.indexOf(')', pos0);
+                    str_type = str_field_name.substring(pos0, pos1);
+                    pos0--;
+                } else {
+                    pos0 = str_field_name.length;
+                }
+
+                if (special_characters[str_field_name[0]]) {
+                    str_prefix_code = str_field_name[0];
+                    field_name = str_field_name.substring(1, pos0);
+                } else {
+                    field_name = str_field_name.substring(0, pos0);
+                }
+                return [str_prefix_code, field_name, str_type, fk_table];
+            }
+            [str_prefix_code, field_name, str_type, fk_table] = parse_field_name(str_field);
             //console.log('[str_prefix_code, field_name, str_type]', [str_prefix_code, field_name, str_type]);
-
             this.name = field_name;
-
             //throw 'stop';
 
             if (str_prefix_code === '+') {
@@ -343,45 +317,45 @@ class Field {
                 // just support a single pk_incrementor for the moment.
                 //that.pk_incrementor = new_inc;
                 this.table.pk_incrementor = field_incrementor;
-
                 this.is_pk = true;
                 this.type_id = NT_XAS2_NUMBER;
                 this.table.record_def.pk_field = this;
 
                 // add a field to the pk object.
-
                 //console.log('this.table.record_def.pk', this.table.record_def.pk);
                 this.table.record_def.pk.add_field(this);
 
                 //throw 'stop';
 
             }
+
+            // Means its a PK field, not another field with an unique index.
+
+
             if (str_prefix_code === '!') {
                 // Make a unique index for that field. (unless the field is the pk, where is is part of an already existing unique index)
                 //var idx_id = this.table.inc_foreign_keys.increment();
                 //var idx = this.table.add_index([]);
 
-                var pk_field = this.table.record_def.pk_field;
+                //var pk_field = this.table.record_def.pk_field;
+
+
                 var arr_pk_fields = this.table.record_def.pk.fields;
-
-
-
+                // Think we need some kind of tag on the field to say it's unique.
+                //  The field is (also) unique if there is a unique index that applies to it.
+                this.is_unique = true;
 
                 // A unique index here.
                 var idx = this.table.add_index([
                     [this], arr_pk_fields
                 ]);
-
-
             }
             if (str_type !== null) {
                 //console.log('str_type', str_type);
                 var type_id = map_nt_ids[str_type];
-
                 if (typeof type_id === 'number') {
                     this.type_id = type_id;
                 }
-
                 //throw 'stop';
             }
 
@@ -438,11 +412,7 @@ class Field {
             console.log('a', a);
             throw ('expected string');
         }
-
-
     }
-
-
 
     get_kv_record() {
         var res;
@@ -456,6 +426,14 @@ class Field {
         // this.type_id
 
         //console.log('this.type_id', this.type_id);
+
+        // Also keep info about if the field is unique?
+        //  That would change the structure.
+
+        // Include an index type ID as well?
+
+
+
 
         if (this.type_id === null) {
             if (this.is_pk) {

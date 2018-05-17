@@ -94,9 +94,9 @@ class Incrementor {
 
     }
 
-    increment() {
+    increment(n = 1) {
         var res = this.value;
-        this.value = this.value + 1;
+        this.value = this.value + n;
         return res;
     }
 

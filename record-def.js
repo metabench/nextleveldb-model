@@ -518,9 +518,6 @@ class Record_Def {
 
         // link to the actual fk field?
 
-
-
-
         // May keep a map of the foreign keys by field name / field number
         //  This way, when a record is added, its values can be looked up against the foreign key.
 
@@ -650,30 +647,18 @@ class Record_Def {
 
                 // n,n,a
                 //  don't autoincrement the table's incrementor.
-
-
-
-
-
-
                 //throw 'stop';
             }
-
-
-
-
         }
-
-
 
         //ar index_key_def = idx[0];
         //var index_value_field = idx[1]; // foreign key?
 
         this.indexes.push(idx_2);
+
+        // if it's an unique index, then add the is_unique property to the field.
+
         //this.add_index_to_index_table(idx_2);
-
-
-
 
         // and maintain a map of indexes too?
 
@@ -695,11 +680,6 @@ class Record_Def {
         //   
 
 
-
-
-
-
-
         // this.indexes.push([index_key_def, index_value_field]);
         // idx
         return idx_2;
@@ -713,6 +693,14 @@ class Record_Def {
         return res;
     }
 
+    get unique_fields() {
+        if (this._unique_fields) {
+            return this._unique_fields;
+        } else {
+            console.log('this.fields', this.fields);
+            return this.fields.filter(x => x.is_unique);
+        }
+    }
 
     get kv_field_names() {
         let res = [

@@ -249,6 +249,29 @@ class Record {
         return new B_Record(this.get_own_record_bin());
     }
 
+    // and the index records too
+
+
+    to_b_records() {
+        // could go in a Record_List
+
+        let res = [this.to_b_record()];
+        res.push.apply(res, this.index_db_records_to_arr_buffers().map(record => new B_Record(record)));
+
+        /*
+        each(this.index_db_records_to_arr_buffers(), item => {
+            //console.log('item', item);
+
+        })
+        */
+
+
+
+        return res;
+
+    }
+
+
 
 
     // to buffer, with indexes
@@ -299,10 +322,17 @@ class Record {
         var indexes = this.table.indexes;
         var record = this;
         var res = [];
+        //console.log('*indexes.length', indexes.length);
         each(indexes, (index) => {
+
+            //console.log('index.id', index.id);
+
+            //console.log('index.record_to_index_buffer(record)', index.record_to_index_buffer(record));
+
             // Could put it in place so the index records have got [k,v] format, even if v is empty.
             res.push(index.record_to_index_buffer(record));;
         });
+        //console.log('res', res);
         return (res);
     }
 

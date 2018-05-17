@@ -1,3 +1,12 @@
+/*
+    17/05/2018 - Maybe this is a 'row' rather than a 'record'. A record encompasses index rows as well.
+    // A record could be composed of its index rows too.
+    // Removal of index rows when the record changes may be the best approach.
+
+
+*/
+
+
 let Binary_Encoding = require('binary-encoding');
 let xas2 = require('xas2');
 let Key = require('./key');

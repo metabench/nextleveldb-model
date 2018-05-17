@@ -15,6 +15,20 @@ var flexi_encode_item = Binary_Encoding.flexi_encode_item;
 //  Will basically have an array 
 const BB_Record = require('./buffer-backed/record');
 
+// Say that this is an Unique index?
+//  non-unique indexes can have multiple PKs that apply to that index value.
+
+// The exclamation mark indicates 'unique'
+//  All indexes so far have been unique
+//  Could make other indexes without this unique constraint.
+//   Eg indexing countries by GDP. They may be unique anyway, probably are, but we must not rely on it.
+
+// Maybe the unique constraint should be in the field.
+
+
+
+
+
 class Index_Def {
     // All of the index capability takes place within the key.
 

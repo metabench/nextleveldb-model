@@ -471,6 +471,9 @@ class Database {
         this.add_tables_indexes_to_indexes_table(tbl_native_types);
         this.add_tables_indexes_to_indexes_table(tbl_fields);
         this.add_tables_indexes_to_indexes_table(tbl_table_indexes);
+
+
+        inc_incrementor.increment(6); // Space for more system tables.
     }
 
     add_incrementor() {
@@ -564,10 +567,6 @@ class Database {
         // Maybe they had been right all along, just it had not looked up FK references to find the type of the field.
         //  
 
-
-
-
-
         if (sig === '[s,a]') {
             name = a[0];
             var spec_record_def = a[1];
@@ -645,7 +644,7 @@ class Database {
 
     ensure_table(table_def) {
         var sig = get_a_sig(table_def);
-        console.log('Database ensure_table table_def sig', sig);
+        //console.log('Database ensure_table table_def sig', sig);
         if (sig === '[s,a]') {
             let name = a[0];
             if (this.table_exists(name)) {
