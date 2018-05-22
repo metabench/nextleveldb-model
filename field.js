@@ -340,12 +340,32 @@ class Field {
                 //var pk_field = this.table.record_def.pk_field;
 
 
+                // 
+
+
+                // Need to clarify this
+                //  21/05/2018
+                //   It's the only place where '!' gets processed.
+                //    So far, it's only meant that its a unique index.
+
+                // But then what are the pk fields if they are only given as a combination of these?
+                //  How to say that fields are unique together?
+
+
+
+
                 var arr_pk_fields = this.table.record_def.pk.fields;
+
+
                 // Think we need some kind of tag on the field to say it's unique.
                 //  The field is (also) unique if there is a unique index that applies to it.
-                this.is_unique = true;
+                //this.is_unique = true;
+                // No, it's not necessarily unique by itself. It's part of the primary key.
+                // Maybe change code string.
+
 
                 // A unique index here.
+                //  Currently its just an index. Since it also has the PK fields, it does not need to be unique
                 var idx = this.table.add_index([
                     [this], arr_pk_fields
                 ]);

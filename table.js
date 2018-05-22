@@ -426,6 +426,7 @@ class Table {
 
 
     get unique_fields() {
+        console.trace();
         throw 'NYI';
         // Can't specify unique field constraints / indexes right now.
 

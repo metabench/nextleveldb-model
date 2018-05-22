@@ -193,6 +193,7 @@ class Record_List {
                                     //console.log('enc', enc);
                                     arr_bufs.push(enc);
                                 } else {
+                                    console.log('item', item);
                                     console.trace();
                                     throw 'NYI';
 
@@ -325,6 +326,26 @@ class Record_List {
 
     [Symbol.iterator]() {
         return this.iterator();
+    }
+
+    // each function... 
+
+    each(handler) {
+        const iterator = this.iterator();
+
+        let value, done;
+
+        ({ value, done } = iterator.next());
+        let i = 0;
+
+        while (!done) {
+            //console.log('v', v);
+            handler(value, i++);
+            ({ value, done } = iterator.next());
+        }
+
+
+
     }
 
 

@@ -173,6 +173,15 @@ class Record {
 
     }
 
+    // get as a single buffer
+    //  encoding:
+    //  key length, key, value length, value.
+
+    get buffer() {
+        return Buffer.concat([xas2(this.kvp_bufs[0].length).buffer, this.kvp_bufs[0], xas2(this.kvp_bufs[1].length).buffer, this.kvp_bufs[1]]);
+    }
+
+
     // get it to read the keys to find the number of items there.
     //  need to be able to identify the specific fields within the record.
 

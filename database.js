@@ -118,6 +118,9 @@ let encode_model_row = database_encoding.encode_model_row;
 
 const deep_diff = require('deep-object-diff').diff;
 
+const Record_List = require('./buffer-backed/record-list');
+
+
 // However, we should include the native types.
 //  Don't completely correspond to the encoding number
 //  could have the type and the value encoded. Eg true, false, positive int 0, positive int 1
@@ -1011,11 +1014,42 @@ class Database {
 var load_arr_core = (arr_core) => {
 
     //console.log('arr_core', arr_core);
+
+
+    // put them into an OO record (row) list.
+    //  should probably make Record_List which will only hold records and not the associated index rows.
+    //  or have Record_List versitile.
+
+
+
+    // Worth loading them up as OO rows.
+
+
+
+
     //console.trace();
 
 
 
     //var decoded_core = database_encoding.decode_model_rows(arr_core);
+
+    let record_list = new Record_List(arr_core);
+    //console.log('record_list', record_list);
+
+    // then go through the individual records.
+
+
+
+
+    /*
+    each(record_list, row => {
+        console.log('row', row);
+    })
+    */
+
+
+
+    //throw 'stop';
 
 
 
@@ -1030,6 +1064,23 @@ var load_arr_core = (arr_core) => {
     var arr_by_prefix = [];
 
     // simple to get the kp from each row now.
+
+
+    record_list.each(row => {
+        //console.log('row', row);
+
+        arr_by_prefix[row.kp] = arr_by_prefix[row.kp] || [];
+
+        // could keep the row here in the model in binary format and decode it as needed.
+        //  for the moment, will use the decoded row, thats what it expects here.
+
+        //console.log('row.decoded_no_kp', row.decoded_no_kp);
+
+        arr_by_prefix[row.kp].push(row.decoded_no_kp);
+    });
+
+
+    /*
     each(arr_core, (row) => {
         //console.log('row', row);
         //console.log('row.kp', row.kp);
@@ -1056,6 +1107,7 @@ var load_arr_core = (arr_core) => {
 
         arr_by_prefix[row.kp].push(row.decoded_no_kp);
     });
+    */
 
     //throw 'stop';
 
@@ -1063,7 +1115,8 @@ var load_arr_core = (arr_core) => {
     var arr_table_tables_rows = arr_by_prefix[2];
 
 
-    //console.log('arr_table_tables_rows', arr_table_tables_rows);
+    console.log('arr_incrementor_rows.length', arr_incrementor_rows.length);
+    console.log('arr_table_tables_rows.length', arr_table_tables_rows.length);
     //throw 'stop';
 
     var arr_table_native_types_rows = arr_by_prefix[4];
@@ -1445,7 +1498,7 @@ var load_arr_core = (arr_core) => {
 var load_buf = (buf) => {
 
     console.log('*load_buf');
-    throw 'stop - likely to need fixing';
+    //throw 'stop - likely to need fixing';
 
     var arr_core = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf);
     return load_arr_core(arr_core);
