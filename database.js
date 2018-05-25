@@ -228,6 +228,8 @@ class Database {
         return res;
     }
 
+    // show tables?
+
     get description() {
         var tables = this.tables,
             l = tables.length;
@@ -341,6 +343,14 @@ class Database {
         tbl_tables.set_pk('+id');
         tbl_tables.add_field('name', -1, NT_STRING);
 
+        console.log('tbl_tables.pk_incrementor', tbl_tables.pk_incrementor);
+        // So that incrementor should be rendered to the DB OK.
+
+        //throw 'stop';
+        // 
+
+        // and give it a pk incrementor ref and record.
+        //  I think we need to do this on a lower level while setting up these tables.
 
         tbl_tables.add_index([
             ['name'],
@@ -358,11 +368,8 @@ class Database {
             ['id']
         ]);
 
-
         // The table incrementors are broken at some point.
         //  Need to trace how they get put into the current DB.
-
-
 
         // Define the types of the values?
         //tbl_native_types.add_records(['xas2', 'date', 'string', 'float32le']);
@@ -475,8 +482,9 @@ class Database {
         this.add_tables_indexes_to_indexes_table(tbl_fields);
         this.add_tables_indexes_to_indexes_table(tbl_table_indexes);
 
-
-        inc_incrementor.increment(6); // Space for more system tables.
+        // no, the table incrementor
+        inc_table.increment(6); // Space for more system tables.
+        tbl_tables.pk_incrementor.increment(6);
     }
 
     add_incrementor() {
@@ -624,6 +632,8 @@ class Database {
         //console.trace();
         //console.log('');
 
+
+
         if (!this._init) {
             this.add_tables_fields_to_fields_table(table);
             // and assign the field records to the fields while doing this.
@@ -766,7 +776,13 @@ class Database {
 
         // these are definitions, not the table records themselves.
         each(incrementors, (incrementor) => res.push(incrementor.record));
+
+        // invluding the index records of that table.
+        //  should generate those index records too.
+        //  but the model should have loaded the indexes
+
         each(tables, table => res.push.apply(res, table.b_records));
+
         // 
 
         return res;
@@ -1012,6 +1028,8 @@ class Database {
 // filter out index rows.
 
 var load_arr_core = (arr_core) => {
+    console.log('load_arr_core');
+    //throw 'stop';
 
     //console.log('arr_core', arr_core);
 
@@ -1035,469 +1053,559 @@ var load_arr_core = (arr_core) => {
 
     let record_list = new Record_List(arr_core);
     //console.log('record_list', record_list);
+    //console.log('record_list.length', record_list.length);
+    //throw 'stop';
+    let db;
+    if (record_list.length > 0) {
+        var arr_by_prefix = [];
 
+        // simple to get the kp from each row now.
+
+
+        record_list.each(row => {
+            //console.log('load_arr_core row', row);
+            arr_by_prefix[row.kp] = arr_by_prefix[row.kp] || [];
+            // could keep the row here in the model in binary format and decode it as needed.
+            //  for the moment, will use the decoded row, thats what it expects here.
+
+            //console.log('row.decoded_no_kp', row.decoded_no_kp);
+
+            arr_by_prefix[row.kp].push(row.decoded_no_kp);
+        });
+
+
+        /*
+        each(arr_core, (row) => {
+            //console.log('row', row);
+            //console.log('row.kp', row.kp);
+            //console.log('row.decoded', row.decoded);
+    
+            //console.log('row.decoded_no_kp', row.decoded_no_kp);
+    
+            // decoded_no_kp
+    
+    
+    
+            //throw 'stop'
+    
+            //var row_copy = clone(row);
+            //var arr_row_key = row_copy[0];
+            //var key_prefix = arr_row_key[0];
+            //arr_row_key.splice(0, 1);
+    
+    
+            arr_by_prefix[row.kp] = arr_by_prefix[row.kp] || [];
+    
+            // could keep the row here in the model in binary format and decode it as needed.
+            //  for the moment, will use the decoded row, thats what it expects here.
+    
+            arr_by_prefix[row.kp].push(row.decoded_no_kp);
+        });
+        */
+
+        //throw 'stop';
+
+        var arr_incrementor_rows = arr_by_prefix[0];
+        var arr_table_tables_rows = arr_by_prefix[2];
+
+        //console.log('arr_incrementor_rows', arr_incrementor_rows);
+        //console.log('arr_table_tables_rows', arr_table_tables_rows);
+
+
+
+        //console.log('arr_incrementor_rows.length', arr_incrementor_rows.length);
+        //console.log('arr_table_tables_rows.length', arr_table_tables_rows.length);
+        //throw 'stop';
+
+        var arr_table_native_types_rows = arr_by_prefix[4];
+        var arr_table_field_rows = arr_by_prefix[6];
+        var arr_table_index_rows = arr_by_prefix[8];
+
+        db = new Database(false);
+        db._init = true;
+        // May well be best to encode more data within each incrementor.
+        //  What it does
+        //   0 incrementor incrementor
+        //   1 tables incrementor
+        //   2 table specific incrementor, table fields
+        //   3 table specific incrementor, table indexes
+        //   4 table specific incrementor, table fks
+        //   5 table specific incrementor, table specific field value autoincrement, field id
+
+        // Though the field can link back to the incrementor anyway.
+
+
+        // When recreting rows, may need to avoid using an incrementor.
+        //console.log('arr_incrementor_rows', arr_incrementor_rows);
+
+        each(arr_incrementor_rows, (inc_row) => {
+            //console.log('inc_row', inc_row);
+            var inc_id = inc_row[0][0];
+            var inc_name = inc_row[0][1];
+            var inc_value = inc_row[1] || 0;
+
+
+
+            //var inc = new Incrementor
+            //console.log('incrementor: inc_id, inc_name, inc_value', inc_id, inc_name, inc_value);
+            db.add_incrementor(inc_id, inc_name, inc_value);
+
+        });
+        //throw 'stop';
+
+        db.inc_incrementor = db.incrementors[0];
+        db.inc_table = db.incrementors[1];
+
+
+        var arr_table_names = new Array(arr_table_tables_rows.length);
+        each(arr_table_tables_rows, (v, i) => {
+            //console.log('v', v);
+            //console.log('i', i);
+            arr_table_names[v[0][0]] = v[1][0];
+        });
+        //console.trace();
+        //throw 'stop';
+
+        let map_table_id_incrementors = {};
+        let arr_id_incrementors = [];
+
+
+        each(db.incrementors, db_incrementor => {
+            //console.log('db_incrementor', db_incrementor);
+            if (db_incrementor.name.lastIndexOf('_id') === db_incrementor.name.length - 3) {
+                arr_id_incrementors.push(db_incrementor);
+                let table_name = db_incrementor.name.substring(4, db_incrementor.name.length - 3);
+                //console.log('table_name', table_name);
+                map_table_id_incrementors[table_name] = db_incrementor;
+            }
+
+        });
+        //
+
+
+        //console.log('arr_table_names', arr_table_names);
+        //throw 'stop';
+
+        // Make a DB and autoconstruct the core?
+        //  Probably best to reconstruct the core out of what's in the database.
+        //   Possibly some types could be changed / added?
+
+        let map_system_table_names = {
+            'tables': true,
+            'native types': true,
+            'table fields': true,
+            'table indexes': true
+        }
+
+        // Give the table an array of its incrementors too.
+        //  Don't have the table recreate its own.
+
+        //this._init = false;
+
+        // needs to be a map of tables.
+        //  Tables can now skip IDs.
+        //   Leaving space for more system tables.
+
+
+
+
+        //console.log('arr_table_tables_rows', arr_table_tables_rows);
+
+
+        // Go through the table table rows themselves instead
+
+        each(arr_table_tables_rows, table_table_row => {
+            arr_table_incrementor_ids = table_table_row[1][1];
+            var arr_table_incrementors = [];
+
+            each(arr_table_incrementor_ids, (id) => {
+                arr_table_incrementors.push(db.incrementors[id]);
+            });
+
+            let table_name = table_table_row[1][0];
+            //console.log('table_name', table_name);
+            let table_id = table_table_row[0][0];
+
+            var table = db.add_table(table_name, table_id, arr_table_incrementors);
+
+            //console.log('db.tables.length', db.tables.length);
+
+            if (table.name === 'tables') {
+                db.tbl_tables = table;
+            }
+            if (table.name === 'native types') {
+                db.tbl_native_types = table;
+            }
+            if (table.name === 'table fields') {
+                db.tbl_fields = table;
+            }
+            if (table.name === 'table indexes') {
+                db.tbl_indexes = table;
+            }
+            if (table.name === 'users') {
+                db.tbl_users = table;
+            }
+
+            //console.log('');
+            //console.log('table.name', table.name);
+            //console.log('table.pk_incrementor', table.pk_incrementor);
+            //console.log('arr_table_incrementors', arr_table_incrementors);
+
+            if (!table.pk_incrementor) {
+                if (map_table_id_incrementors[table.name]) {
+                    table.pk_incrementor = map_table_id_incrementors[table.name];
+                    //console.log('table.name', table.name);
+                    //console.log('table.pk_incrementor', table.pk_incrementor);
+                }
+            }
+        })
+
+        /*
+
+        each(arr_table_names, (table_name, i) => {
+
+            var table_table_row = arr_table_tables_rows[i];
+
+            console.log('i', i);
+            console.log('table_table_row', table_table_row);
+
+            arr_table_incrementor_ids = table_table_row[1][1];
+
+
+            console.log('arr_table_incrementor_ids', arr_table_incrementor_ids);
+
+            // Need to be careful to save the id incrementor, if it exists.
+            //console.log('arr_table_incrementor_ids', arr_table_incrementor_ids);
+            var arr_table_incrementors = [];
+
+            each(arr_table_incrementor_ids, (id) => {
+                arr_table_incrementors.push(db.incrementors[id]);
+            });
+
+            // Need to switch off the this._init option at the right point.
+
+            if (!map_system_table_names[table_name]) {
+                //db._init = false;
+
+                // nope
+            }
+
+            //console.log('*table_name', table_name);
+
+
+            // However, best not to increment the tables incrementor as usual
+            //  It should already be in the incremented state.
+
+            // it should have its id, that's fine.
+            //  so should not need to increment the tables incrementor.
+
+            var table = db.add_table(table_name, i, arr_table_incrementors);
+
+            //console.log('db.tables.length', db.tables.length);
+
+            if (table.name === 'tables') {
+                db.tbl_tables = table;
+            }
+            if (table.name === 'native types') {
+                db.tbl_native_types = table;
+            }
+            if (table.name === 'table fields') {
+                db.tbl_fields = table;
+            }
+            if (table.name === 'table indexes') {
+                db.tbl_indexes = table;
+            }
+            if (table.name === 'users') {
+                db.tbl_users = table;
+            }
+
+            //console.log('');
+            //console.log('table.name', table.name);
+            //console.log('table.pk_incrementor', table.pk_incrementor);
+            //console.log('arr_table_incrementors', arr_table_incrementors);
+
+            if (!table.pk_incrementor) {
+                if (map_table_id_incrementors[table.name]) {
+                    table.pk_incrementor = map_table_id_incrementors[table.name];
+                    //console.log('table.name', table.name);
+                    //console.log('table.pk_incrementor', table.pk_incrementor);
+                }
+            }
+        });
+
+        */
+
+        // so seems the primary key incrementors were not recorded.
+        //  They are vital for some operations.
+        //console.log('db.incrementors', db.incrementors);
+
+        //throw 'stop';
+
+        // Not sure the incrementors got created in the DB properly.
+
+        //throw 'stop';
+
+        //console.log('db.incrementors', db.incrementors);
+        //throw 'stop';
+
+        //each(db.tables, (table) => {
+
+
+        // Then once 
+        //});
+
+        // Quite possibly load the system tables first?
+        //  Probably not necessary, should be possible to reconstruct the Model structure.
+
+
+        //console.log('arr_table_field_rows', arr_table_field_rows);
+        //console.log('arr_table_field_rows.length', arr_table_field_rows.length);
+        //console.log('db.tables.length', db.tables.length);
+        //console.log('1) db.tables', db.tables);
+
+
+
+        // Stop the initialisation at some point, as we need the rest of the tables added in normal mode.
+
+
+        // Add the fields to the tables.
+        each(arr_table_field_rows, (table_field_row) => {
+            //var table_id = (table_field_row[0][0] - 2) / 2;
+
+            //console.log('table_field_row', table_field_row);
+
+            // Parse it differently depending on length
+
+            var lv = table_field_row[1].length;
+            var table_id = table_field_row[0][0];
+            //console.log('table_id', table_id);
+
+
+            var field_id = table_field_row[0][1];
+
+            var field_name, data_type_id, is_pk, fk_to_table_id;
+
+            if (lv === 1) {
+                field_name = table_field_row[1][0];
+            } else if (lv === 2) {
+                field_name = table_field_row[1][0];
+
+                if (typeof table_field_row[1][1] === 'boolean') {
+                    //console.log('table_field_row', table_field_row);
+                    //throw 'stop';
+                    console.log('reinterpreting malformatted field row', table_field_row);
+                    is_pk = table_field_row[1][1];
+                } else {
+                    data_type_id = table_field_row[1][1];
+                }
+
+
+            } else if (lv === 3) {
+                field_name = table_field_row[1][0];
+                data_type_id = table_field_row[1][1];
+                is_pk = table_field_row[1][2];
+            } else if (lv === 4) {
+                field_name = table_field_row[1][0];
+
+                // Bug fix for field encoding problem in early version, wrting bug since fixed.
+                if (typeof table_field_row[1][1] === 'boolean') {
+                    //console.log('table_field_row', table_field_row);
+                    //throw 'stop';
+                    console.log('reinterpreting malformatted field row', table_field_row);
+                    data_type_id = table_field_row[1][2];
+                    //console.log('data_type_id', data_type_id);
+
+                    is_pk = table_field_row[1][1];
+                    fk_to_table_id = table_field_row[1][3];
+                } else {
+                    data_type_id = table_field_row[1][1];
+                    //console.log('data_type_id', data_type_id);
+
+                    is_pk = table_field_row[1][2];
+                    fk_to_table_id = table_field_row[1][3];
+                }
+            }
+
+            // 
+            //var table = db.tables[table_id];
+            var table = db.map_tables_by_id[table_id];
+            //console.log('!!table', !!table);
+
+            //console.log('field read ' + field_name + ': data_type_id', data_type_id);
+
+            /*
+            console.log('table_id', table_id);
+            console.log('field_id', field_id);
+            console.log('field_name', field_name);
+            console.log('data_type_id', data_type_id);
+            console.log('is_pk', is_pk);
+            console.log('fk_to_table_id', fk_to_table_id);
+            */
+
+            //console.log('table', table);
+
+            //console.log('db.tables.length ' + db.tables.length);
+
+            // Definitely need to set the field ID!
+
+            //console.log('1) data_type_id', data_type_id);
+            if (typeof data_type_id === 'boolean') {
+                console.trace();
+                console.log('lv', lv);
+
+                console.log('table_field_row', table_field_row);
+
+                throw ('data_type_id expected to be integer');
+            }
+
+            table.add_field(field_name, field_id, data_type_id, is_pk, fk_to_table_id);
+            // then need to make sure the field appears in the map.
+
+            // Then will test this reconstruction with a more advanced database structure, such as one to hold cryptocurrencies.
+
+
+
+            if (is_pk) {
+                //table.record_def.
+            } else {
+
+            }
+
+        });
+        //console.log('2) db.tables', db.tables);
+        //throw 'stop';
+
+        /*
+        [ 'tables',
+          'native types',
+          'table fields',
+          'table indexes',
+          'users' ]
+        */
+
+        // Then put the tables' indexes back together.
+
+
+
+
+        // arr_table_index_rows
+        each(arr_table_index_rows, (table_index_row) => {
+            //console.log('table_index_row', table_index_row);
+
+            // Then reconstruct the index 
+            // Create an index object with this specification...
+            // May need to look up the exact fields, create the object references.
+
+
+            // Then, shortly after this, work on getting cryptodb records made.
+            //  Get the data coming in.
+            //  Save it to a record stream.
+
+            // May be useful indexing trades by time, in buckets.
+            //  Would get more than one trade at any point in time.
+
+            var ir_key = table_index_row[0];
+            var ir_value = table_index_row[1];
+
+            var table_id = ir_key[0];
+            var index_id = ir_key[1]; // index within table
+
+            // then all the fields that are being indexed
+
+            var index_keys = clone(ir_key);
+            index_keys.splice(0, 2);
+
+            //console.log('index_keys', index_keys);
+            //console.log('ir_value', ir_value);
+            // the value probably corresponds with the primary key of the table.
+            var table = db.map_tables_by_id[table_id];
+
+            var idx_kv = [index_keys, ir_value];
+
+            // the keys and values may need a lookup
+            //console.log('idx_kv', idx_kv);
+
+            var idx = table.add_index(index_id, idx_kv);
+            //console.log('idx', idx);
+
+        });
+
+        db.tbl_native_types.add_records(arr_table_native_types_rows);
+
+        db.tbl_tables.add_record([
+            [db.tbl_tables.id],
+            [db.tbl_tables.name, db.tbl_tables.own_incrementor_ids]
+        ]);
+        db.tbl_tables.add_record([
+            [db.tbl_native_types.id],
+            [db.tbl_native_types.name, db.tbl_native_types.own_incrementor_ids]
+        ]);
+        db.tbl_tables.add_record([
+            [db.tbl_fields.id],
+            [db.tbl_fields.name, db.tbl_fields.own_incrementor_ids]
+        ]);
+        if (db.tbl_indexes) db.tbl_tables.add_record([
+            [db.tbl_indexes.id],
+            [db.tbl_indexes.name]
+        ]);
+
+        // May redo the creation of db model from rows.
+        //  At least mak sure all bases are covered.
+        //  So far, some records are missed from the model.
+        //   Need to see why some records / incrementors have not been put in the db already.
+        //   Hopefully there are not many fixes left to do until the data platform works.
+
+        each(db.tables, (table) => {
+
+            //console.log('db.tables table name', table.name);
+
+            let own_ttr = table.own_table_table_record;
+            //console.log('own_ttr', own_ttr);
+
+            if (!own_ttr) {
+                db.tbl_tables.add_record([
+                    [table.id],
+                    [table.name, table.own_incrementor_ids]
+                ]);
+            }
+            // db.tables
+
+            //db.
+
+            // Ensure its in the tables table...
+
+
+            // When adding these, it will use the already high value of some incrementors.
+            db.add_tables_fields_to_fields_table(table);
+            //this.add_tables_fields_to_fields_table(tbl_tables);
+            // OK but they should have been loaded already?
+            db.add_tables_indexes_to_indexes_table(table);
+        });
+        db._init = false;
+    }
     // then go through the individual records.
-
-
-
-
     /*
     each(record_list, row => {
         console.log('row', row);
     })
     */
-
-
-
     //throw 'stop';
-
-
-
-
     //console.log('decoded_core', decoded_core);
-
     // The core should have been provided with the tables in the right order.
     //  Don't know why the order of tables has got jumbled.
-
-
     // Should have the index table rows showing up in prefix 8
-    var arr_by_prefix = [];
 
-    // simple to get the kp from each row now.
-
-
-    record_list.each(row => {
-        //console.log('row', row);
-
-        arr_by_prefix[row.kp] = arr_by_prefix[row.kp] || [];
-
-        // could keep the row here in the model in binary format and decode it as needed.
-        //  for the moment, will use the decoded row, thats what it expects here.
-
-        //console.log('row.decoded_no_kp', row.decoded_no_kp);
-
-        arr_by_prefix[row.kp].push(row.decoded_no_kp);
-    });
-
-
-    /*
-    each(arr_core, (row) => {
-        //console.log('row', row);
-        //console.log('row.kp', row.kp);
-        //console.log('row.decoded', row.decoded);
-
-        //console.log('row.decoded_no_kp', row.decoded_no_kp);
-
-        // decoded_no_kp
-
-
-
-        //throw 'stop'
-
-        //var row_copy = clone(row);
-        //var arr_row_key = row_copy[0];
-        //var key_prefix = arr_row_key[0];
-        //arr_row_key.splice(0, 1);
-
-
-        arr_by_prefix[row.kp] = arr_by_prefix[row.kp] || [];
-
-        // could keep the row here in the model in binary format and decode it as needed.
-        //  for the moment, will use the decoded row, thats what it expects here.
-
-        arr_by_prefix[row.kp].push(row.decoded_no_kp);
-    });
-    */
-
-    //throw 'stop';
-
-    var arr_incrementor_rows = arr_by_prefix[0];
-    var arr_table_tables_rows = arr_by_prefix[2];
-
-
-    console.log('arr_incrementor_rows.length', arr_incrementor_rows.length);
-    console.log('arr_table_tables_rows.length', arr_table_tables_rows.length);
-    //throw 'stop';
-
-    var arr_table_native_types_rows = arr_by_prefix[4];
-    var arr_table_field_rows = arr_by_prefix[6];
-    var arr_table_index_rows = arr_by_prefix[8];
-
-    var db = new Database(false);
-    db._init = true;
-    // May well be best to encode more data within each incrementor.
-    //  What it does
-    //   0 incrementor incrementor
-    //   1 tables incrementor
-    //   2 table specific incrementor, table fields
-    //   3 table specific incrementor, table indexes
-    //   4 table specific incrementor, table fks
-    //   5 table specific incrementor, table specific field value autoincrement, field id
-
-    // Though the field can link back to the incrementor anyway.
-
-
-    // When recreting rows, may need to avoid using an incrementor.
-    //console.log('arr_incrementor_rows', arr_incrementor_rows);
-
-    each(arr_incrementor_rows, (inc_row) => {
-        //console.log('inc_row', inc_row);
-        var inc_id = inc_row[0][0];
-        var inc_name = inc_row[0][1];
-        var inc_value = inc_row[1] || 0;
-
-
-
-        //var inc = new Incrementor
-        //console.log('incrementor: inc_id, inc_name, inc_value', inc_id, inc_name, inc_value);
-        db.add_incrementor(inc_id, inc_name, inc_value);
-
-    });
-    //throw 'stop';
-
-    db.inc_incrementor = db.incrementors[0];
-    db.inc_table = db.incrementors[1];
-
-
-    var arr_table_names = new Array(arr_table_tables_rows.length);
-    each(arr_table_tables_rows, (v, i) => {
-        //console.log('v', v);
-        //console.log('i', i);
-        arr_table_names[v[0][0]] = v[1][0];
-    });
-    //console.trace();
-    //throw 'stop';
-
-    let map_table_id_incrementors = {};
-    let arr_id_incrementors = [];
-
-
-    each(db.incrementors, db_incrementor => {
-        //console.log('db_incrementor', db_incrementor);
-        if (db_incrementor.name.lastIndexOf('_id') === db_incrementor.name.length - 3) {
-            arr_id_incrementors.push(db_incrementor);
-            let table_name = db_incrementor.name.substring(4, db_incrementor.name.length - 3);
-            //console.log('table_name', table_name);
-            map_table_id_incrementors[table_name] = db_incrementor;
-        }
-
-    });
-    //
-
-
-    //console.log('arr_table_names', arr_table_names);
-    //throw 'stop';
-
-    // Make a DB and autoconstruct the core?
-    //  Probably best to reconstruct the core out of what's in the database.
-    //   Possibly some types could be changed / added?
-
-    let map_system_table_names = {
-        'tables': true,
-        'native types': true,
-        'table fields': true,
-        'table indexes': true
-    }
-
-    // Give the table an array of its incrementors too.
-    //  Don't have the table recreate its own.
-
-    each(arr_table_names, (table_name, i) => {
-
-        var table_table_row = arr_table_tables_rows[i];
-        arr_table_incrementor_ids = table_table_row[1][1];
-
-        // Need to be careful to save the id incrementor, if it exists.
-        //console.log('arr_table_incrementor_ids', arr_table_incrementor_ids);
-        var arr_table_incrementors = [];
-
-        each(arr_table_incrementor_ids, (id) => {
-            arr_table_incrementors.push(db.incrementors[id]);
-        });
-
-        // Need to switch off the this._init option at the right point.
-
-        if (!map_system_table_names[table_name]) {
-            db._init = false;
-        }
-
-        //console.log('*table_name', table_name);
-
-
-
-        var table = db.add_table(table_name, i, arr_table_incrementors);
-
-        //console.log('db.tables.length', db.tables.length);
-
-        if (table.name === 'tables') {
-            db.tbl_tables = table;
-        }
-        if (table.name === 'native types') {
-            db.tbl_native_types = table;
-        }
-        if (table.name === 'table fields') {
-            db.tbl_fields = table;
-        }
-        if (table.name === 'table indexes') {
-            db.tbl_indexes = table;
-        }
-        if (table.name === 'users') {
-            db.tbl_users = table;
-        }
-
-        //console.log('');
-        //console.log('table.name', table.name);
-        //console.log('table.pk_incrementor', table.pk_incrementor);
-        //console.log('arr_table_incrementors', arr_table_incrementors);
-
-        if (!table.pk_incrementor) {
-            if (map_table_id_incrementors[table.name]) {
-                table.pk_incrementor = map_table_id_incrementors[table.name];
-                //console.log('table.name', table.name);
-                //console.log('table.pk_incrementor', table.pk_incrementor);
-            }
-        }
-    });
-
-    // so seems the primary key incrementors were not recorded.
-    //  They are vital for some operations.
-    //console.log('db.incrementors', db.incrementors);
-
-    //throw 'stop';
-
-    // Not sure the incrementors got created in the DB properly.
-
-    //throw 'stop';
-
-    //console.log('db.incrementors', db.incrementors);
-    //throw 'stop';
-
-    //each(db.tables, (table) => {
-
-
-    // Then once 
-    //});
-
-    // Quite possibly load the system tables first?
-    //  Probably not necessary, should be possible to reconstruct the Model structure.
-
-
-    //console.log('arr_table_field_rows', arr_table_field_rows);
-    //console.log('arr_table_field_rows.length', arr_table_field_rows.length);
-    //console.log('db.tables.length', db.tables.length);
-    //console.log('1) db.tables', db.tables);
-
-
-
-    // Stop the initialisation at some point, as we need the rest of the tables added in normal mode.
-
-
-    // Add the fields to the tables.
-    each(arr_table_field_rows, (table_field_row) => {
-        //var table_id = (table_field_row[0][0] - 2) / 2;
-
-        //console.log('table_field_row', table_field_row);
-
-        // Parse it differently depending on length
-
-        var lv = table_field_row[1].length;
-        var table_id = table_field_row[0][0];
-        //console.log('table_id', table_id);
-
-
-        var field_id = table_field_row[0][1];
-
-        var field_name, data_type_id, is_pk, fk_to_table_id;
-
-        if (lv === 1) {
-            field_name = table_field_row[1][0];
-        } else if (lv === 2) {
-            field_name = table_field_row[1][0];
-
-            if (typeof table_field_row[1][1] === 'boolean') {
-                //console.log('table_field_row', table_field_row);
-                //throw 'stop';
-                console.log('reinterpreting malformatted field row', table_field_row);
-                is_pk = table_field_row[1][1];
-            } else {
-                data_type_id = table_field_row[1][1];
-            }
-
-
-        } else if (lv === 3) {
-            field_name = table_field_row[1][0];
-            data_type_id = table_field_row[1][1];
-            is_pk = table_field_row[1][2];
-        } else if (lv === 4) {
-            field_name = table_field_row[1][0];
-
-            // Bug fix for field encoding problem in early version, wrting bug since fixed.
-            if (typeof table_field_row[1][1] === 'boolean') {
-                //console.log('table_field_row', table_field_row);
-                //throw 'stop';
-                console.log('reinterpreting malformatted field row', table_field_row);
-                data_type_id = table_field_row[1][2];
-                //console.log('data_type_id', data_type_id);
-
-                is_pk = table_field_row[1][1];
-                fk_to_table_id = table_field_row[1][3];
-            } else {
-                data_type_id = table_field_row[1][1];
-                //console.log('data_type_id', data_type_id);
-
-                is_pk = table_field_row[1][2];
-                fk_to_table_id = table_field_row[1][3];
-            }
-        }
-
-        var table = db.tables[table_id];
-        //console.log('field read ' + field_name + ': data_type_id', data_type_id);
-
-        /*
-        console.log('table_id', table_id);
-        console.log('field_id', field_id);
-        console.log('field_name', field_name);
-        console.log('data_type_id', data_type_id);
-        console.log('is_pk', is_pk);
-        console.log('fk_to_table_id', fk_to_table_id);
-        */
-
-        //console.log('table', table);
-
-        //console.log('db.tables.length ' + db.tables.length);
-
-        // Definitely need to set the field ID!
-
-        //console.log('1) data_type_id', data_type_id);
-        if (typeof data_type_id === 'boolean') {
-            console.trace();
-            console.log('lv', lv);
-
-            console.log('table_field_row', table_field_row);
-
-            throw ('data_type_id expected to be integer');
-        }
-
-        table.add_field(field_name, field_id, data_type_id, is_pk, fk_to_table_id);
-        // then need to make sure the field appears in the map.
-
-        // Then will test this reconstruction with a more advanced database structure, such as one to hold cryptocurrencies.
-
-
-
-        if (is_pk) {
-            //table.record_def.
-        } else {
-
-        }
-
-    });
-    //console.log('2) db.tables', db.tables);
-    //throw 'stop';
-
-    /*
-    [ 'tables',
-      'native types',
-      'table fields',
-      'table indexes',
-      'users' ]
-    */
-
-    // Then put the tables' indexes back together.
-
-
-
-
-    // arr_table_index_rows
-    each(arr_table_index_rows, (table_index_row) => {
-        //console.log('table_index_row', table_index_row);
-
-        // Then reconstruct the index 
-        // Create an index object with this specification...
-        // May need to look up the exact fields, create the object references.
-
-
-        // Then, shortly after this, work on getting cryptodb records made.
-        //  Get the data coming in.
-        //  Save it to a record stream.
-
-        // May be useful indexing trades by time, in buckets.
-        //  Would get more than one trade at any point in time.
-
-        var ir_key = table_index_row[0];
-        var ir_value = table_index_row[1];
-
-        var table_id = ir_key[0];
-        var index_id = ir_key[1]; // index within table
-
-        // then all the fields that are being indexed
-
-        var index_keys = clone(ir_key);
-        index_keys.splice(0, 2);
-
-        //console.log('index_keys', index_keys);
-        //console.log('ir_value', ir_value);
-        // the value probably corresponds with the primary key of the table.
-        var table = db.tables[table_id];
-
-        var idx_kv = [index_keys, ir_value];
-
-        // the keys and values may need a lookup
-        //console.log('idx_kv', idx_kv);
-
-        var idx = table.add_index(index_id, idx_kv);
-        //console.log('idx', idx);
-
-    });
-
-    db.tbl_native_types.add_records(arr_table_native_types_rows);
-
-    db.tbl_tables.add_record([
-        [db.tbl_tables.id],
-        [db.tbl_tables.name, db.tbl_tables.own_incrementor_ids]
-    ]);
-    db.tbl_tables.add_record([
-        [db.tbl_native_types.id],
-        [db.tbl_native_types.name, db.tbl_native_types.own_incrementor_ids]
-    ]);
-    db.tbl_tables.add_record([
-        [db.tbl_fields.id],
-        [db.tbl_fields.name, db.tbl_fields.own_incrementor_ids]
-    ]);
-    if (db.tbl_indexes) db.tbl_tables.add_record([
-        [db.tbl_indexes.id],
-        [db.tbl_indexes.name]
-    ]);
-
-
-    each(db.tables, (table) => {
-
-        // When adding these, it will use the already high value of some incrementors.
-
-        db.add_tables_fields_to_fields_table(table);
-        //this.add_tables_fields_to_fields_table(tbl_tables);
-
-
-        db.add_tables_indexes_to_indexes_table(table);
-    });
-
-
-
-
-
-
-    db._init = false;
 
     // then go through the table indexes.
     //  want to separate them by tables.
     //  
 
-    return db;
+    return db || new Database();
 }
 
 var load_buf = (buf) => {
 
-    console.log('*load_buf');
+    //console.log('*load_buf');
     //throw 'stop - likely to need fixing';
 
     var arr_core = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf);

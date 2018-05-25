@@ -265,6 +265,46 @@ class Record_List {
         return b_found;
     }
 
+    get length() {
+        // 
+
+        // let enc = Buffer.concat([xas2(enc_key.length).buffer, enc_key, xas2(enc_value.length).buffer, enc_value]);
+        let pos = 0;
+        let item_length;
+        let c = 0;
+        let b_found;
+
+        let l = this._buffer.length;
+
+        while (pos < l) {
+            [item_length, pos] = xas2.read(this._buffer, pos);
+
+            //console.log('item_length, pos', item_length, pos);
+
+            /*
+            if (c === n) {
+                b_found = Buffer.alloc(item_length);
+                this._buffer.copy(b_found, 0, pos, pos + item_length);
+            }
+            */
+
+            pos = pos + item_length;
+            c++;
+        }
+
+        //console.log('c', c);
+        //console.log('c / 2', c / 2);
+        //throw 'stop';
+
+        return c / 2;
+
+
+
+        // 
+
+        //throw 'NYI';
+    }
+
     // Need to iterate through the items.
     //  Iterate through buffer backed records.
 

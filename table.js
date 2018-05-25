@@ -546,6 +546,8 @@ class Table {
         return res;
     }
 
+
+    // Not delivered as the bb record (yet)
     get structure_record() {
         /*
 
@@ -752,7 +754,18 @@ class Table {
 
         //console.log('this.records', this.records);
 
-        return this.records.arr_records.map(x => x.to_b_record());
+        // need to get all binary records for that record, including the index record.
+
+
+        let res = [];
+        each(this.records.arr_records, record => {
+            each(record.to_b_records(), b_record => {
+                res.push(b_record);
+            })
+        })
+        return res;
+
+        //return this.records.arr_records.map(x => x.to_b_records());
     }
 
 
@@ -1008,7 +1021,31 @@ class Table {
         return res;
     }
 
+    // own table table record
+    //  may be good to retain a link to it.
+    // maybe it does not exist...
 
+    get own_table_table_record() {
+        let tbl_tables = this.db.map_tables['tables'];
+        // then need the record that represents this table.
+        //console.log('tbl_tables.records.indexes', tbl_tables.records.indexes);
+        //console.log('tbl_tables.records.indexes[0]', tbl_tables.records.indexes[0]);
+
+
+        // no, its the record retrieved from that index.
+        let own_index_record_retrieved = tbl_tables.records.indexes[0][JSON.stringify([this.name])];
+        //console.log('own_index_record_retrieved', own_index_record_retrieved);
+
+        return own_index_record_retrieved;
+
+
+        // that's the index records
+        // They are in an obj, 
+        //console.log('tbl_tables.record_def.indexes', tbl_tables.record_def.indexes);
+        //console.log('tbl_tables.record_def.indexes.length', tbl_tables.record_def.indexes.length);
+
+
+    }
 
 
     //get_table_table_db_records_bin() {

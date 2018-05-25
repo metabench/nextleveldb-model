@@ -11,6 +11,9 @@ const Binary_Encoding = require('binary-encoding');
 const xas2 = require('xas2');
 
 
+// Not working here.
+//let B_Record = require('./buffer-backed/record');
+
 // Possibly need a version of Binary_Encoding that handles NextLevelDB types
 //  but it makes it less general.
 
@@ -601,152 +604,179 @@ var decode_model_row = (model_row, remove_kp) => {
     // The DB could have been started with broken xas2 values, possibly encoded wrong using an older version of the DB code.
     //  Not sure.
 
+    //console.log('model_row', model_row);
+    //console.log('B_Record', B_Record);
+
+    //let r = new B_Record(model_row);
+
+    /*
+    if (remove_kp) {
+        return r.decoded_no_kp;
+    } else {
+        return r.decoded;
+    }
+    */
+
+    // if the model_row is a Record, then use the .decoded function
+
+
+
+
     //console.log('decode_model_row model_row', model_row);
-    //console.log('remove_kp', remove_kp);
-
-    var buf_key = model_row[0];
-    var buf_value = model_row[1];
-    var value = null;
-
-    //console.log('buf_key', buf_key);
-    //console.log('buf_value', buf_value);
-
-    // Decode buffer could tell from odd or even.
-    var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
-    //console.log('key_1st_value', key_1st_value);
-    if (buf_value) {
-        // Could have an empty buffer as a value.
-        //  That seems wrong so far though.
-
-        if (key_1st_value === 0) {
-
-            //let decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
-            //console.log('decoded_key', decoded_key);
+    //console.log('B_Record', B_Record);
 
 
-            if (buf_value.length > 0) {
+    if (model_row.kvp_bufs) {
+        return model_row.decoded;
+    } else {
 
-                // Has difficulty doing this here.
+        //console.log('remove_kp', remove_kp);
 
-                value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
+        var buf_key = model_row[0];
+        var buf_value = model_row[1];
+        var value = null;
+
+        //console.log('buf_key', buf_key);
+        //console.log('buf_value', buf_value);
+
+        // Decode buffer could tell from odd or even.
+        var key_1st_value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_key);
+        //console.log('key_1st_value', key_1st_value);
+        if (buf_value) {
+            // Could have an empty buffer as a value.
+            //  That seems wrong so far though.
+
+            if (key_1st_value === 0) {
+
+                //let decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+                //console.log('decoded_key', decoded_key);
+
+
+                if (buf_value.length > 0) {
+
+                    // Has difficulty doing this here.
+
+                    value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
+                } else {
+                    //value = null;
+
+                    // It's an incrementor row.
+                    //  Or an error making it appear that way
+
+                    console.trace();
+                    throw 'stop';
+                }
+
+
             } else {
-                //value = null;
 
-                // It's an incrementor row.
-                //  Or an error making it appear that way
+                if (key_1st_value % 2 === 0) {
+                    value = Binary_Encoding.decode_buffer(buf_value);
+                    //console.log('value', value);
+                } else {
 
+                    // I think index records have values???
+                    //value = Binary_Encoding.decode_buffer(buf_value);
+                }
+
+                // indexed lacking values?
+
+
+
+
+            }
+        }
+        // not all of them are 2 deep for indexes though.
+        //  That's where it's a bit tricky.
+        //   Table records have got 1 xas2 prefix
+        //   Table index records have got 2 xas prefixes.
+        //    We need to know which is which.
+        //  Could say one is odd, the other is even.
+        //   That seems like the best way to differentiate between them for the moment.
+
+        // Just can't read it with 2 prefixes as we don't know it has that many.
+
+        //console.log('key_1st_value', key_1st_value);
+        var decoded_key;
+        //if (key_1st_value % 2 === 0) {
+        if (key_1st_value % 2 === 0 && key_1st_value > 0) {
+            // even, so it's a table, so 1 prefix
+            // Have incrementor work differently - just xas2s in keys and values.
+            //console.log('buf_key', buf_key);
+
+            // Seems like data was encoded wrong in the table buffer.
+
+            //console.log('buf_key', buf_key);
+
+            // If we fail to decode the key?
+
+            // Leave out decoding errors...
+            //console.log('buf_key', buf_key);
+
+            // Not sure why it's not able to decode the data in the buffer from the server.
+            //  It's the key where there is the problem.
+            //   Maybe it's missing a byte - not sure.
+
+            // Not sure if any dodgy keys have got into the db.
+            //  Could have a maintenance procedure that checks if all keys can be decoded.
+
+            // Wonder if data has got corrupted again through bittrex adding a new coin.
+            //  (another week's work???)
+
+            // Verification that indexes can decode seems like a useful way of doing it.
+            //  could have a can_decode function.
+
+
+            // Client-side verification and fixing could prove to be useful.
+            //  Tricky too maybe.
+
+            // Client-side verification that the DB is in good running order makes sense.
+
+
+
+
+            decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+            /*
+    
+            try {
+    
+                // Maybe some records got written wrong in a db.
+                //  Could do more of a safety check on startup, or something with a command, that removes any records that are mis-formed.
+                //  Or just point them out.
+    
+                //console.log('buf_key', buf_key);
+                decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
+            } catch (err) {
                 console.trace();
                 throw 'stop';
+                //decoded_key = '[DECODING ERROR: ' + err + ']';
+                return null;
             }
+            */
+
+
 
 
         } else {
+            try {
 
-            if (key_1st_value % 2 === 0) {
-                value = Binary_Encoding.decode_buffer(buf_value);
-                //console.log('value', value);
-            } else {
+                //console.log('buf_key', buf_key);
+                decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
+            } catch (err) {
 
-                // I think index records have values???
-                //value = Binary_Encoding.decode_buffer(buf_value);
+                throw 'stop';
+                decoded_key = '[DECODING ERROR: ' + err + ']';
             }
-
-            // indexed lacking values?
-
-
-
-
         }
-    }
-    // not all of them are 2 deep for indexes though.
-    //  That's where it's a bit tricky.
-    //   Table records have got 1 xas2 prefix
-    //   Table index records have got 2 xas prefixes.
-    //    We need to know which is which.
-    //  Could say one is odd, the other is even.
-    //   That seems like the best way to differentiate between them for the moment.
-
-    // Just can't read it with 2 prefixes as we don't know it has that many.
-
-    //console.log('key_1st_value', key_1st_value);
-    var decoded_key;
-    //if (key_1st_value % 2 === 0) {
-    if (key_1st_value % 2 === 0 && key_1st_value > 0) {
-        // even, so it's a table, so 1 prefix
-        // Have incrementor work differently - just xas2s in keys and values.
-        //console.log('buf_key', buf_key);
-
-        // Seems like data was encoded wrong in the table buffer.
-
-        //console.log('buf_key', buf_key);
-
-        // If we fail to decode the key?
-
-        // Leave out decoding errors...
-        //console.log('buf_key', buf_key);
-
-        // Not sure why it's not able to decode the data in the buffer from the server.
-        //  It's the key where there is the problem.
-        //   Maybe it's missing a byte - not sure.
-
-        // Not sure if any dodgy keys have got into the db.
-        //  Could have a maintenance procedure that checks if all keys can be decoded.
-
-        // Wonder if data has got corrupted again through bittrex adding a new coin.
-        //  (another week's work???)
-
-        // Verification that indexes can decode seems like a useful way of doing it.
-        //  could have a can_decode function.
-
-
-        // Client-side verification and fixing could prove to be useful.
-        //  Tricky too maybe.
-
-        // Client-side verification that the DB is in good running order makes sense.
-
-
-
-
-        decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
-        /*
-
-        try {
-
-            // Maybe some records got written wrong in a db.
-            //  Could do more of a safety check on startup, or something with a command, that removes any records that are mis-formed.
-            //  Or just point them out.
-
-            //console.log('buf_key', buf_key);
-            decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
-        } catch (err) {
-            console.trace();
-            throw 'stop';
-            //decoded_key = '[DECODING ERROR: ' + err + ']';
-            return null;
+        if (remove_kp) {
+            decoded_key.splice(0, remove_kp);
         }
-        */
+        //console.log('[decoded_key, value]', [decoded_key, value]);
 
 
-
-
-    } else {
-        try {
-
-            //console.log('buf_key', buf_key);
-            decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
-        } catch (err) {
-
-            throw 'stop';
-            decoded_key = '[DECODING ERROR: ' + err + ']';
-        }
+        return [decoded_key, value];
     }
-    if (remove_kp) {
-        decoded_key.splice(0, remove_kp);
-    }
-    //console.log('[decoded_key, value]', [decoded_key, value]);
 
-
-    return [decoded_key, value];
     //console.log('decoded_record', decoded_record);
 }
 

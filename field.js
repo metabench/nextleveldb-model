@@ -6,7 +6,8 @@ var get_a_sig = lang.get_a_sig;
 
 const special_characters = {
     '!': true,
-    '+': true
+    '+': true,
+    '&': true
 }
 
 // Index type IDs?
@@ -333,6 +334,16 @@ class Field {
 
 
             if (str_prefix_code === '!') {
+
+                // 25/05/2018 - Not an unique index so far
+                //  Don't have constraint checking.
+                //  Decided that ! should make a field unique, but so far it puts it in the PK by default, and the other ! fields compose the PK.
+                //  Separate uniqueness would help - but could have special rule that says fields with ! by themselves form the PKs.
+                //   Also will have it so that unique fields can be outside the PK.
+
+
+
+
                 // Make a unique index for that field. (unless the field is the pk, where is is part of an already existing unique index)
                 //var idx_id = this.table.inc_foreign_keys.increment();
                 //var idx = this.table.add_index([]);
@@ -356,7 +367,6 @@ class Field {
 
                 var arr_pk_fields = this.table.record_def.pk.fields;
 
-
                 // Think we need some kind of tag on the field to say it's unique.
                 //  The field is (also) unique if there is a unique index that applies to it.
                 //this.is_unique = true;
@@ -370,6 +380,18 @@ class Field {
                     [this], arr_pk_fields
                 ]);
             }
+
+            // same as above.
+            if (str_prefix_code === '&') {
+                var idx = this.table.add_index([
+                    [this], this.table.record_def.pk.fields
+                ]);
+            }
+
+
+
+
+
             if (str_type !== null) {
                 //console.log('str_type', str_type);
                 var type_id = map_nt_ids[str_type];

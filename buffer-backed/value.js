@@ -19,7 +19,15 @@ class Value {
     }
 
     get decoded() {
-        return Binary_Encoding.decode_buffer(this._buffer);
+
+        if (this._buffer.length > 0) {
+            return Binary_Encoding.decode_buffer(this._buffer);
+        } else {
+            //return null;
+            return [];
+        }
+
+
     }
 
     get_value_at(idx) {
