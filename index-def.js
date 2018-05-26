@@ -91,11 +91,6 @@ class Index_Def {
 
         this.__type_name = 'index';
 
-
-
-
-
-
         var key_fields = this.key_fields = [];
         var value_fields = this.value_fields = [];
 
@@ -128,30 +123,10 @@ class Index_Def {
         //console.log('index spec', spec);
         //console.log('t_spec', t_spec);
         if (t_spec === 'array') {
-
-            // Want to make this refer to specific fields in the table.
-            //  Currently we use the field names as reference
-
             arr_def = spec;
-            //console.log('Index arr_def', arr_def);
-
-            // Name => ID
-            //  We have the string names, but we need to use a map of the record structure.
-            //   The record itself gets divided into PK and value parts.
         }
 
         if (arr_def) {
-            //console.log('Index arr_def', arr_def);
-
-            //var arr_def_idx_key = arr_def[0];
-            //var arr_def_pk = arr_def[1];
-            // The value of an index needs to be a pk. Maybe don't call it a value?
-
-            // worth having storage of the fields.
-
-            //this.arr_def = arr_def;
-
-            //console.log('this.table', this.table);
 
             var map_fields = this.table.record_def.map_fields,
                 i_field;
@@ -232,15 +207,8 @@ class Index_Def {
         // Will have more capability within Model Index_Record_Key (which represents all the useful part of the index record)
         //  Will store the data as a Buffer, and have encoding and decoding capababilities.
 
-
         // 01/05/2018 - Not sure if this change broke anything. Result makes more sense now at least.
         var res = [this.table.id, this.id];
-
-        // No, can't change this right now.
-
-
-
-        //var res = [];
         each(this.key_fields, (key_field) => {
             res.push(key_field.id);
         });
@@ -263,21 +231,16 @@ class Index_Def {
     get_kv_record() {
         return this.kv_field_ids;
     }
-
     // 
 
 
     'to_arr_record_def'() {
         // [table_id, index_id (within table)][arr_key_fields, arr_value_fields]
         //  [arr_key_fields, arr_value_fields] are encoded as numbers, each field is just the field id
-
         // [table_id, index_id (within table)][arr_key_field_ids, arr_value_field_ids];
-
         return [
             [this.table.id, this.id], this.kv_field_ids
         ];
-
-
     }
 
     'index_record'(record) {
@@ -296,10 +259,6 @@ class Index_Def {
 
     // record to index bb records
     //  the buffer backed record style is more efficient in many cases as it only decodes upon demand.
-
-
-
-
 
     'record_to_key_string'(record) {
         var record_key = record.key;
@@ -329,11 +288,7 @@ class Index_Def {
 
 
     'bb_record_to_bb_index_record'(bb_record) {
-
-
         //console.log('this.table.name', this.table.name);
-
-
         // 
 
         // Think this fn will take a little while + more focus to get right.
@@ -355,7 +310,6 @@ class Index_Def {
 
         // Could use an Index_Key class?
         //  Or just make it so that Key covers index key logic automatically.
-
         // 
 
         // no need for Field_Value bb object (yet);
@@ -377,9 +331,7 @@ class Index_Def {
         //  may be worth specifically making an index_record class?
 
         let res = new Array(this.key_fields.length + this.value_fields.length);
-
         let i_f = 0;
-
         let l = this.key_fields.length;
 
         //console.log('bb_record', bb_record);

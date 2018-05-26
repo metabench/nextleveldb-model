@@ -7,35 +7,9 @@ var Fns = lang.Fns;
 
 
 const encode_model_row = require('./database').encode_model_row;
-
 const B_Record = require('./buffer-backed/record');
-
-/*
-
-var _inc_key = function(int_incrementor_id) {
-    var x_0 = xas2(0);
-    var x_inc = xas2(int_incrementor_id);
-    return Buffer.concat([x_0.buffer, x_inc.buffer]);
-};
-
-
-The incrementor key prefix is 0.
-Could have key prefix of 1 for the index of incrementors by name.
-Looking up the incrementors by name would assist in being able to access and use them.
-
-
-Incrementor needs to be usable for giving values.
-We may use model to create a whole bunch of records. That would be good for testing, as well as for putting in the db itself.
-
-// Giving an incrementor with a field?
-//  Don't want to make it too complex.
-
-
-
-*/
-//var Binary_Encoding = 
-var encode_to_buffer = require('binary-encoding').encode_to_buffer;
-var xas2 = require('xas2');
+const encode_to_buffer = require('binary-encoding').encode_to_buffer;
+const xas2 = require('xas2');
 
 
 const XAS2 = 0;
@@ -83,15 +57,11 @@ class Incrementor {
                 var i_id = a[1];
                 var i_value = a[2]; // test it's positive integer?
 
-
                 this.name = name;
                 this.value = i_value;
                 this.id = i_id;
             }
-
         }
-
-
     }
 
     increment(n = 1) {
@@ -104,7 +74,6 @@ class Incrementor {
     //  Will also be necessary / useful to index the incrementors by name.
     //    (incrementor table sounds too tricky?, as incrementors are a lower level feature that tables are built on)
 
-
     // get all db records as binary
     //  array of array record items.
     //   keys and values encoded as buffers.
@@ -112,22 +81,12 @@ class Incrementor {
     //  needs to know the incrementor's value
 
     get_all_db_records_bin() {
-        // Had a bug before.
-
-
         var res = [];
         res.push(this.get_record_bin());
-        //res = res.concat(this.get_index_bin());
-
-        //console.log('res', res);
-        //throw 'stop';
-        //console.log('-----------');
-        //console.log('');
         return res;
     }
 
     // get records
-
     // or record
 
     get record() {
@@ -172,7 +131,6 @@ class Incrementor {
 
         var buf_name = Buffer.from(this.name);
         // STRING
-
         // 2 xas2 prefixes here
 
         var bufs_key = Buffer.concat([xas2(0).buffer, xas2(this.id).buffer, xas2(STRING).buffer, xas2(buf_name.length).buffer, buf_name]);
@@ -181,9 +139,7 @@ class Incrementor {
         //  and then the incrementor name would help.
         // Reconstructing all of the incrementors before putting together the tables makes sense.
 
-
         //var bufs_key = encode_to_buffer([this.id], 0);
-
         //var buf_val = xas2(this.value + 500).buffer;
         var buf_val = xas2(this.value).buffer;
         //console.log('this.name', this.name);
@@ -191,16 +147,12 @@ class Incrementor {
         //var buf_val = Buffer.concat([xas2(1).buffer, xas2(this.value).buffer, xas2(1).buffer]);
         //  Always point to a single id pk?
         //var buf_val = encode_to_buffer([this.value]); // Longer encoding form. Much more flexible.
-
         var res = [bufs_key, buf_val];
-
         //console.log('incrementor get_record_bin res', res);
         //console.log('this.id', this.id);
         //throw 'stop';
         return res;
     }
-
-
 
     // Will also create an index record for an incrementor.
 
@@ -218,7 +170,6 @@ class Incrementor {
         var arr_idx_key = [this.name, this.id];
         var buf_key = encode_to_buffer(arr_idx_key, 1, 0);
         //console.log('buf_key', buf_key);
-
         var res = [
             [buf_key, null]
         ];
@@ -236,7 +187,6 @@ Incrementor.get_by_name = (name) => {
     // Incrementor by name index would be in keyspace 1
     var incrementor_name_lookup_key = xas2([1, name]);
     console.log('incrementor_name_lookup_key', incrementor_name_lookup_key);
-
 }
 
 module.exports = Incrementor;

@@ -82,11 +82,37 @@ let map_paging_commands = get_truth_map_from_arr(command_ids_with_paging_option)
 
 class Command_Message {
     constructor(spec) {
-        let t_spec = tof(spec);
 
-        if (t_spec === 'buffer') {
-            this._buffer = spec;
+        let a = arguments;
+        let l = a.length;
+
+        if (l === 1) {
+            let t_spec = tof(spec);
+
+            if (t_spec === 'buffer') {
+                this._buffer = spec;
+
+            }
+        } else {
+            // The command itself
+
+            // Optional paging option
+
+            // Maybe some kind of info about what return type it will get
+
+            // The parameters.
+
+            // Then will be transmitted as binary and decoded on the server.
+
+
+
+
+
         }
+
+
+
+        // Have some assistance in building the command.
 
 
         // building the command message out of arrays / other things.

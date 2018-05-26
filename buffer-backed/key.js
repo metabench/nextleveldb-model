@@ -34,6 +34,10 @@ class Key {
         }
     }
 
+    get key() {
+        return this;
+    }
+
     get buffer() {
         return this._buffer;
     }
