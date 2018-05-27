@@ -418,6 +418,14 @@ class Table_Record_Collection {
         return res;
     }
 
+
+    // Would be better to generate own record, rather than get own record
+    //  Possibly.
+    //  Problem with the record creation when it's not generated.
+
+
+
+
     get_all_db_records_bin() {
 
         // When there are no records...
@@ -539,22 +547,18 @@ class Table_Record_Collection {
         // Making the OO bulkier with fields makes sense.
 
         var new_record = this.new_record(record);
-        //console.log('new_record', new_record);
+        //console.log('add_record new_record', new_record);
 
         if (new_record) {
             // The record should not have the table id normally.
             //  However, when we need to identify the table id it is useful.
             //  add_records_with_table_ids.
-
             this.arr_records.push(new_record);
             //console.log('dont_index', dont_index);
             if (!dont_index) {
-                //
                 this.index_record(new_record);
             }
             //throw 'stop';
-
-
             // Then for each index, we index the record.
         } else {
             console.trace('failed to add table record');
@@ -652,6 +656,8 @@ class Table_Record_Collection {
                 // need to make a new key for the data.
                 //console.log('this.table.pk_incrementor', this.table.pk_incrementor);
                 //throw 'stop';
+
+
 
                 if (this.table.pk_incrementor) {
                     record[0] = [this.table.pk_incrementor.increment()];

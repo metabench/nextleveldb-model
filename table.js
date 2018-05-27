@@ -529,6 +529,12 @@ class Table {
         return this.record_def.kv_field_names;
     }
 
+    get kv_fields() {
+        return this.record_def.kv_field_names;
+    }
+
+
+
     get inward_fk_refs() {
         let res = [];
         each(this.db.tables, table => {
@@ -561,6 +567,10 @@ class Table {
         // Table KP
 
         let incrementor_ids;
+
+
+        console.log('!!this.pk_incrementor', !!this.pk_incrementor);
+
         if (this.pk_incrementor) {
             incrementor_ids = [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id, this.pk_incrementor.id];
         } else {

@@ -722,6 +722,11 @@ class Record_Def {
         return res;
     }
 
+    get kv_fields() {
+        return [this.pk.fields, this.value.fields];
+
+    }
+
 }
 
 module.exports = Record_Def;

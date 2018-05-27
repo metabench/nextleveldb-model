@@ -99,6 +99,10 @@ class Record {
 
     }
 
+    get record() {
+        return this;
+    }
+
     get key() {
         if (this._key) {
             return this._key;
