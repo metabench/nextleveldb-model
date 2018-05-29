@@ -59,6 +59,7 @@ class Record_Def {
         //  Going with the idea that Table will manage both Record_Def and actual records. Table manages that intersection, so less code there managing the specifics of either is an improvement.
         this.table = table;
         this.indexes = [];
+        this.map_indexes_by_field_names = {};
         this.fields = [];
         // All the fields in order here.
         //  Fields will also be in their orders within the key and value
@@ -574,6 +575,8 @@ class Record_Def {
         // Indexes need an id (within the table)
         //console.log('add_index a', a);
 
+        // 
+
         var idx_2;
         //console.log('idx instanceof Index', idx instanceof Index);
         if (idx instanceof Index) {
@@ -656,6 +659,8 @@ class Record_Def {
 
         this.indexes.push(idx_2);
 
+        this.map_indexes_by_field_names[idx_2.key_field_names + ''] = idx_2;
+
         // if it's an unique index, then add the is_unique property to the field.
 
         //this.add_index_to_index_table(idx_2);
@@ -725,6 +730,50 @@ class Record_Def {
     get kv_fields() {
         return [this.pk.fields, this.value.fields];
 
+    }
+
+    // indexes with single field.
+    //  single_field_index_field_names
+    get indexed_field_names() {
+        // just indexes with one field.
+
+        let map_indexed = {};
+        let res = [];
+
+        each(this.indexes, idx => {
+            //console.log('idx', idx);
+
+            if (idx.key_fields.length === 1) {
+                if (!map_indexed[idx.key_fields[0].name]) {
+                    res.push(idx.key_fields[0].name);
+                }
+                map_indexed[idx.key_fields[0].name] = true;
+
+            }
+
+        })
+
+        return res;
+    }
+    get indexed_field_names_and_ids() {
+        // just indexes with one field.
+
+        let map_indexed = {};
+        let res = [];
+
+        each(this.indexes, idx => {
+            //console.log('idx', idx);
+
+            if (idx.key_fields.length === 1) {
+                if (!map_indexed[idx.key_fields[0].name]) {
+                    res.push([idx.key_fields[0].name, idx.key_fields[0].id]);
+                }
+                map_indexed[idx.key_fields[0].name] = true;
+            }
+
+        })
+
+        return res;
     }
 
 }

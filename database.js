@@ -167,11 +167,6 @@ class Database {
         var map_tables = this.map_tables = {};
         let map_tables_by_id = this.map_tables_by_id = {};
 
-        // not giving a spec?
-
-
-        //console.log('typeof spec', typeof spec);
-
         if (typeof spec === 'undefined') {
             //throw 'stop';
 
@@ -181,21 +176,6 @@ class Database {
         if (spec === false) {
 
         } else {
-            // could give a db def as an array.
-            //  would have a number of tables that get added.
-
-            //var inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
-            //incrementors.push(inc_incrementor);
-
-
-            //incrementors.push(this.new_incrementor('table'));
-            //this.inc_table = this.new_incrementor('table');
-            //incrementors.push(this.inc_table);
-
-
-            //each(incrementors, (incrementor) => {
-            //    map_incrementors[incrementor.name] = incrementor;
-            //});
 
             var t_spec = tof(spec);
             if (t_spec === 'array') {
@@ -249,8 +229,6 @@ class Database {
         })
         return res.join('');
     }
-
-
 
     get_obj_map(table_name, field_name) {
         return this.map_tables[table_name].get_map_lookup(field_name);
@@ -351,14 +329,6 @@ class Database {
         tbl_tables.set_pk('+id');
         tbl_tables.add_field('name', -1, NT_STRING);
 
-        //console.log('tbl_tables.pk_incrementor', tbl_tables.pk_incrementor);
-        // So that incrementor should be rendered to the DB OK.
-
-        //throw 'stop';
-        // 
-
-        // and give it a pk incrementor ref and record.
-        //  I think we need to do this on a lower level while setting up these tables.
 
         tbl_tables.add_index([
             ['name'],
@@ -376,51 +346,14 @@ class Database {
             ['id']
         ]);
 
-        // The table incrementors are broken at some point.
-        //  Need to trace how they get put into the current DB.
 
-        // Define the types of the values?
-        //tbl_native_types.add_records(['xas2', 'date', 'string', 'float32le']);
-
-
-        // Autoincrementing key would make adding the native types records more concise here.
-        //  Though it's nice to have them defined in a list.
-        //tbl_native_types.add_records([[0, 'xas2'], [1, 'date'], [2, 'string'], [3, 'float32le']]);
-        // Could have an add_records_by_values where there is an automatically assigned id.
-
-
-
-        // Could have it automatically generate ids.
-        //  That makes sense, especially if we don't want to give ids / are not able to.
-
-        // A table of bittrex currencies would fit that.
-        //  We want our own int that represents it, likely fits into 1 byte, rather than a longer string.
-        //  More db normalisation.
-
-        // Space within tables to use incrementors for fields...
-        //  Simpler to do this with an auto-incrementor?
-
-        // May encode null types at some points.
-        //  It will just be a null value within the record.
 
 
         tbl_native_types.add_records([
-            [
-                [0],
-                ['xas2']
-            ],
-            [
-                [1],
-                ['date']
-            ],
-            [
-                [2],
-                ['string']
-            ],
-            [
-                [3],
-                ['float32le']
-            ]
+            [[0], ['xas2']],
+            [[1], ['date']],
+            [[2], ['string']],
+            [[3], ['float32le']]
         ]);
         tables.push(tbl_native_types);
         //inc_table.increment();
@@ -573,7 +506,7 @@ class Database {
     }
 
     add_tables_fields_to_fields_table(table) {
-        console.log('add_tables_fields_to_fields_table table.name', table.name);
+        //console.log('add_tables_fields_to_fields_table table.name', table.name);
         var tbl_fields = this.tbl_fields;
         //console.log('table.fields.length', table.fields.length);
         //throw 'stop';
@@ -784,7 +717,6 @@ class Database {
             });
         });
 
-
         // Tables should be in order.Not sure why it's not.
         //  Could look into the ordering of tables here.
         //console.log('this.table_names', this.table_names);
@@ -806,16 +738,12 @@ class Database {
         var incrementors = this.incrementors;
         var tables = this.tables;
         var res = [];
-
         // these are definitions, not the table records themselves.
         each(incrementors, (incrementor) => res.push(incrementor.record));
-
         // invluding the index records of that table.
         //  should generate those index records too.
         //  but the model should have loaded the indexes
-
         each(tables, table => res.push.apply(res, table.b_records));
-
         // 
 
         return res;
@@ -915,8 +843,6 @@ class Database {
 
         //  Can't have matching names.
         //   Enforcing unique constraints while putting records in the normal way should be enough.
-
-
 
         return table.ensure_records_no_overwrite(arr_records);
     }

@@ -6,6 +6,8 @@
 
 */
 
+const lang = require('lang-mini');
+const def = lang.is_defined;
 
 let Binary_Encoding = require('binary-encoding');
 let xas2 = require('xas2');
@@ -18,6 +20,18 @@ const XAS2 = 0;
 const STRING = 4;
 const BUFFER = 9;
 const ARRAY = 10;
+
+
+// Standard data 0. just normal decoding.
+
+// ~-~-~-~-~-~-~-~-~-~-~-~-~-
+// Supplementary encoding
+
+const NONE = 0;
+const RECORD = 1;
+const KEY = 2;
+const VALUE = 3;
+
 
 class Record {
     constructor() {
@@ -42,27 +56,81 @@ class Record {
                 // odd kp, it has no 'value'
                 //  has a key
                 //  key is the buffer given
-                this.kvp_bufs = [a[0], Buffer.alloc(0)];
 
 
+                // Not so sure about this with the constructor.
+                //  Need to split the values into key value pair buffers.
+
+                // Need to split / decode the buffer.
+                // We may have been given the value, not a key.
+
+                //console.trace();
+
+                //this.kvp_bufs = [a[0], Buffer.alloc(0)];
+                //throw 'stop';
+
+                // length encoded buffers.
+
+
+                //console.log('pre split', a[0]);
+                this.kvp_bufs = Binary_Encoding.split_length_item_encoded_buffer(a[0]);
+                //console.log('this.kvp_bufs', this.kvp_bufs);
+
+                // 
 
                 //throw 'NYI'
             } else {
+                //console.log('else condition');
+
+                //console.log('a[0]', a[0]);
+                //console.log('a[0].length', a[0].length);
+
                 if (Array.isArray(a[0])) {
+                    //console.log('its an array');
+
+                    //console.log('a[0][1]', a[0][1]);
+
                     if (a[0].length === 2 && a[0][0] instanceof Buffer && a[0][1] instanceof Buffer) {
                         // Check they are both buffers.
 
                         this.kvp_bufs = a[0];
 
 
+                    } else if (a[0].length === 2 && a[0][0] instanceof Buffer && a[0][1] === null) {
+                        // Check they are both buffers.
+
+                        //this.kvp_bufs = a[0];
+                        this.kvp_bufs = [a[0][0], Buffer.alloc(0)];
+
+
                     } else {
 
+                        //console.log('else 2');
+
                         if (Array.isArray(a[0][0]) && Array.isArray(a[0][1])) {
-                            console.log('both arrays');
+                            //console.log('both arrays');
                             this.kvp_bufs = database_encoding.encode_model_row(a[0]);
 
                         } else {
-                            throw 'NYI';
+
+                            // undefined key, but has value.
+                            if (def(a[0][0])) {
+
+
+
+                                console.trace();
+                                throw 'NYI';
+                            } else {
+
+
+                                if (Array.isArray(a[0][1])) {
+                                    this.kvp_bufs = [undefined, Binary_Encoding.encode_to_buffer(a[0][1])];
+                                } else {
+                                    console.trace();
+                                    throw 'NYI';
+                                }
+                            }
+
                         }
 
                         // an array of arrays.
@@ -74,6 +142,10 @@ class Record {
                     }
 
                 } else {
+
+                    //console.log('a[0] is not an array');
+
+
                     if (a.length === 2) {
                         if (a[0] instanceof Buffer && a[1] instanceof Buffer) {
                             this.kvp_bufs = Array.from(a);
@@ -81,12 +153,17 @@ class Record {
                             // Maybe no need, arraylike will be fine?
 
                         } else {
+                            console.trace();
                             throw 'NYI';
                         }
+                    } else {
+                        console.trace();
+                        throw 'NYI';
                     }
                 }
             }
         } else {
+            console.trace();
             throw 'NYI';
         }
 
@@ -185,7 +262,22 @@ class Record {
     //  key length, key, value length, value.
 
     get buffer() {
-        return Buffer.concat([xas2(this.kvp_bufs[0].length).buffer, this.kvp_bufs[0], xas2(this.kvp_bufs[1].length).buffer, this.kvp_bufs[1]]);
+        if (!def(this.kvp_bufs[0])) {
+            console.log('key not defined');
+            // So, need to be able to read the record when there is not a key.
+            // First buffer has length 0.
+
+
+
+            return Buffer.concat([xas2(0).buffer, xas2(this.kvp_bufs[1].length).buffer, this.kvp_bufs[1]]);
+        } else {
+            return Buffer.concat([xas2(this.kvp_bufs[0].length).buffer, this.kvp_bufs[0], xas2(this.kvp_bufs[1].length).buffer, this.kvp_bufs[1]]);
+        }
+
+    }
+
+    get buffer_xas2_prefix() {
+        return new xas2(RECORD).buffer;
     }
 
 
@@ -193,9 +285,6 @@ class Record {
     //  need to be able to identify the specific fields within the record.
 
     get key_length() {
-
-
-
         return this.key.length;
 
     }

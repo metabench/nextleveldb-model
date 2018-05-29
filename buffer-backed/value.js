@@ -1,5 +1,10 @@
 const Binary_Encoding = require('binary-encoding');
 
+const NONE = 0;
+const RECORD = 1;
+const KEY = 2;
+const VALUE = 3;
+
 class Value {
     constructor() {
 
@@ -16,6 +21,10 @@ class Value {
 
     get buffer() {
         return this._buffer;
+    }
+
+    get buffer_xas2_prefix() {
+        return new xas2(VALUE).buffer;
     }
 
     get decoded() {

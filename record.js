@@ -256,7 +256,7 @@ class Record {
         // could go in a Record_List
 
         let res = [this.to_b_record()];
-        res.push.apply(res, this.index_db_records_to_arr_buffers().map(record => new B_Record(record)));
+        res.push.apply(res, this.index_db_records_to_arr_buffers().map(record => new B_Record([record, null])));
 
         /*
         each(this.index_db_records_to_arr_buffers(), item => {
@@ -317,6 +317,8 @@ class Record {
         res = res.concat(this.index_db_records_to_arr_buffers());
         return res;
     }
+
+    // this is just the index keys.
 
     index_db_records_to_arr_buffers() {
         var indexes = this.table.indexes;

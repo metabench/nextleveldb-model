@@ -533,7 +533,12 @@ class Table {
         return this.record_def.kv_field_names;
     }
 
-
+    get indexed_field_names() {
+        return this.record_def.indexed_field_names;
+    }
+    get indexed_field_names_and_ids() {
+        return this.record_def.indexed_field_names_and_ids;
+    }
 
     get inward_fk_refs() {
         let res = [];
@@ -766,6 +771,9 @@ class Table {
 
         // need to get all binary records for that record, including the index record.
 
+        // So the index ones don't have the value set.
+        //  Better not to do that....
+        //  Best to give it key and value
 
         let res = [];
         each(this.records.arr_records, record => {

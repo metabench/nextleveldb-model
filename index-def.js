@@ -125,6 +125,7 @@ class Index_Def {
         if (t_spec === 'array') {
             arr_def = spec;
         }
+        //
 
         if (arr_def) {
 
@@ -195,6 +196,12 @@ class Index_Def {
 
         // Have the 
 
+    }
+
+
+    // key_field_names
+    get key_field_names() {
+        return this.key_fields.map(x => x.name);
     }
 
 
