@@ -324,7 +324,7 @@ class Command_Message {
         //  Not every message has this.
         //  This paging option is more like message communication options / communication options / comm_opts / opt_comms / o_comm / comm
         //   Still call it 'Paging' for the moment, could rename it. Comm_Opts Comm_Options makes sense.
-        console.log('Command_Message inner_message_buffer');
+        //console.log('Command_Message inner_message_buffer');
 
         let command_id;
 
@@ -386,7 +386,7 @@ class Command_Message {
         let buf_res = Buffer.alloc(this._buffer.length - pos);
         this._buffer.copy(buf_res, 0, pos);
 
-        console.log('inner_message_buffer buf_res', buf_res);
+        //console.log('inner_message_buffer buf_res', buf_res);
 
         return buf_res;
     }
@@ -404,7 +404,7 @@ class Command_Message {
         // Should handle decoding a record with a missing key.
 
 
-        console.log('this.inner_message_buffer', this.inner_message_buffer);
+        //console.log('this.inner_message_buffer', this.inner_message_buffer);
 
         // Says its a string for some reason.
 

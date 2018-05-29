@@ -43,7 +43,15 @@ class Key {
     }
 
     get decoded() {
-        return database_encoding.decode_key(this._buffer);
+
+        //console.log('this._buffer.length', this._buffer.length);
+
+        if (this._buffer.length > 0) {
+            return database_encoding.decode_key(this._buffer);
+        } else {
+            return undefined;
+        }
+
     }
 
     get length() {

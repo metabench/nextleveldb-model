@@ -230,7 +230,18 @@ class Record {
         //let res = xas2.read(this.kvp_bufs[0]);
         //console.log('this.kvp_bufs', this.kvp_bufs);
         //console.log('this', this);
-        return xas2.read(this.kvp_bufs[0]);
+
+
+        //console.log('this.kvp_bufs[0]', this.kvp_bufs[0]);
+
+        if (this.kvp_bufs[0].length > 0) {
+            return xas2.read(this.kvp_bufs[0]);
+        } else {
+            return undefined;
+        }
+
+
+
     }
 
     get table_id() {
