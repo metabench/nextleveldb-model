@@ -504,6 +504,10 @@ class Table {
         return this.record_def.pk;
     }
 
+    get kp() {
+        return this.key_prefix;
+    }
+
     get map_fields() {
         return this.record_def.map_fields;
     }

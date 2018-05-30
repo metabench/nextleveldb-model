@@ -188,6 +188,30 @@ class Record {
         }
     }
 
+    // 
+    set key(value) {
+        //can't replace the key, because then it's a different record.
+        // keep that logic for the moment.
+
+        //console.log('this._key', this._key);
+        //console.log('value', value);
+
+        if (this._key._buffer.length === 0) {
+            if (value instanceof Buffer) {
+                this._key._buffer = value;
+            } else {
+                console.trace();
+                throw 'NYI';
+            }
+
+
+
+        } else {
+            throw 'Cannot replace record\'s existing key';
+        }
+
+    }
+
     get value() {
         if (this._value) {
             return this._value;

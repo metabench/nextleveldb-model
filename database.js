@@ -167,6 +167,10 @@ class Database {
         var map_tables = this.map_tables = {};
         let map_tables_by_id = this.map_tables_by_id = {};
 
+        // map indexes by fields.
+
+
+
         if (typeof spec === 'undefined') {
             //throw 'stop';
 

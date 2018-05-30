@@ -93,6 +93,10 @@ class Incrementor {
         return new B_Record(this.get_record_bin());
     }
 
+    get key() {
+        return this.record.key;
+    }
+
 
     get_all_db_records() {
         var res = [this.get_record(), this.get_index()];

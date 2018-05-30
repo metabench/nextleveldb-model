@@ -20,6 +20,8 @@ var Foreign_Key = require('./foreign-key');
 var Binary_Encoding = require('binary-encoding');
 var encode_to_buffer = Binary_Encoding.encode_to_buffer;
 
+const B_Record = require('./buffer-backed/record');
+
 
 // And use multiple indexes here too?
 //  There are the index definitions.
@@ -634,10 +636,25 @@ class Table_Record_Collection {
     }
     new_record(record) {
         var res;
+
+        // Record not expected to have table kp.
+
         //console.log('record instanceof Record', record instanceof Record);
         //console.log('record', record);
 
-        if (!(record instanceof Record)) {
+
+        // If it's a B_Record
+        //  decode it to an array and then return normal fn
+
+        if (record instanceof B_Record) {
+
+            let decoded_record = record.decoded;
+            decoded_record[0].shift();
+            //console.log('table-record-collection new_record decoded_record', decoded_record);
+
+
+            return this.new_record(decoded_record);
+        } else if (!(record instanceof Record)) {
 
 
             // is it a single array, containing only non-array items?

@@ -659,7 +659,9 @@ class Record_Def {
 
         this.indexes.push(idx_2);
 
-        this.map_indexes_by_field_names[idx_2.key_field_names + ''] = idx_2;
+
+
+        this.map_indexes_by_field_names[JSON.stringify(idx_2.key_field_names)] = idx_2;
 
         // if it's an unique index, then add the is_unique property to the field.
 
