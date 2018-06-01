@@ -659,7 +659,7 @@ class Record_Def {
 
         this.indexes.push(idx_2);
 
-
+        //console.log('JSON.stringify(idx_2.key_field_names)', JSON.stringify(idx_2.key_field_names));
 
         this.map_indexes_by_field_names[JSON.stringify(idx_2.key_field_names)] = idx_2;
 

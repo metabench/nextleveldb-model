@@ -763,7 +763,7 @@ var decode_model_row = (model_row, remove_kp) => {
                 //console.log('buf_key', buf_key);
                 decoded_key = Binary_Encoding.decode_buffer(buf_key, 2);
             } catch (err) {
-
+                console.trace();
                 throw 'stop';
                 decoded_key = '[DECODING ERROR: ' + err + ']';
             }

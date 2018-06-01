@@ -40,6 +40,9 @@ const Paging = require('./paging');
 const database_encoding = require('./database');
 
 
+const B_Record = require('./buffer-backed/record');
+
+
 // Will be used for storage, encoding and decoding.
 //  Will only / mainly store the data as the buffer, will read from and write to it.
 
@@ -53,33 +56,60 @@ const database_encoding = require('./database');
 //  Functionality to split up the internal buffer according to the message_type_id
 
 
+// Easy encoding of a Record as a result through the constructor.
 
 class Command_Response_Message {
     constructor(spec) {
-
-
         let a = arguments,
             l = a.length;
+
+
+
         if (l === 1) {
             let t_spec = tof(spec);
-
-
             if (t_spec === 'buffer') {
                 this._buffer = spec;
             }
         } else {
+
+            if (l === 2) {
+
+                // a message id and a record.
+
+                if (typeof a[0] === 'number' && a[1] instanceof B_Record) {
+                    // not paged, record encoding
+                    // RECORD_PAGING_NONE
+
+                    //console.log('a[0]', a[0]);
+                    //console.log('a[1]', a[1]);
+
+                    let record_buf = a[1].buffer;
+                    //console.log('record_buf', record_buf);
+
+                    this._buffer = Buffer.concat([xas2(a[0]).buffer, xas2(RECORD_PAGING_NONE).buffer, record_buf]);
+
+
+                }
+
+
+            }
+
+
+            // Assume no paging?
+
+            // May want to include a binary record in this?
+            //  Specific record encoding makes sense here.
+
             // (message_id, BINARY_PAGING_NONE, Binary_Encoding.encode_to_buffer(res));
 
             if (l === 3) {
                 let [message_id, message_type_id, buf_inner] = a;
-                console.log('Command_Response_Message buf_inner', buf_inner);
+                //console.log('Command_Response_Message buf_inner', buf_inner);
                 if (message_type_id === BINARY_PAGING_NONE) {
                     this._buffer = Buffer.concat([xas2(message_id).buffer, xas2(message_type_id).buffer, buf_inner]);
                 } else {
                     throw 'NYI';
                 }
-
-
 
 
             }
@@ -216,14 +246,34 @@ class Command_Response_Message {
         }
     }
 
+    // decoded?
+
+    // getting the value seems most important.
+
     // value_buffers
 
     get value() {
-        let [message_type_id, pos] = xas2.skip(this._buffer, 0);
+
+        // message id
+        let message_type_id;
+
+        // response message does not yet contain the return message id?
+        //console.log('this._buffer', this._buffer);
+        let [message_id, pos] = xas2.read(this._buffer, 0);
+        //console.log('pos', pos);
+
+        //
+
         let page_number;
         const remove_kp = false;
         //[id, pos] = xas2.skip(this._buffer, pos);
         [message_type_id, pos] = xas2.read(this._buffer, pos);
+        //console.log('pos', pos);
+
+
+        //console.log('message_id', message_id);
+
+        //console.log('Command_Response_Message get value() message_type_id', message_type_id);
 
 
         if (message_type_id === RECORD_PAGING_LAST) {
@@ -231,7 +281,7 @@ class Command_Response_Message {
             //  num records here?
 
             [page_number, pos] = xas2.read(this._buffer, pos);
-            console.log('page_number', page_number);
+            //console.log('page_number', page_number);
 
             let buf2 = Buffer.alloc(this._buffer.length - pos);
             this._buffer.copy(buf2, 0, pos);
@@ -251,6 +301,34 @@ class Command_Response_Message {
             //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
 
             return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
+
+        } else if (message_type_id === RECORD_PAGING_NONE) {
+            // Just a single record?
+            //console.log('RECORD_PAGING_NONE');
+
+            // include buffer_xas2_prefix
+            //console.log('**a pos', pos);
+            let buf2 = Buffer.alloc(this._buffer.length - pos);
+
+
+
+            this._buffer.copy(buf2, 0, pos);
+
+
+
+
+            //console.log('buf2', buf2);
+
+            let rec = new B_Record(buf2);
+            //console.log('rec', rec);
+            return rec;
+
+            //let
+
+            //let dec = Binary_Encoding.decode_buffer(buf2);
+            //console.log('dec', dec);
+
+            //return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
 
         } else {
             throw 'NYI';

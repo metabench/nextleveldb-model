@@ -74,6 +74,8 @@ class Record {
 
                 //console.log('pre split', a[0]);
                 this.kvp_bufs = Binary_Encoding.split_length_item_encoded_buffer(a[0]);
+
+
                 //console.log('this.kvp_bufs', this.kvp_bufs);
 
                 // 
@@ -258,7 +260,7 @@ class Record {
 
         //console.log('this.kvp_bufs[0]', this.kvp_bufs[0]);
 
-        if (this.kvp_bufs[0].length > 0) {
+        if (this.kvp_bufs[0] && this.kvp_bufs[0].length > 0) {
             return xas2.read(this.kvp_bufs[0]);
         } else {
             return undefined;
@@ -296,9 +298,11 @@ class Record {
     //  encoding:
     //  key length, key, value length, value.
 
+
+
     get buffer() {
         if (!def(this.kvp_bufs[0])) {
-            console.log('key not defined');
+            //console.log('key not defined');
             // So, need to be able to read the record when there is not a key.
             // First buffer has length 0.
 
@@ -306,6 +310,9 @@ class Record {
 
             return Buffer.concat([xas2(0).buffer, xas2(this.kvp_bufs[1].length).buffer, this.kvp_bufs[1]]);
         } else {
+            //console.log('this.kvp_bufs[0]', this.kvp_bufs[0]);
+            //console.log('this.kvp_bufs[1]', this.kvp_bufs[1]);
+
             return Buffer.concat([xas2(this.kvp_bufs[0].length).buffer, this.kvp_bufs[0], xas2(this.kvp_bufs[1].length).buffer, this.kvp_bufs[1]]);
         }
 
