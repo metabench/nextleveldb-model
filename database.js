@@ -1476,6 +1476,16 @@ Database.load = (arr_core) => {
     return load_arr_core(arr_core);
 }
 
+
+Database.kp_to_range = buf_kp => {
+    let buf_0 = Buffer.alloc(1);
+    buf_0.writeUInt8(0, 0);
+    let buf_1 = Buffer.alloc(1);
+    buf_1.writeUInt8(255, 0);
+    // and another 0 byte...?
+    return [Buffer.concat([buf_kp, buf_0]), Buffer.concat([buf_kp, buf_1])];
+}
+
 Database.diff_model_rows = (orig, current) => {
     let changed = [],
         added = [],

@@ -544,6 +544,10 @@ class Table {
         return this.record_def.indexed_field_names_and_ids;
     }
 
+    get map_indexes_by_field_names() {
+        return this.record_def.map_indexes_by_field_names;
+    }
+
     get inward_fk_refs() {
         let res = [];
         each(this.db.tables, table => {
