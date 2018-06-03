@@ -48,83 +48,57 @@ class Record {
 
         if (l === 1) {
             if (a[0] instanceof Buffer) {
-
                 // a buffer that can be split?
-
-
                 // one buffer
                 // odd kp, it has no 'value'
                 //  has a key
                 //  key is the buffer given
-
 
                 // Not so sure about this with the constructor.
                 //  Need to split the values into key value pair buffers.
 
                 // Need to split / decode the buffer.
                 // We may have been given the value, not a key.
-
                 //console.trace();
-
                 //this.kvp_bufs = [a[0], Buffer.alloc(0)];
                 //throw 'stop';
-
                 // length encoded buffers.
-
-
                 //console.log('pre split', a[0]);
                 this.kvp_bufs = Binary_Encoding.split_length_item_encoded_buffer(a[0]);
-
-
                 //console.log('this.kvp_bufs', this.kvp_bufs);
-
                 // 
-
                 //throw 'NYI'
             } else {
                 //console.log('else condition');
-
                 //console.log('a[0]', a[0]);
                 //console.log('a[0].length', a[0].length);
-
                 if (Array.isArray(a[0])) {
                     //console.log('its an array');
-
                     //console.log('a[0][1]', a[0][1]);
-
                     if (a[0].length === 2 && a[0][0] instanceof Buffer && a[0][1] instanceof Buffer) {
                         // Check they are both buffers.
-
                         this.kvp_bufs = a[0];
-
-
                     } else if (a[0].length === 2 && a[0][0] instanceof Buffer && a[0][1] === null) {
                         // Check they are both buffers.
-
                         //this.kvp_bufs = a[0];
                         this.kvp_bufs = [a[0][0], Buffer.alloc(0)];
-
-
                     } else {
-
                         //console.log('else 2');
-
                         if (Array.isArray(a[0][0]) && Array.isArray(a[0][1])) {
                             //console.log('both arrays');
-                            this.kvp_bufs = database_encoding.encode_model_row(a[0]);
-
+                            //this.kvp_bufs = database_encoding.encode_model_row(a[0]);
+                            this.kvp_bufs = [database_encoding.encode_key(a[0][0]), Binary_Encoding.encode_to_buffer(a[0][1])];
+                            //console.log('this.kvp_bufs', this.kvp_bufs);
                         } else {
-
                             // undefined key, but has value.
                             if (def(a[0][0])) {
-
-
-
+                                // encode key...
+                                //console.log('a[0]', a[0]);
+                                //console.log('a[0][0]', a[0][0]);
+                                //this.kvp_bufs = [database_encoding.encode_key(a[0][0]), Binary_Encoding.encode_to_buffer(a[0][1] || [])];
                                 console.trace();
                                 throw 'NYI';
                             } else {
-
-
                                 if (Array.isArray(a[0][1])) {
                                     this.kvp_bufs = [undefined, Binary_Encoding.encode_to_buffer(a[0][1])];
                                 } else {
@@ -132,9 +106,7 @@ class Record {
                                     throw 'NYI';
                                 }
                             }
-
                         }
-
                         // an array of arrays.
                         //  in that case, we will need to use database_encoding.encode_record
 
@@ -239,6 +211,12 @@ class Record {
         }
 
 
+    }
+
+    get decoded_key_no_kp() {
+        let decoded_key = this.key.decoded;
+        decoded_key.shift();
+        return decoded_key;
     }
 
     get decoded_no_kp() {

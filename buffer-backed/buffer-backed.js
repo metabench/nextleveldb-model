@@ -25,7 +25,7 @@ const from = (buf) => {
 
 
     if (prefix === RECORD) {
-        console.log('RECORD prefix');
+        //console.log('RECORD prefix');
         // then create the record out of that buf_the_rest
         return new Record(buf_the_rest);
     } else {
