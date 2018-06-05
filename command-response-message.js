@@ -1,5 +1,7 @@
 // Will be worth changing these names / values to make them less confusing.
 
+// message_type_id
+
 const BINARY_PAGING_NONE = 0;
 const BINARY_PAGING_FLOW = 1;
 const BINARY_PAGING_LAST = 2;
@@ -41,6 +43,7 @@ const database_encoding = require('./database');
 
 
 const B_Record = require('./buffer-backed/record');
+const B_Record_List = require('./buffer-backed/record-list');
 
 
 // Will be used for storage, encoding and decoding.
@@ -88,6 +91,9 @@ class Command_Response_Message {
 
                     this._buffer = Buffer.concat([xas2(a[0]).buffer, xas2(RECORD_PAGING_NONE).buffer, record_buf]);
 
+                } else {
+                    console.trace();
+                    throw 'NYI';
                 }
             }
 
@@ -97,15 +103,75 @@ class Command_Response_Message {
             //  Specific record encoding makes sense here.
             // (message_id, BINARY_PAGING_NONE, Binary_Encoding.encode_to_buffer(res));
 
+            // 
+
             if (l === 3) {
+
+                // and the page number?
+                //  need to be able to include the page number in the response.
+
                 let [message_id, message_type_id, buf_inner] = a;
                 //console.log('Command_Response_Message buf_inner', buf_inner);
                 if (message_type_id === BINARY_PAGING_NONE) {
                     this._buffer = Buffer.concat([xas2(message_id).buffer, xas2(message_type_id).buffer, buf_inner]);
                 } else {
+
+
+
                     throw 'NYI';
                 }
             }
+
+            if (l === 4) {
+
+                // and the page number?
+                //  need to be able to include the page number in the response.
+
+                // Should not necessarily need a buffer here.
+                //  An array of records will suffice.
+
+
+                // An array of data.
+                //  Need to encode it, should be able to encode it into a buffer with the extra prefixes.
+
+
+
+
+
+                let [message_id, message_type_id, page_number, data] = a;
+
+                console.log('Command_Response_Message data', data);
+
+                // Record_List
+
+                if (Array.isArray(data) && data[0] instanceof B_Record) {
+                    let rl = new B_Record_List(data);
+                    //this._buffer = rl.bu
+                    this._buffer = Buffer.concat([xas2(message_id).buffer, xas2(message_type_id).buffer, xas2(page_number).buffer, rl.buffer]);
+                }
+
+
+                //console.log('Command_Response_Message buf_inner', buf_inner);
+
+                /*
+
+                if (message_type_id === BINARY_PAGING_NONE) {
+                    this._buffer = Buffer.concat([xas2(message_id).buffer, xas2(message_type_id).buffer, buf_inner]);
+                } else {
+
+                    // 
+
+
+
+                    throw 'NYI';
+                }
+                */
+            }
+
+
+            // (message_id, RECORD_PAGING_FLOW, page, data);
+
+
         }
 
         // Want this to hold the whole message to avoid problems.
@@ -248,9 +314,6 @@ class Command_Response_Message {
             //let arr_bufs_kv = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2);
             //console.log('arr_bufs_kv', arr_bufs_kv);
             //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
-
-
-
 
             return Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2, remove_kp);
 
