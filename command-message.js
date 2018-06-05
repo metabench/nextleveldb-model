@@ -84,16 +84,10 @@ let map_paging_commands = get_truth_map_from_arr(command_ids_with_paging_option)
 class Command_Message {
     constructor(spec) {
 
-
         // This should probably have a message_id assigned.
         //  It could be optional.
 
         // Or leave it out for the moment as it gets added on send.
-
-
-
-
-
 
         let a = arguments;
         let l = a.length;
@@ -115,6 +109,13 @@ class Command_Message {
 
             // We may want paging to be standard here.
             //  It's paging and other communications options.
+
+            // Send paging.count_paging if we give another number
+            //  Server could have its own max and min page sizes too.
+            //  Here it is the client choosing.
+
+            // could say 'true' when there is paging too.
+
 
 
             if (typeof a[0] === 'number' && Array.isArray(a[1])) {
@@ -180,42 +181,59 @@ class Command_Message {
 
                 // Simplest construction is command, then param
 
+            } else {
+                console.trace();
+                throw 'NYI';
             }
 
 
 
+            // Have some assistance in building the command.
 
 
+            // building the command message out of arrays / other things.
+            //  has its paging and communication options, then its method call args.
 
 
-            // The command itself
+        } else if (l === 3) {
+            if (typeof a[0] === 'number' && Array.isArray(a[1]) && typeof a[2] === 'number') {
+                let [command_id, arr_args] = arguments;
 
-            // Optional paging option
+                // However, this uses buffer sub-encoding when reading the results.
 
-            // Maybe some kind of info about what return type it will get
+                // so for every array arg, if it's a buffer, then prepend it with 0
+                //  xas2 for simple buffer.
 
-            // The parameters.
+                // as we use decode_args_buffer
+                //  this decodes internal buffers.
 
-            // Then will be transmitted as binary and decoded on the server.
+                // encode to buffer, but each buffer has got a 0 prefix.
+
+                // for the moment...
+
+                // but these all get encoded to a single buffer.
+                // no buffers inside them
+
+                // Should not have such a problem decoding the Command_Buffer.
 
 
+                arr_args = arr_args.map(x => {
+                    //console.log('arr_args x', x);
+                    if (x instanceof Buffer) {
+                        return Buffer.concat([xas2(0).buffer, x]);
+                    } else {
+                        return x;
+                    }
+                });
 
 
-
-        } else {
-            console.trace();
-            throw 'NYI';
+                let buf_encoded_args = Binary_Encoding.encode_to_buffer(arr_args);
+                this.missing_id = true;
+                let buf_paging = new Paging.Record_Paging(a[2]).buffer;
+                //console.log('buf_paging', buf_paging);
+                this._buffer = Buffer.concat([xas2(command_id).buffer, buf_paging, buf_encoded_args]);
+            }
         }
-
-
-
-        // Have some assistance in building the command.
-
-
-        // building the command message out of arrays / other things.
-        //  has its paging and communication options, then its method call args.
-
-
     }
 
 
@@ -231,9 +249,6 @@ class Command_Message {
         } else {
             throw 'Command_Message ID has already been set';
         }
-
-
-
 
         //  
     }
@@ -335,17 +350,13 @@ class Command_Message {
 
         } else {
             [res, pos] = xas2.skip(this._buffer, 0);
-
         }
-
 
         // the buffer could be missing its initial xas2 message_id.
 
         //let [res, pos] = xas2.skip(this._buffer, 0);
         [command_id, pos] = xas2.read(this._buffer, pos);
         //console.log('command_id', command_id);
-
-
         let paging;
 
         // Always read the paging option.
@@ -373,14 +384,8 @@ class Command_Message {
         //   Should be possible to read it in a way that skips through.
 
         // Not every command carries the paging option though.
-
         // 
-
         //
-
-
-
-
 
 
         let buf_res = Buffer.alloc(this._buffer.length - pos);
@@ -435,6 +440,12 @@ class Command_Message {
 
         let arr_decoded_stage = Binary_Encoding.decode_buffer(this.inner_message_buffer);
         // decode buffers in array of params, 
+
+        // This required items in the Command_Message to have a specific type of encoding.
+        //  Could have a prefix for no encoding. Think that is 0. Need to check that it gets used.
+        //   Optional extra buffer encoding type prefix.
+
+
 
         let arr_decoded = buffer_backed.decode_args_buffers(arr_decoded_stage);
         //console.log('arr_decoded', arr_decoded);

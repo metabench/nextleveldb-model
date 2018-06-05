@@ -23,12 +23,21 @@ const from = (buf) => {
     let buf_the_rest = Buffer.alloc(buf.length - pos);
     buf.copy(buf_the_rest, 0, pos);
 
+    // 
+    //console.log('prefix', prefix);
+
 
     if (prefix === RECORD) {
         //console.log('RECORD prefix');
         // then create the record out of that buf_the_rest
         return new Record(buf_the_rest);
+    } else if (prefix === NONE) {
+        //console.log('RECORD prefix');
+        // then create the record out of that buf_the_rest
+        return buf_the_rest;
     } else {
+
+
         console.trace();
         throw 'NYI';
     }

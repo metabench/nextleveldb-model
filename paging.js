@@ -75,9 +75,7 @@ const PAGING_AND_EXTENDED_OPTIONS = 5;
 
 
 class Paging {
-    'constructor' (spec) {
-
-
+    constructor(spec) {
 
 
     }
@@ -136,12 +134,8 @@ class Paging {
             if (this.paging_type === NO_PAGING) {
                 return xas2(NO_PAGING).buffer;
             } else {
-
                 // 
-
                 // Can't include limit like this.
-
-
                 return Buffer.concat([xas2(this.paging_type).buffer, xas2(this.page_size).buffer]);
             }
 
@@ -161,15 +155,20 @@ class Paging {
 //   
 
 class No_Paging extends Paging {
-    'constructor' (num_records) {
+    constructor(num_records) {
         super();
         this.paging_type = NO_PAGING;
     }
 }
 
+// Numbered paging.
+//  Either timed, or number of records.
+
+
+
 // Record_Paging will change to Count_Paging
 class Record_Paging extends Paging {
-    'constructor' (num_records) {
+    constructor(num_records) {
         super();
         this.num_records = num_records;
         this.page_size = num_records;
@@ -178,7 +177,7 @@ class Record_Paging extends Paging {
 }
 
 class Key_Paging extends Paging {
-    'constructor' (num_keys) {
+    constructor(num_keys) {
         console.log('DEPRACATION WARNING: Key_Paging');
         super();
         this.num_keys = num_keys;
@@ -190,7 +189,7 @@ class Key_Paging extends Paging {
 // Byte paging will send complete records though.
 
 class Byte_Paging extends Paging {
-    'constructor' (num_bytes) {
+    constructor(num_bytes) {
         super();
         this.num_bytes = num_bytes;
         this.page_size = num_bytes;
@@ -199,7 +198,7 @@ class Byte_Paging extends Paging {
 }
 
 class Timed_Paging extends Paging {
-    'constructor' (ms_delay) {
+    constructor(ms_delay) {
         super();
         this.ms_delay = ms_delay;
         this.page_size = ms_delay;
