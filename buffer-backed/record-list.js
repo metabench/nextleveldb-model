@@ -92,7 +92,6 @@ class Record_List {
             this._buffer = a[0];
         } else if (sig === '[a]') {
             // Will be an array of buffers or arr records
-
             let arr_bufs = [];
 
             let arr_records = a[0],
@@ -304,6 +303,67 @@ class Record_List {
 
         //throw 'NYI';
     }
+
+    // just have to array
+
+    // so will just be an array of b_records
+
+    get arr() {
+        let pos = 0;
+        let complete = false;
+        let l = this._buffer.length;
+
+
+
+        let type_id, buf_l_key, buf_l_value;
+        let b = this._buffer;
+        //console.log('l', l);
+        //console.log('this._buffer', this._buffer);
+        //throw 'stop';
+
+        let res = [];
+
+        while (pos < l) {
+            //[type_]
+            //console.log('2) pos', pos);
+            //[type_id, pos] = xas2.read(b, pos); 
+
+            [buf_l_key, pos] = xas2.read(b, pos);
+
+            // then can copy alloc and copy to the new buf
+            let key_buf = Buffer.alloc(buf_l_key);
+            b.copy(key_buf, 0, pos, pos + buf_l_key);
+            pos = pos + buf_l_key;
+
+            [buf_l_value, pos] = xas2.read(b, pos);
+            // then can copy alloc and copy to the new buf
+            let key_value = Buffer.alloc(buf_l_value);
+            b.copy(key_value, 0, pos, pos + buf_l_value);
+            pos = pos + buf_l_value;
+
+            //console.log('key_buf', key_buf);
+            //console.log('key_value', key_value);
+
+            //console.log('* item_buf', item_buf);
+
+            // Could yield a proper key instead.
+
+            let item = new Record([key_buf, key_value]);
+
+            //console.log('item', item);
+            //throw 'stop';
+            res.push(item);
+
+
+            //console.log('buf_l', buf_l);
+            //console.log('3) pos', pos);
+
+
+        }
+
+        return res;
+    }
+
 
     // Need to iterate through the items.
     //  Iterate through buffer backed records.

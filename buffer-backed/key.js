@@ -54,6 +54,12 @@ class Key {
 
     }
 
+    get decoded_no_kp() {
+        let res = this.decoded;
+        res.shift();
+        return res;
+    }
+
     get length() {
         // 
         return database_encoding.key_length(this._buffer);

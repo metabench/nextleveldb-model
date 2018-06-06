@@ -140,7 +140,7 @@ class Command_Response_Message {
 
                 let [message_id, message_type_id, page_number, data] = a;
 
-                console.log('Command_Response_Message data', data);
+                //console.log('Command_Response_Message data', data);
 
                 // Record_List
 
@@ -148,24 +148,10 @@ class Command_Response_Message {
                     let rl = new B_Record_List(data);
                     //this._buffer = rl.bu
                     this._buffer = Buffer.concat([xas2(message_id).buffer, xas2(message_type_id).buffer, xas2(page_number).buffer, rl.buffer]);
-                }
-
-
-                //console.log('Command_Response_Message buf_inner', buf_inner);
-
-                /*
-
-                if (message_type_id === BINARY_PAGING_NONE) {
-                    this._buffer = Buffer.concat([xas2(message_id).buffer, xas2(message_type_id).buffer, buf_inner]);
                 } else {
-
-                    // 
-
-
-
+                    console.trace();
                     throw 'NYI';
                 }
-                */
             }
 
 
@@ -205,12 +191,24 @@ class Command_Response_Message {
         return id;
     }
 
+    // get paged bool
+
+    get paged() {
+        return (this.message_type_id === BINARY_PAGING_FLOW || this.message_type_id === BINARY_PAGING_LAST ||
+            this.message_type_id === RECORD_PAGING_FLOW || this.message_type_id === RECORD_PAGING_LAST ||
+            this.message_type_id === KEY_PAGING_FLOW || this.message_type_id === KEY_PAGING_LAST
+        )
+    }
 
 
     get is_last() {
-        console.log('this.message_type_id', this.message_type_id);
-        console.log('this._buffer', this._buffer);
-        return (this.message_type_id === BINARY_PAGING_NONE || this.message_type_id === BINARY_PAGING_LAST || this.message_type_id === RECORD_PAGING_NONE || this.message_type_id === RECORD_PAGING_LAST || this.message_type_id === KEY_PAGING_NONE || this.message_type_id === KEY_PAGING_LAST);
+        //console.log('this.message_type_id', this.message_type_id);
+        //console.log('this._buffer', this._buffer);
+
+        // Maybe not when there is no paging.
+        // Though technically it is the last.
+
+        return (this.message_type_id === BINARY_PAGING_NONE || this.message_type_id === BINARY_PAGING_FLOW || this.message_type_id === RECORD_PAGING_NONE || this.message_type_id === RECORD_PAGING_LAST || this.message_type_id === KEY_PAGING_NONE || this.message_type_id === KEY_PAGING_LAST);
     }
 
     //get buffer
@@ -384,7 +382,12 @@ class Command_Response_Message {
 
             //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
 
-            return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
+            // put them into a Record_List?
+            //  buffer to array of records?
+
+            return new B_Record_List(buf2).arr;
+
+            //return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
 
         } else if (message_type_id === RECORD_PAGING_LAST) {
             // break it into records.
@@ -410,7 +413,9 @@ class Command_Response_Message {
 
             //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
 
-            return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
+            //return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
+
+            return new B_Record_List(buf2).arr;
 
         } else if (message_type_id === RECORD_PAGING_NONE) {
             // Just a single record?
@@ -420,18 +425,40 @@ class Command_Response_Message {
             //console.log('**a pos', pos);
             let buf2 = Buffer.alloc(this._buffer.length - pos);
 
+            // Should maybe expect a list of records here.
+            //  This seems to be used when there is a callback.
+
+            // Record or array of records?
+            //  Load as a list, get as array, if there is just one, return that.
+
+            // Server-side encoding to say something is an array of records / record list.
+            //  Could put it into a Record_List on server.
+
+
+
+
 
 
             this._buffer.copy(buf2, 0, pos);
+
+            let arr_records = new B_Record_List(buf2).arr;
+            //console.log('arr_records', arr_records);
+            //console.log('arr_records.length', arr_records.length);
+
+            if (arr_records.length === 1) {
+                return arr_records[0];
+            } else {
+                return arr_records;
+            }
 
 
 
 
             //console.log('buf2', buf2);
 
-            let rec = new B_Record(buf2);
+            //let rec = new B_Record(buf2);
             //console.log('rec', rec);
-            return rec;
+            //return rec;
 
             //let
 

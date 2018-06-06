@@ -8,6 +8,7 @@
 
 const lang = require('lang-mini');
 const def = lang.is_defined;
+const each = lang.each;
 
 let Binary_Encoding = require('binary-encoding');
 let xas2 = require('xas2');
@@ -322,6 +323,26 @@ class Record {
         return res;
     }
 
+    to_obj(model_table) {
+        let fields = model_table.kv_fields.reduce((a, b) => a.concat(b));
+        let decoded = this.decoded_no_kp.reduce((a, b) => a.concat(b));
+        //console.log('fields', fields);
+        //console.log('decoded', decoded);
+        let res = {};
+        each(fields, (v, i) => {
+
+            if (def(decoded[i])) res[v] = decoded[i];
+
+
+            //if (v != undefined) res[v] = decoded[i];
+
+            //console.log('v', v);
+        });
+
+        //console.log('res', res);
+        return res;
+        //console.log('Array.prototype.flat', Array.prototype.flat);
+    }
 
 
 
@@ -357,7 +378,6 @@ class Record {
             return this.value.get_value_at(idx - kl);
         }
     }
-
 
     // make iterable...
     //  just a key and value
