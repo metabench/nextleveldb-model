@@ -68,18 +68,10 @@ class Key {
 
     get_value_at(idx) {
         // Should maybe handle index keys too.
-
         // this._pos_value_beginning
-
         //console.log('KEY get_value_at', idx);
-
         // But it's maybe an index record key. Can it handle getting the value like this?
-
         return database_encoding.key_value_at(this._buffer, idx);
-
-
-
-
     }
 
     validate() {

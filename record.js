@@ -318,6 +318,16 @@ class Record {
         return res;
     }
 
+
+
+    // A way of creating the index records quicker / more efficiently out of buffer copies?
+    //  It works out which ranges of which buffers to select, and then copies them.
+
+    // b_record functionality to create b_rows when given the model_table (which is the indexing system)
+    //  b_record.get_index_b_rows(model_table)
+
+
+
     // this is just the index keys.
 
     index_db_records_to_arr_buffers() {
@@ -326,11 +336,8 @@ class Record {
         var res = [];
         //console.log('*indexes.length', indexes.length);
         each(indexes, (index) => {
-
             //console.log('index.id', index.id);
-
             //console.log('index.record_to_index_buffer(record)', index.record_to_index_buffer(record));
-
             // Could put it in place so the index records have got [k,v] format, even if v is empty.
             res.push(index.record_to_index_buffer(record));;
         });

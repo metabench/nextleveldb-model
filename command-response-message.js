@@ -364,7 +364,7 @@ class Command_Response_Message {
             // break it into records.
             //  num records here?
 
-            console.log('RECORD_PAGING_FLOW');
+            //console.log('RECORD_PAGING_FLOW');
 
             [page_number, pos] = xas2.read(this._buffer, pos);
             //console.log('page_number', page_number);
