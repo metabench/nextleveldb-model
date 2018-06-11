@@ -2,8 +2,6 @@
     17/05/2018 - Maybe this is a 'row' rather than a 'record'. A record encompasses index rows as well.
     // A record could be composed of its index rows too.
     // Removal of index rows when the record changes may be the best approach.
-
-
 */
 
 const lang = require('lang-mini');
@@ -33,16 +31,13 @@ const RECORD = 1;
 const KEY = 2;
 const VALUE = 3;
 
-
 // Record_Row
 //  That should be what this is really called.
 
 // A row is not necessarily a record row. A record itself has got index rows too sometimes.
 
-
-
-
-
+// Read_fields_to_buffer
+//  Then when making index records from normal records it could carry that out.
 
 class Row {
     constructor() {
@@ -50,7 +45,7 @@ class Row {
             l = a.length;
 
         //console.log('Record l', l);
-        console.log('a', a);
+        //console.log('a', a);
         // can construct record out of array of two values.
 
         // Not using sig right now to save speed.
@@ -120,23 +115,15 @@ class Row {
                         }
                         // an array of arrays.
                         //  in that case, we will need to use database_encoding.encode_record
-
-
-
                         //throw 'NYI';
                     }
-
                 } else {
-
                     //console.log('a[0] is not an array');
-
-
                     if (a.length === 2) {
                         if (a[0] instanceof Buffer && a[1] instanceof Buffer) {
                             this.kvp_bufs = Array.from(a);
                             // copy it to an array?
                             // Maybe no need, arraylike will be fine?
-
                         } else {
                             console.trace();
                             throw 'NYI';
@@ -151,14 +138,10 @@ class Row {
             console.trace();
             throw 'NYI';
         }
-
         // Then the key will be using the key buffer.
         // Could do with an OO value class.
-
         // So, just 'key' and 'value' types are needed for good OO representation of these records.
-
         // Can get the key or the value from each of those buffers.
-
     }
 
     get record() {
@@ -204,9 +187,7 @@ class Row {
             return this._value = new Value(this.kvp_bufs[1]);
         }
     }
-
     // validate encoding...
-
 
     get decoded() {
         if (this.kp === 0) {
@@ -240,8 +221,6 @@ class Row {
         //let res = xas2.read(this.kvp_bufs[0]);
         //console.log('this.kvp_bufs', this.kvp_bufs);
         //console.log('this', this);
-
-
         //console.log('this.kvp_bufs[0]', this.kvp_bufs[0]);
 
         if (this.kvp_bufs[0] && this.kvp_bufs[0].length > 0) {
@@ -249,17 +228,11 @@ class Row {
         } else {
             return undefined;
         }
-
-
-
     }
-
 
     // get as a single buffer
     //  encoding:
     //  key length, key, value length, value.
-
-
 
     get buffer() {
         if (!def(this.kvp_bufs[0])) {
@@ -282,7 +255,6 @@ class Row {
     get buffer_xas2_prefix() {
         return new xas2(RECORD).buffer;
     }
-
 
     // get it to read the keys to find the number of items there.
     //  need to be able to identify the specific fields within the record.
@@ -312,9 +284,7 @@ class Row {
         //console.log('decoded', decoded);
         let res = {};
         each(fields, (v, i) => {
-
             if (def(decoded[i])) res[v] = decoded[i];
-
 
             //if (v != undefined) res[v] = decoded[i];
 
@@ -326,12 +296,8 @@ class Row {
         //console.log('Array.prototype.flat', Array.prototype.flat);
     }
 
-
-
     get_field_value(idx) {
-
         let kl = this.key_length;
-
         //console.log('this.key_length', kl);
         //console.log('idx', idx);
 
@@ -340,14 +306,9 @@ class Row {
         //console.log('kl', kl);
         //console.log('');
 
-
-
         if (idx < kl) {
-
-
             return this.key.get_value_at(idx);
         } else {
-
             //console.log('this.value', this.value);
             //let r_idx = idx - kl;
             //let res = this.value.get_value_at(r_idx);
@@ -365,18 +326,13 @@ class Row {
     //  just a key and value
 
     * iterator() {
-
         yield this.kvp_bufs[0];
         yield this.kvp_bufs[1];
-
-
     }
 
     [Symbol.iterator]() {
         return this.iterator();
     }
-
-
 }
 
 module.exports = Row;

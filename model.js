@@ -13,6 +13,8 @@ var model = {
     'Key_List': require('./buffer-backed/key-list'),
     'Record_List': require('./buffer-backed/record-list'),
     'Index_Record_Key': require('./buffer-backed/index-record-key'),
+    'BB_Row': require('./buffer-backed/row'),
+    'BB_Index_Row': require('./buffer-backed/index-row'),
     'BB_Record': require('./buffer-backed/record'),
     'BB_Key': require('./buffer-backed/key'),
     'BB_Value': require('./buffer-backed/value'),

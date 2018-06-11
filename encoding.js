@@ -349,35 +349,15 @@ let select_indexes_buffer_from_kv_pair_buffer = (buf_kvp, remove_kp, arr_indexes
         // Seems like data was encoded wrong in the table buffer.
 
 
-
-
-
         [buf_selected_key_fields, total_key_fields_count] = Binary_Encoding.buffer_select_from_buffer(buf_key, arr_indexes, 1, 1);
         //console.log('buf_selected_key_fields, total_key_fields_count', buf_selected_key_fields, total_key_fields_count);
-
         // We need to have the encoding method of xas2 encoded alongside this data.
-
         // The selected fields should be encoded alongside their types. Then before that is the length
-
-
         //  Need the right language for it too to avoid confusion.
-
-
-
 
         //throw 'stop';
         // then read the value part.
-
-
-
-
-
-
         //throw 'stop';
-
-
-
-
     } else {
         throw 'select_indexes_buffer_from_kv_pair_buffer NYI';
     }
