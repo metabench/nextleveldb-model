@@ -166,7 +166,6 @@ class Database {
         var tables = this.tables = [];
         var map_tables = this.map_tables = {};
         let map_tables_by_id = this.map_tables_by_id = {};
-
         // map indexes by fields.
 
 
@@ -388,7 +387,7 @@ class Database {
 
         this.tbl_fields = tbl_fields;
 
-        this.tbl_fields = tbl_fields;
+        //this.tbl_fields = tbl_fields;
 
         var add_table_table_record = (table) => {
 

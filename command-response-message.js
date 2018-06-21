@@ -319,6 +319,23 @@ class Command_Response_Message {
         }
     }
 
+    get page_number() {
+        let [message_type_id, pos] = xas2.skip(this._buffer, 0);
+        let page_number;
+        //[id, pos] = xas2.skip(this._buffer, pos);
+        [message_type_id, pos] = xas2.read(this._buffer, pos);
+        if (message_type_id === RECORD_PAGING_LAST) {
+            // break it into records.
+            //  num records here?
+            [page_number, pos] = xas2.read(this._buffer, pos);
+        } else if (message_type_id === RECORD_PAGING_LAST) {
+            [page_number, pos] = xas2.read(this._buffer, pos);
+        } else {
+            [page_number, pos] = xas2.read(this._buffer, pos);
+        }
+        return page_number;
+    }
+
     get unpaged() {
         //let kvp_buffers = this.kvp_buffers;
         // How about creating new Record objects...

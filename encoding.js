@@ -1200,6 +1200,16 @@ let obs_decode = (obs) => {
 
 }
 
+let kp_to_range = buf_kp => {
+    let buf_0 = Buffer.alloc(1);
+    buf_0.writeUInt8(0, 0);
+    let buf_1 = Buffer.alloc(1);
+    buf_1.writeUInt8(255, 0);
+    // and another 0 byte...?
+
+    return [Buffer.concat([buf_kp, buf_0]), Buffer.concat([buf_kp, buf_1])];
+}
+
 // Decoding observable data?
 
 let Database_Encoding = {
@@ -1233,6 +1243,8 @@ let Database_Encoding = {
     'key_length': key_length,
     'key_value_at': key_value_at,
     'obs_decode': obs_decode,
+
+    'kp_to_range': kp_to_range,
 
     'encode': {
         'key': encode_key,

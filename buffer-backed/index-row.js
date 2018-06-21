@@ -3,7 +3,6 @@
     // A record could be composed of its index rows too.
     // Removal of index rows when the record changes may be the best approach.
 
-
 */
 
 const Row = require('./row');
@@ -24,7 +23,6 @@ const STRING = 4;
 const BUFFER = 9;
 const ARRAY = 10;
 
-
 // Standard data 0. just normal decoding.
 
 // ~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -40,11 +38,6 @@ const VALUE = 3;
 //  That should be what this is really called.
 
 // A row is not necessarily a record row. A record itself has got index rows too sometimes.
-
-
-
-
-
 
 class Index_Row extends Row {
     constructor(...args) {
