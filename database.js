@@ -97,10 +97,14 @@ Want an OO system that presents the data in a form that's easy to use for the pr
 
 
 var lang = require('lang-mini');
+/*
 var each = lang.each;
 var get_a_sig = lang.get_a_sig;
 var clone = lang.clone;
 var tof = lang.tof;
+*/
+
+const {each, get_a_sig, clone, tof, Evented_Class} = lang;
 
 var Incrementor = require('./incrementor');
 var Table = require('./table');
@@ -142,7 +146,6 @@ const NT_TIME = 3;
 const NT_STRING = 4;
 const NT_FLOAT32_LE = 5;
 
-
 const map_core_table_names = {
     'tables': true,
     'native types': true,
@@ -150,15 +153,24 @@ const map_core_table_names = {
     'table indexes': true
 }
 
-class Database {
+const add_table_event_listeners = (db, table) => {
+    // listen for changes where the table has new foreign key fields (that refer elsewhere)
+
+    table.on('change', e_change => {
+        console.log('add_table_event_listeners change', e_change);
+    });
+
+}
+
+class Database extends Evented_Class {
 
     // Database could have a name.
     //  Storing a name as a DB Property would be useful.
     //  A System Properties table would be of use.
 
     constructor(spec) {
+        super();
         this.__type_name = 'database';
-
         // Such a core part of the Model that we'll do it here.
 
         var map_incrementors = this.map_incrementors = {};
@@ -167,8 +179,6 @@ class Database {
         var map_tables = this.map_tables = {};
         let map_tables_by_id = this.map_tables_by_id = {};
         // map indexes by fields.
-
-
 
         if (typeof spec === 'undefined') {
             //throw 'stop';
@@ -179,7 +189,6 @@ class Database {
         if (spec === false) {
 
         } else {
-
             var t_spec = tof(spec);
             if (t_spec === 'array') {
                 // load the db def.
@@ -221,12 +230,18 @@ class Database {
             //res[i] = [table.id, table.name];
             res.push(table.name + '\n');
             res.push('-'.repeat(table.name.length) + '\n\n');
-
             res.push('fields\n');
             each(table.fields, (field) => {
                 //res.push('\t', field.description);
                 res.push('    ', field.description + '\n');
-            })
+            });
+            // and the table indexes
+
+            res.push('indexes\n');
+            each(table.indexes, (index) => {
+                //res.push('\t', field.description);
+                res.push('    ', index.description + '\n');
+            });
 
             res.push('\n');
         })
@@ -238,9 +253,7 @@ class Database {
     }
 
     view_decoded_rows() {
-
         var model_rows = this.get_model_rows();
-
         each(model_rows, (model_row) => {
             //console.log('1) model_row', model_row);
             console.log('model_row', Database.decode_model_row(model_row));
@@ -251,26 +264,20 @@ class Database {
 
 
     load_db_arr_def(arr_def) {
-
-
         // Core model is important for some things, but it's got in the way of loading.
         //  May need to be careful to set some table ids etc.
 
-
         // Definition is a list of tables.
         this.create_db_core_model();
-
         // definition supposes core model already exists.
-
-
         var tables = arr_def;
-        var that = this;
+        //var that = this;
         each(tables, (table) => {
             //var table_name = table[0];
             //var table_def = table[1];
             //console.log('\n\n\n');
             //console.log('table', table);
-            that.add_table(table);
+            this.add_table(table);
         });
     }
 
@@ -293,7 +300,6 @@ class Database {
         // Maybe core model should not be created before loading.
         //  Or need to change loading code to avoid messing it up.
 
-
         //console.log('create_db_core_model');
         //console.trace();
 
@@ -303,6 +309,17 @@ class Database {
         let tables = this.tables;
         let map_tables = this.map_tables;
         let map_tables_by_id = this.map_tables_by_id;
+
+
+        //let map_tables_incoming_fks = {};
+        // target table, source table (with the field)
+        //  want to quickly lookup when a table has got records that refer to it.
+        //   then with any record, we can find the references using the db structure and the key, maybe index lookups on that field.
+        //  [target table id, source table id, source field id]
+
+
+
+
 
         let inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
         incrementors.push(inc_incrementor);
@@ -329,9 +346,10 @@ class Database {
         map_tables_by_id[tbl_tables.id] = tbl_tables;
         this.tbl_tables = tbl_tables;
 
+        // add event listeners for the tables.
+
         tbl_tables.set_pk('+id');
         tbl_tables.add_field('name', -1, NT_STRING);
-
 
         tbl_tables.add_index([
             ['name'],
@@ -348,9 +366,6 @@ class Database {
             ['name'],
             ['id']
         ]);
-
-
-
 
         tbl_native_types.add_records([
             [[0], ['xas2']],
@@ -414,7 +429,6 @@ class Database {
                     [table.name, [table.inc_fields.id, table.inc_indexes.id, table.inc_foreign_keys.id]]
                 ]);
             }
-
             tbl_tables.pk_incrementor.increment();
         }
 
@@ -438,8 +452,6 @@ class Database {
         this.add_tables_indexes_to_indexes_table(tbl_native_types);
         this.add_tables_indexes_to_indexes_table(tbl_fields);
         this.add_tables_indexes_to_indexes_table(tbl_table_indexes);
-
-        // 
         // no, the table incrementor
 
         // Seems more of an issue upon loading.
@@ -447,7 +459,6 @@ class Database {
 
         // This does cause some problems.
         //  It's worth making a fix specifically for this.
-
 
         //inc_table.increment(6); // Space for more system tables.
         //tbl_tables.pk_incrementor.increment(6);
@@ -467,12 +478,9 @@ class Database {
 
             var res = new Incrementor(name, id, value);
             this.incrementors.push(res);
-
             //console.log('this', this);
-
             this.map_incrementors[name] = res;
             return res;
-
         } else {
             console.trace();
             throw 'Unexpected incrementor signature, ' + sig;
@@ -501,7 +509,6 @@ class Database {
             //  Is it a primary key
             //  Info on it being a foreign key - what table it refers to.
             // This is to do with the fields table's fields. Need to be somewhat careful with this.
-
             var arr_kv_index_record = index.get_kv_record();
             var ti_record = tbl_indexes.add_record(arr_kv_index_record);
         });
@@ -528,11 +535,8 @@ class Database {
         var table, name;
         var sig = get_a_sig(a);
 
-
         // , add_fields_and_indexes_table_records = false
         // Long complex sig now.
-
-
         let add_fields_and_indexes_table_records = false;
 
         // Should probably get the table id here from using the incrementor, rather than from within the table constructor.
@@ -556,8 +560,6 @@ class Database {
         } else if (sig === '[a]') {
             var a_sig = get_a_sig(a[0]);
             //console.log('a_sig', a_sig);
-
-
             //throw 'stop';
         } else if (a_sig === '[s,a]') {
             var table_name = a[0][0];
@@ -575,10 +577,40 @@ class Database {
         } else {
             table = new Table(table_def, this);
         }
+
+        each(table.fields, field => {
+            if (field.fk_to_table) {
+                //console.log('fk field', field);
+                let to_table_id = field.fk_to_table.id;
+                // and it goes to the pk of the table
+                
+                let from_table_id = field.table.id;
+                let from_field_id = field.id;
+
+                console.log('foreign key: [to_table_id, from_table_id, from_field_id]', [to_table_id, from_table_id, from_field_id]);
+
+                this.map_tables_incoming_fks[to_table_id] = this.map_tables_incoming_fks[to_table_id] || {};
+                this.map_tables_incoming_fks[to_table_id][from_table_id] = from_field_id;
+                
+                //this.map_tables_incoming_fks[[to_table_id, from_table_id].toString()] = from_field_id;
+            }
+            // if it points towards another field, then we want to put it in a map of incoming fk refs
+            // With some tables, we may want to find every field that refers to it.
+        });
         // Assign it to the db.
         // name, db, record_def
 
         //console.log('add_table table.name', table.name);
+
+
+        // We don't get these change listeners as its building the table.
+        //  They would be useful as wqe want to notice when the table adds a field with a foreign key.
+
+        // At this point we could scan the tables to see which fields have got foreign keys.
+        //  Iterating all fields would help.
+
+        console.log('pre atl');
+        add_table_event_listeners(this, table);
 
         tables.push(table);
         map_tables[table.name] = table;
@@ -592,7 +624,6 @@ class Database {
 
         //console.log('');
         //console.log('this._init', this._init);
-        //
         //console.trace();
         //console.log('');
 
@@ -601,23 +632,32 @@ class Database {
         // add_fields_and_indexes_table_records
 
         if (add_fields_and_indexes_table_records || !this._init) {
-
             this.add_tables_fields_to_fields_table(table);
             // and assign the field records to the fields while doing this.
             // add record to tables table
             // Want to encode an array within a record. Should be OK.
-
             var arr_inc_ids = table.own_incrementor_ids;
-
             // ensure record?
-
             this.tbl_tables.add_record([
                 [table.id],
                 [table.name, arr_inc_ids]
             ]);
             this.add_tables_indexes_to_indexes_table(table);
         }
+        //console.log('this', this);
+        this.raise('change', {
+            'name': 'add_table',
+            'value': table
+        });
         return table;
+    }
+
+    iterate_all_fields(handler) {
+        each(this.arr_tables, table => {
+            each(table.fields, field => {
+                handler(field);
+            });
+        });
     }
 
     table_exists(table_name) {
@@ -636,9 +676,7 @@ class Database {
                 var spec_record_def = a[1];
                 return this.add_table(table_def);
             }
-
             // check if the table exists.
-
             //var spec_record_def = a[1];
             //table = new Table(name, this, spec_record_def);
         }
@@ -683,14 +721,12 @@ class Database {
         var incrementors = this.incrementors;
         var tables = this.tables;
         var res = [];
-
         each(incrementors, (incrementor) => {
             var incrementor_db_records = incrementor.get_all_db_records();
             each(incrementor_db_records, (incrementor_db_record) => {
                 res.push(incrementor_db_record);
             });
         });
-
         each(tables, (table) => {
             var table_all_db_records = table.get_all_db_records();
             each(table_all_db_records, (table_db_record) => {
@@ -700,9 +736,7 @@ class Database {
         return res;
     }
 
-
     // Is there a way to get these decoded to start with, rather than getting all db records bin
-
     // Gets them as binary
     get_model_rows() {
 
@@ -719,7 +753,6 @@ class Database {
                 res.push(incrementor_db_record);
             });
         });
-
         // Tables should be in order.Not sure why it's not.
         //  Could look into the ordering of tables here.
         //console.log('this.table_names', this.table_names);
@@ -735,7 +768,6 @@ class Database {
         return res;
     }
 
-
     // or records?
     get rows() {
         var incrementors = this.incrementors;
@@ -748,9 +780,7 @@ class Database {
         //  but the model should have loaded the indexes
         each(tables, table => res.push.apply(res, table.b_records));
         // 
-
         return res;
-
     }
 
     get_table_records_length(table_name) {
@@ -766,16 +796,11 @@ class Database {
     get_idx_records_by_record(arr_record) {
         let kp = arr_record[0][0];
         let table_id = (kp - 2) / 2;
-
         let table = this.map_tables_by_id[table_id];
-
         arr_record[0].shift();
-
         let record = new Record(arr_record, table);
-
         let indexes = record.get_arr_index_records();
         return indexes;
-
     }
 
     get_table_kv_field_names(table_name) {
@@ -788,7 +813,6 @@ class Database {
             if (!map_core_table_names[table.name]) {
                 res.push(table);
             }
-
         })
         return res;
     }
@@ -808,13 +832,9 @@ class Database {
     }
 
     get_model_rows_encoded() {
-
         // Think this all the model rows though...?
-
         var model_rows = this.get_model_rows();
-
         //console.log('model_rows.length', model_rows.length);
-
         //throw 'stop';
         var arr_simple_encoded = [];
         each(model_rows, (model_row) => {
@@ -828,12 +848,9 @@ class Database {
     }
 
     encode_table_model_rows(table_name, arr_rows) {
-
-
         var key_prefix = this.map_tables[table_name].key_prefix;
         var res = [];
         each(arr_rows, (row) => {
-            // encode_model_row
             res.push(encode_model_row(database_encoding.encode_pair_to_buffers(row, key_prefix)));
         });
         return Buffer.concat(res);
@@ -843,32 +860,21 @@ class Database {
     ensure_table_records_no_overwrite(table_name, arr_records) {
         var table = this.map_tables[table_name];
         // Don't overwrite the keys or the values
-
         //  Can't have matching names.
         //   Enforcing unique constraints while putting records in the normal way should be enough.
-
         return table.ensure_records_no_overwrite(arr_records);
     }
 
     diff(other_model) {
-
         let my_model_rows = this.get_model_rows_decoded();
         let their_model_rows = other_model.get_model_rows_decoded();
-
         //console.log('my_model_rows', my_model_rows);
         //console.log('their_model_rows', their_model_rows);
-
         let res = Database.diff_model_rows(my_model_rows, their_model_rows);
-
         res.count = res.changed.length + res.added.length + res.deleted.length;
-
         //res.orig = this;
         //res.other = other_model;
-
         return res;
-
-
-
     }
 
     get non_core_table_names() {
@@ -901,15 +907,12 @@ class Database {
     //  
 
     create_index_records_by_record(arr_record) {
-
-
         // generates them.
 
         let table_pk = arr_record[0][0];
         let table_id = (table_pk - 2) / 2;
         //console.log('create_index_records_by_record table_pk', table_pk);
         //console.log('table_id', table_id);
-
         // 
 
         let table = this.map_tables_by_id[table_id];
@@ -920,18 +923,13 @@ class Database {
         //console.log('record', record);
         let idxs = record.get_arr_index_records();
         //console.log('idxs', idxs);
-
         return idxs;
-
-
 
     }
 
     arr_records_to_records_with_index_records(arr_records) {
         let res = [];
-
         //console.log('arr_records', arr_records);
-
         each(arr_records, record => {
             //console.log('record', record);
             res.push(record);
@@ -944,7 +942,6 @@ class Database {
 
     get index_count_per_table() {
         let res = [];
-
         each(this.tables, table => {
             res.push([table.name, table.indexes.length]);
         })
@@ -1070,7 +1067,6 @@ var load_arr_core = (arr_core) => {
         db.inc_incrementor = db.incrementors[0];
         db.inc_table = db.incrementors[1];
 
-
         var arr_table_names = new Array(arr_table_tables_rows.length);
         each(arr_table_tables_rows, (v, i) => {
             //console.log('v', v);
@@ -1083,7 +1079,6 @@ var load_arr_core = (arr_core) => {
         let map_table_id_incrementors = {};
         let arr_id_incrementors = [];
 
-
         each(db.incrementors, db_incrementor => {
             //console.log('db_incrementor', db_incrementor);
             if (db_incrementor.name.lastIndexOf('_id') === db_incrementor.name.length - 3) {
@@ -1092,7 +1087,6 @@ var load_arr_core = (arr_core) => {
                 //console.log('table_name', table_name);
                 map_table_id_incrementors[table_name] = db_incrementor;
             }
-
         });
         //
 
@@ -1147,13 +1141,14 @@ var load_arr_core = (arr_core) => {
 
             let is_system_table = map_system_table_names[table_name];
 
-            let table;
+            //let table;
 
-            if (is_system_table) {
-                table = db.add_table(table_name, table_id, arr_table_incrementors);
-            } else {
-                table = db.add_table(table_name, table_id, arr_table_incrementors);
-            }
+            //if (is_system_table) {
+            //    table = db.add_table(table_name, table_id, arr_table_incrementors);
+            //} else {
+            //    table = db.add_table(table_name, table_id, arr_table_incrementors);
+            //}
+            let table = db.add_table(table_name, table_id, arr_table_incrementors);
 
             //console.log('db.tables.length', db.tables.length);
 
@@ -1187,7 +1182,7 @@ var load_arr_core = (arr_core) => {
                     //console.log('table.pk_incrementor', table.pk_incrementor);
                 }
             }
-        })
+        });
 
         // so seems the primary key incrementors were not recorded.
         //  They are vital for some operations.
@@ -1274,7 +1269,6 @@ var load_arr_core = (arr_core) => {
                 } else {
                     data_type_id = table_field_row[1][1];
                     //console.log('data_type_id', data_type_id);
-
                     is_pk = table_field_row[1][2];
                     fk_to_table_id = table_field_row[1][3];
                 }
@@ -1317,18 +1311,12 @@ var load_arr_core = (arr_core) => {
 
             // Then will test this reconstruction with a more advanced database structure, such as one to hold cryptocurrencies.
 
-
-
             if (is_pk) {
                 //table.record_def.
             } else {
 
             }
-
         });
-
-
-
 
         // arr_table_index_rows
         each(arr_table_index_rows, (table_index_row) => {
@@ -1361,19 +1349,15 @@ var load_arr_core = (arr_core) => {
             //console.log('ir_value', ir_value);
             // the value probably corresponds with the primary key of the table.
             var table = db.map_tables_by_id[table_id];
-
             var idx_kv = [index_keys, ir_value];
-
             // the keys and values may need a lookup
             //console.log('idx_kv', idx_kv);
-
             var idx = table.add_index(index_id, idx_kv);
             //console.log('idx', idx);
 
         });
 
         db.tbl_native_types.add_records(arr_table_native_types_rows);
-
 
         db.tbl_tables.add_record([
             [db.tbl_tables.id],
@@ -1401,25 +1385,16 @@ var load_arr_core = (arr_core) => {
 
         each(db.tables, (table) => {
             //console.log('db.tables table name', table.name);
-
-
-
             let own_ttr = table.own_table_table_record;
             //console.log('own_ttr', own_ttr);
-
             let tr;
-
             if (!own_ttr) {
-
                 // Should put the PK in there.
-
                 tr = db.tbl_tables.add_record([
                     [table.id],
                     [table.name, table.own_incrementor_ids]
                 ]);
-
                 //console.log('[table.name, table.own_incrementor_ids]', [table.name, table.own_incrementor_ids]);
-
                 //console.log('tr', tr);
             }
             // db.table
@@ -1435,8 +1410,6 @@ var load_arr_core = (arr_core) => {
     }
     // then go through the individual records.
     /*
-
-
             // When adding these, it will use the already high value of some incrementors.
             db.add_tables_fields_to_fields_table(table);
     each(record_list, row => {
@@ -1475,7 +1448,6 @@ Database.load = (arr_core) => {
     return load_arr_core(arr_core);
 }
 
-
 Database.kp_to_range = buf_kp => {
     let buf_0 = Buffer.alloc(1);
     buf_0.writeUInt8(0, 0);
@@ -1499,18 +1471,14 @@ Database.diff_model_rows = (orig, current) => {
     //console.log('orig.length', orig.length);
     //console.log('current.length', current.length);
 
-
     each(orig, (record) => {
-
         //console.log('record', record);
-
         // so make a record iterable, and it's just the key and the value.
-
         let [key, value] = record;
         //console.log('[key, value]', [key, value]);
         map_orig[key.toString('hex')] = [value];
         map_orig_records[key.toString('hex')] = record;
-    })
+    });
     //console.log('map_orig', map_orig);
 
     each(current, (record) => {
@@ -1603,48 +1571,33 @@ if (require.main === module) {
     view_decoded_rows();
     //throw 'stop';
 
-
     var test_full_db_binary_encoding = () => {
         //var decoded_rows = db.get_model_rows_decoded();
         //console.log('decoded_rows', decoded_rows);
-
         // Simpler encoding... Can get the ll row kvps, and encode them along with some lengths.
         var buf_simple_encoded = db.get_model_rows_encoded();
-
         //console.log('buf_simple_encoded', buf_simple_encoded);
         //console.log('buf_simple_encoded.length', buf_simple_encoded.length);
-
         // Then use streaming / evented decoding.
         //  Functional event driven programming?
-
         // Could be a job for Binary_Encoding
 
         var buf_se_length = buf_simple_encoded.length;
-
-
-
         Binary_Encoding.evented_get_row_buffers(buf_simple_encoded, (arr_row) => {
             //console.log('arr_row', arr_row);
-
             var decoded_row = database_encoding.decode_model_row(arr_row);
             console.log('decoded_row', decoded_row);
-
         });
 
         // Can try serializing the model to binary, then unserialising / reconstructing it to a model.
         //  Then can compre values from the two.
-
-
         var db2 = load_buf(buf_simple_encoded);
         //console.log('db2', db2);
         console.log('db2.tables.length', db2.tables.length);
-
         var decoded = db2.get_model_rows_decoded();
         //console.log('decoded', decoded);
         view_decoded_rows();
-
         // It looks like this reloaded database is capable of doing what is needed.
-
     }
     test_full_db_binary_encoding();
 

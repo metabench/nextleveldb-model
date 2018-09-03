@@ -6,6 +6,7 @@ const is_array = lang.is_array;
 const is_arr_of_strs = lang.is_arr_of_strs;
 const is_arr_of_arrs = lang.is_arr_of_arrs;
 const get_a_sig = lang.get_a_sig;
+const Evented_Class = lang.Evented_Class;
 
 const Incrementor = require('./incrementor');
 const Record = require('./record');
@@ -13,7 +14,6 @@ const Field = require('./field');
 const Index = require('./index-def');
 const Foreign_Key = require('./foreign-key');
 const Primary_Key = require('./primary-key');
-
 
 const Binary_Encoding = require('binary-encoding');
 const encode_to_buffer = Binary_Encoding.encode_to_buffer;
@@ -28,7 +28,7 @@ const NT_FLOAT32_LE = 5;
 
 
 //var Table = require('./table');
-class Record_Def {
+class Record_Def extends Evented_Class {
 
     // Not sure I like this record def all that much?
     //  Hard to decide where to draw the line between Table and this.
@@ -48,6 +48,7 @@ class Record_Def {
 
     constructor(obj_record_def, table) {
         // should be given a table...
+        super();
 
         // Maybe we build the key and value out of objects?
 
@@ -66,14 +67,12 @@ class Record_Def {
         this.foreign_keys = [];
         this.map_fields = {};
         // this map will combine the inner map fields.
-        var that = this;
+        //var that = this;
         // There will be separate maps for the keys and values too.
         var new_field;
         var indexes = this.indexes;
 
         // Map of fields belongs here
-
-
 
         var pk = this.pk = new Primary_Key(table);
         var value = this.value = new Record_Value_Def();
@@ -91,17 +90,11 @@ class Record_Def {
         //var inc_fields = this.inc_fields = db.new_incrementor('inc_field_' + this.name);
         //var inc_indexes = this.inc_indexes = db.new_incrementor('inc_idx_' + this.name);
         //var inc_foreign_keys = this.inc_foreign_keys = db.new_incrementor('inc_fk_' + this.name);
-
-
         //console.log('is_arr_of_arrs(storage)', is_arr_of_arrs(storage));
         if (obj_record_def) this.set_def(obj_record_def);
-
         //console.log('fields_map', fields_map);
         //console.log('map_fields', map_fields);
         //throw 'stop';
-
-
-
         // Only have the name->Field map.
 
         //this.map_fields = map_fields;
@@ -109,6 +102,9 @@ class Record_Def {
     }
 
     set_fk(field, table) {
+
+        // fk gets set on a field once the field has been made?
+
         var o_field, o_table, t_field, t_table;
         var map_fields = this.map_fields;
 
@@ -136,6 +132,16 @@ class Record_Def {
         if (o_field && o_table) {
             o_field.fk_to_table = o_table;
 
+            // change event on the record def?
+            //  then change on the table
+            //  db hears the change, then updates the incoming fk references of the table which is being referred to.
+            //  Being able to look this up quickly will help with getting a record and all of the associated records.
+            //   Meaning joins can be avoided in queries, and this is a large auto outer join.
+
+
+
+
+
             // If the field does not know its type, then it could lookup the type of the foreign key.
             //  May get on for foreign keys that have got two values encoded, ie a tuple.
             //  The binary encoding system should be able to store tuples, triples, arrays. 
@@ -149,7 +155,6 @@ class Record_Def {
             if (o_table.pk.fields.length === 1) {
                 // get the data type of that field.
                 var pk_field = o_table.pk.fields[0];
-
 
                 //console.log('pk_field.type_id', pk_field.type_id);
                 // type_id
@@ -176,10 +181,13 @@ class Record_Def {
 
                 // Need to look at the case.
 
-
             }
 
             //throw 'stop';
+
+            // raise an event saying that the def has changed, there is an fk reference.
+
+
 
             // Then update the field record.
             o_field.update_db_record();
@@ -202,13 +210,10 @@ class Record_Def {
         } else {
             this.pk.set_def(pk);
         }
-
-
         //throw 'stop';
-
-
-
     }
+
+    // Could be evented, so the DB can respond when a foreign key has been added / set
 
     set_def(obj_record_def) {
 
@@ -220,10 +225,6 @@ class Record_Def {
         //console.log('set_def obj_record_def', obj_record_def);
 
         //throw 'stop';
-
-        var pk = this.pk
-        var that = this,
-            new_field;
 
         // is it an array, with 2 items?
         //  if each of those is an array, it's 
@@ -262,7 +263,8 @@ class Record_Def {
 
                 //console.log('item', item);
                 //throw 'stop';
-                new_field = that.add_field(item);
+
+                let new_field = this.add_field(item);
                 // With autoincrement fields it should know the type.
                 //  Should be one of the native types.
 
@@ -282,7 +284,7 @@ class Record_Def {
                 // Already added to pk?
                 //  Seems so, maybe its a side-effect elsewhere.
 
-                //that.add_field(new_field);
+                //this.add_field(new_field);
                 /*
                 if (new_field.is_pk) {
                     //kv_def[0].push(item);
@@ -335,14 +337,14 @@ class Record_Def {
             each(kv_def[0], (key_field, i) => {
                 //console.log('key_field', key_field);
                 // don't know the type
-                f = that.add_field(key_field, null, null, true);
+                f = this.add_field(key_field, null, null, true);
                 // then add it to the pk
-                that.pk.add_field(f);
+                this.pk.add_field(f);
 
             });
             each(kv_def[1], (value_field, i) => {
                 //console.log('value_field', value_field);
-                that.add_field(value_field);
+                this.add_field(value_field);
             });
 
             //console.log('indexes_defs', indexes_defs);
@@ -350,7 +352,7 @@ class Record_Def {
             each(indexes_defs, (index_def) => {
                 //var new_index = new Index(index_def);
                 //console.log('index_def', index_def);
-                that.add_index(index_def);
+                this.add_index(index_def);
                 //indexes.push(new_index);
             });
             //throw 'stop';
@@ -386,6 +388,7 @@ class Record_Def {
     // Generally would be better to set the field type.
 
     add_field(field, id = -1, i_type = null, is_pk = false, fk_to_table) {
+        //console.log('add_field');
         // make the id -1 for no id set here, use incrementor.
         // want better parameter handling.
         //  maybe do that later.
@@ -411,7 +414,6 @@ class Record_Def {
 
         // Depending on the name of the field, the type may be given.
         //  This is the point where we assign the type of the field if it is indicated in the name.
-
 
         //let get_field_type_from_name
 
@@ -441,6 +443,9 @@ class Record_Def {
             // Or if we give the field a null type, it 
             item_field = new Field(field_name, table, id, i_type, is_pk, fk_to_table);
 
+            // raise change to record def
+            //  change name: add_field
+
             // Then could receive something back from the field object saying that it has an index?
             //  Saying that it is unique, then we set up the unique index.
         }
@@ -448,10 +453,14 @@ class Record_Def {
 
         //console.log('field_name', field_name);
 
-        //console.log('item_field', item_field);
+        //console.log('!!item_field', !!item_field);
         //throw 'stop';
         if (item_field) {
             field_name = item_field.name;
+
+            //console.log('field_name', field_name);
+
+            //console.log('this.map_fields[field_name]', this.map_fields[field_name]);
 
             if (!this.map_fields[field_name]) {
                 this.fields.push(item_field);
@@ -465,10 +474,11 @@ class Record_Def {
                 } else {
                     this.value.add_field(item_field);
                 }
+                this.raise('change', {
+                    'name': 'add_field',
+                    'value': item_field
+                });
             }
-
-
-
 
             //this.add_field_to_fields_table(item_field);
 
@@ -503,13 +513,8 @@ class Record_Def {
 
     // Possibly represent foreign keys as part of the field.
 
-
-
-
     add_foreign_key(field_name, foreign_table) {
-
         // foreign table is a string name or the table itself?
-
         if (!(foreign_table instanceof Table)) {
             foreign_table = this.table.db.map_tables[foreign_table];
             if (!foreign_table) {
@@ -526,6 +531,11 @@ class Record_Def {
         this.foreign_keys.push(fk);
         this.map_foreign_keys[field_name] = fk;
 
+        this.raise('change', {
+            'name': 'add_foreign_key',
+            'value': item_field
+        });
+
         // Then also set the field so that it's now labelled as a foreign key.
 
         return fk;
@@ -535,7 +545,6 @@ class Record_Def {
     get_arr_record_index_values(arr_record) {
         //console.log('arr_record', arr_record);
         var res = [];
-
         each(this.indexes, index => {
             //console.log('index', index);
 
@@ -547,8 +556,6 @@ class Record_Def {
         //  won't have index prefix, index number, 
 
         //console.log('res', res);
-
-
         //throw 'stop';
         return res;
     }
@@ -681,7 +688,6 @@ class Record_Def {
         // Reconstructing the indexing system will help to create the records properly, creating the indexing records.
         //  Possibility of having that done on the server
 
-
         // index.to_table_record_def
         //  Indexes are essentially a bunch of xas2 numbers that get stored.
         //   
@@ -714,7 +720,6 @@ class Record_Def {
             [],
             []
         ];
-
         each(this.pk.fields, pk_field => {
             res[0].push(pk_field.name);
         })
@@ -722,59 +727,46 @@ class Record_Def {
         //console.log('this.value.fields.length', this.value.fields.length);
         each(this.value.fields, value_field => {
             res[1].push(value_field.name);
-        })
-
+        });
         //console.log('kv_field_names res', res);
-
         return res;
     }
 
     get kv_fields() {
         return [this.pk.fields, this.value.fields];
-
     }
 
     // indexes with single field.
     //  single_field_index_field_names
     get indexed_field_names() {
         // just indexes with one field.
-
         let map_indexed = {};
         let res = [];
-
         each(this.indexes, idx => {
             //console.log('idx', idx);
-
             if (idx.key_fields.length === 1) {
                 if (!map_indexed[idx.key_fields[0].name]) {
                     res.push(idx.key_fields[0].name);
                 }
                 map_indexed[idx.key_fields[0].name] = true;
-
             }
-
-        })
-
+        });
         return res;
     }
     get indexed_field_names_and_ids() {
         // just indexes with one field.
-
         let map_indexed = {};
         let res = [];
 
         each(this.indexes, idx => {
             //console.log('idx', idx);
-
             if (idx.key_fields.length === 1) {
                 if (!map_indexed[idx.key_fields[0].name]) {
                     res.push([idx.key_fields[0].name, idx.key_fields[0].id]);
                 }
                 map_indexed[idx.key_fields[0].name] = true;
             }
-
         })
-
         return res;
     }
 

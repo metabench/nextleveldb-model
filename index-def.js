@@ -93,8 +93,16 @@ class Index_Def {
 
         var key_fields = this.key_fields = [];
         var value_fields = this.value_fields = [];
-
         this.kv_fields = [this.key_fields, this.value_fields];
+
+
+        // is unique?
+
+        // unique
+
+        // if it's true, then a uniqueness constraint gets applied when adding data.
+
+
 
 
         if (l === 1) {
@@ -198,6 +206,26 @@ class Index_Def {
 
     }
 
+    get description() {
+        //var res = this.name + ': type_id: ' + this.type_id + ' ' + (this.is_pk ? 'PRIMARY KEY ' : '') + (this.fk_to_table) ? 'FOREIGN KEY TO ' + this.fk_to_table.name : '';
+
+        // this.kv_fields
+        var res = 'Index id ' + this.id;
+        each (this.kv_fields[0], index_field => {
+            //console.log('index_field.description', index_field.description);
+            res = res + '\n        ' + index_field.description;
+        });
+
+        /*
+        var res = this.name + ': type_id: ' + this.type_id;
+        if (this.is_pk) {
+            res = res + ' PRIMARY KEY';
+        }
+        */
+
+        return res;
+    }
+
 
     // key_field_names
     get key_field_names() {
@@ -239,7 +267,6 @@ class Index_Def {
         return this.kv_field_ids;
     }
     // 
-
 
     'to_arr_record_def'() {
         // [table_id, index_id (within table)][arr_key_fields, arr_value_fields]
@@ -433,11 +460,11 @@ class Index_Def {
         var record_flat_data = record.key.concat(record.value);
         // 
         each(this.key_fields, (key_field) => {
-            var item_value = record_flat_data[key_field.id];
+            let item_value = record_flat_data[key_field.id];
             arr_res.push(flexi_encode_item(item_value));
         });
         each(this.value_fields, (value_field) => {
-            var item_value = record_flat_data[value_field.id];
+            let item_value = record_flat_data[value_field.id];
             arr_res.push(flexi_encode_item(item_value));
         });
         return Buffer.concat(arr_res);
@@ -483,7 +510,7 @@ class Index_Def {
 
         each(this.key_fields, (key_field) => {
             //console.log('key_field.id', key_field.id);
-            var item_value = record_flat_data[key_field.id];
+            let item_value = record_flat_data[key_field.id];
             arr_res.push((item_value));
         });
         each(this.value_fields, (value_field) => {
@@ -491,14 +518,12 @@ class Index_Def {
 
 
 
-            var item_value = record_flat_data[value_field.id];
+            let item_value = record_flat_data[value_field.id];
             //console.log('item_value', item_value);
             arr_res.push((item_value));
         });
         return (arr_res);
     }
-
-
 
 }
 

@@ -76,8 +76,34 @@ class Field {
 
         // More Field constructor options for parsing field definitions, such as string fields, primary keys, unique indexes with incrementors.
         // foreign key to table...
-
         this.fk_to_table = false;
+
+        // A map of inward fk fields?
+        //  Collection?
+
+        // map by [table id, field id];
+        //  a map of which fields refer to this field.
+        //   making a foreign key sets this up (side effect);
+
+        // Being able to find foreign keys that point to any table
+        //  Then when there are such foreign keys added, we should have a reference back from the field it points to.
+        //   Though something pointing to it is not really a property of something, in a way. Make it a property.
+
+        // being able to get any records referring to a record
+        //  check the model to find which tables have such references
+        //  do searches based on indexes in order to lookup such references.
+
+        // Whenever a table gets added to the db, look at the fk_to references.
+        //  Then assign fk_from references on the fields and on the table.
+
+
+
+
+
+
+
+
+
 
         // Basically always need a table reference.
         //  Foreign key field should be possible.
@@ -321,11 +347,9 @@ class Field {
                 this.is_pk = true;
                 this.type_id = NT_XAS2_NUMBER;
                 this.table.record_def.pk_field = this;
-
                 // add a field to the pk object.
                 //console.log('this.table.record_def.pk', this.table.record_def.pk);
                 this.table.record_def.pk.add_field(this);
-
                 //throw 'stop';
 
             }
@@ -341,18 +365,11 @@ class Field {
                 //  Separate uniqueness would help - but could have special rule that says fields with ! by themselves form the PKs.
                 //   Also will have it so that unique fields can be outside the PK.
 
-
-
-
                 // Make a unique index for that field. (unless the field is the pk, where is is part of an already existing unique index)
                 //var idx_id = this.table.inc_foreign_keys.increment();
                 //var idx = this.table.add_index([]);
 
                 //var pk_field = this.table.record_def.pk_field;
-
-
-                // 
-
 
                 // Need to clarify this
                 //  21/05/2018
@@ -362,10 +379,7 @@ class Field {
                 // But then what are the pk fields if they are only given as a combination of these?
                 //  How to say that fields are unique together?
 
-
-
-
-                var arr_pk_fields = this.table.record_def.pk.fields;
+                //var arr_pk_fields = this.table.record_def.pk.fields;
 
                 // Think we need some kind of tag on the field to say it's unique.
                 //  The field is (also) unique if there is a unique index that applies to it.
@@ -373,24 +387,26 @@ class Field {
                 // No, it's not necessarily unique by itself. It's part of the primary key.
                 // Maybe change code string.
 
-
                 // A unique index here.
                 //  Currently its just an index. Since it also has the PK fields, it does not need to be unique
-                var idx = this.table.add_index([
-                    [this], arr_pk_fields
-                ]);
-            }
 
-            // same as above.
-            if (str_prefix_code === '&') {
+                // Do we need to list this PK index here?
                 var idx = this.table.add_index([
                     [this], this.table.record_def.pk.fields
                 ]);
             }
 
+            // same as above.
+            if (str_prefix_code === '&') {
 
+                // An index that points towards the key.
+                //  One index from a field.
+                //  Don't need index for PK itelse.
 
-
+                var idx = this.table.add_index([
+                    [this], this.table.record_def.pk.fields
+                ]);
+            }
 
             if (str_type !== null) {
                 //console.log('str_type', str_type);
@@ -402,23 +418,16 @@ class Field {
             }
 
             if (fk_table) {
-
                 this.fk_to_table = this.table.db.map_tables[fk_table];
-
                 // It's to the primary key
-
                 let fk_pk = this.fk_to_table.pk;
-
                 if (fk_pk.fields.length === 1) {
                     this.type_id = fk_pk.fields[0].type_id;
                 } else {
-
-
                     // Would like a composite type id?
                     //  Composite, then see the fields it refers to?
                     //  Composite reference type
                     //   A reference to a PK rather than a field (special case)
-
 
 
 
@@ -428,8 +437,6 @@ class Field {
                     //console.log('this.table.name', this.table.name);
                     //throw 'NYI';
                 }
-
-
                 //let 
 
                 //  The table's database has not been set yet?
@@ -479,8 +486,6 @@ class Field {
 
         if (this.type_id === null) {
             if (this.is_pk) {
-
-
                 if (this.fk_to_table) {
                     res = [
                         [table.id, field.id],
@@ -534,7 +539,8 @@ class Field {
     get description() {
         //var res = this.name + ': type_id: ' + this.type_id + ' ' + (this.is_pk ? 'PRIMARY KEY ' : '') + (this.fk_to_table) ? 'FOREIGN KEY TO ' + this.fk_to_table.name : '';
 
-        var res = this.name + ': type_id: ' + this.type_id;
+        //var res = 'field name: ' + this.name + ', type_id: ' + this.type_id + ', table_id: ' + this.table.id;
+        var res = 'field_id: ' + this.id + ', field name: ' + this.name + ', type_id: ' + this.type_id + ', table_id: ' + this.table.id;
         if (this.is_pk) {
             res = res + ' PRIMARY KEY';
         }
@@ -547,10 +553,8 @@ class Field {
         if (db_record) {
             var new_kv = this.get_kv_record();
             //console.log('new_kv', new_kv);
-
             db_record.key = new_kv[0];
             db_record.value = new_kv[1];
-
             db_record.arr_data = [new_kv[0], new_kv[1]];
 
         }

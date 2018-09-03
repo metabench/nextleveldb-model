@@ -115,7 +115,6 @@ class Key_List {
                         let buf_key = Binary_Encoding.encode_to_buffer_use_kps(key_item, 2);
                         //console.log('[xas2(BUFFER).length, xas2(buf_key).length, buf_key]', [xas2(BUFFER), xas2(buf_key.length), buf_key]);
                         let buf_item = Buffer.concat([xas2(BUFFER).buffer, xas2(buf_key.length).buffer, buf_key]);
-
                         res = buf_item;
                     }
                 }

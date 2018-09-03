@@ -50,6 +50,46 @@ class Row {
 
         // Not using sig right now to save speed.
 
+        // non-enumerable prop?
+        // ne_prop
+
+        var _kvp_bufs;
+        Object.defineProperty(this, 'kvp_bufs', {
+            // Using shorthand method names (ES2015 feature).
+            // This is equivalent to:
+            // get: function() { return bValue; },
+            // set: function(newValue) { bValue = newValue; },
+            get() {
+                return _kvp_bufs;
+            },
+            set(value) {
+                _kvp_bufs = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+
+        var _decoded;
+        Object.defineProperty(this, 'decoded', {
+            // Using shorthand method names (ES2015 feature).
+            // This is equivalent to:
+            // get: function() { return bValue; },
+            // set: function(newValue) { bValue = newValue; },
+            get() {
+                if (this.kp === 0) {
+                    // Incrementor records.
+                    //console.log('this.value.buffer', this.value.buffer);
+                    // should be able to return null.
+                    return [this.key.decoded, xas2.read(this.value.buffer)];
+                } else {
+                    return [this.key.decoded, this.value.decoded];
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+
         //let kvp_bufs;
 
         if (l === 1) {
@@ -81,7 +121,13 @@ class Row {
                 if (Array.isArray(a[0])) {
                     //console.log('its an array');
                     //console.log('a[0][1]', a[0][1]);
-                    if (a[0].length === 2 && a[0][0] instanceof Buffer && a[0][1] instanceof Buffer) {
+
+                    // buffer and a 
+
+                    if (a[0].length === 2 && a[0][0] instanceof Key && a[0][1] instanceof Value) {
+                        // Check they are both buffers.
+                        this.kvp_bufs = [a[0][0].buffer, a[0][1].buffer];
+                    } else if (a[0].length === 2 && a[0][0] instanceof Buffer && a[0][1] instanceof Buffer) {
                         // Check they are both buffers.
                         this.kvp_bufs = a[0];
                     } else if (a[0].length === 2 && a[0][0] instanceof Buffer && a[0][1] === null) {
@@ -98,6 +144,11 @@ class Row {
                         } else {
                             // undefined key, but has value.
                             if (def(a[0][0])) {
+
+
+                                console.log('a', a);
+                                //console.log('key', key);
+                                //console.log('value', value);
                                 // encode key...
                                 //console.log('a[0]', a[0]);
                                 //console.log('a[0][0]', a[0][0]);
@@ -144,6 +195,13 @@ class Row {
         // Can get the key or the value from each of those buffers.
     }
 
+    toJSON() {
+        console.log('to json');
+        return this.decoded;
+    }
+
+
+
     get record() {
         return this;
     }
@@ -189,16 +247,7 @@ class Row {
     }
     // validate encoding...
 
-    get decoded() {
-        if (this.kp === 0) {
-            // Incrementor records.
-            //console.log('this.value.buffer', this.value.buffer);
-            // should be able to return null.
-            return [this.key.decoded, xas2.read(this.value.buffer)];
-        } else {
-            return [this.key.decoded, this.value.decoded];
-        }
-    }
+
 
     get decoded_key_no_kp() {
         let decoded_key = this.key.decoded;
