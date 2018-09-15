@@ -157,7 +157,7 @@ const add_table_event_listeners = (db, table) => {
     // listen for changes where the table has new foreign key fields (that refer elsewhere)
 
     table.on('change', e_change => {
-        console.log('add_table_event_listeners change', e_change);
+        //console.log('add_table_event_listeners change', e_change);
     });
 
 }
@@ -316,9 +316,6 @@ class Database extends Evented_Class {
         //  want to quickly lookup when a table has got records that refer to it.
         //   then with any record, we can find the references using the db structure and the key, maybe index lookups on that field.
         //  [target table id, source table id, source field id]
-
-
-
 
 
         let inc_incrementor = this.inc_incrementor = new Incrementor('incrementor', 0, 1);
@@ -589,6 +586,8 @@ class Database extends Evented_Class {
 
                 console.log('foreign key: [to_table_id, from_table_id, from_field_id]', [to_table_id, from_table_id, from_field_id]);
 
+                this.map_tables_incoming_fks = this.map_tables_incoming_fks || {};
+
                 this.map_tables_incoming_fks[to_table_id] = this.map_tables_incoming_fks[to_table_id] || {};
                 this.map_tables_incoming_fks[to_table_id][from_table_id] = from_field_id;
                 
@@ -609,25 +608,12 @@ class Database extends Evented_Class {
         // At this point we could scan the tables to see which fields have got foreign keys.
         //  Iterating all fields would help.
 
-        console.log('pre atl');
+        //console.log('pre atl');
         add_table_event_listeners(this, table);
 
         tables.push(table);
         map_tables[table.name] = table;
         map_tables_by_id[table.id] = table;
-
-        // Will also put the table's fields into records.
-        //  Relies on the tables table and table fields existing though.
-
-        // Relies on the model init being over.
-        //   Need to be (more) CAREful to do this appropriately.
-
-        //console.log('');
-        //console.log('this._init', this._init);
-        //console.trace();
-        //console.log('');
-
-        // core init?
 
         // add_fields_and_indexes_table_records
 
@@ -947,32 +933,6 @@ class Database extends Evented_Class {
         })
         return res;
     }
-
-    /*
-    diff(model_db) {
-        // diffing this against model_table
-
-        let my_rows = this.get_arr_model_rows();
-        let other_rows = model_db.get_arr_model_rows();
-        // can use deep-object-diff
-
-        let diff = deep_diff(my_rows, other_rows);
-
-        //console.log('diff', diff);
-
-
-    }
-    */
-    // get all model rows...
-    //  will be useful for starting a database / loading the right data into place to begin with.
-    //  all rows in the database model, to go into the database that's in production.
-
-    // then other functions...
-    //  Need to decode records
-
-    // They may not have the table reference though...
-    //  Don't get decoded to OO right now?
-    //   Could use an active record to persist them to the DB? Seems unnecessary.
 }
 
 
@@ -1090,7 +1050,6 @@ var load_arr_core = (arr_core) => {
         });
         //
 
-
         //console.log('arr_table_names', arr_table_names);
         //throw 'stop';
 
@@ -1113,9 +1072,6 @@ var load_arr_core = (arr_core) => {
         // needs to be a map of tables.
         //  Tables can now skip IDs.
         //   Leaving space for more system tables.
-
-
-
 
         //console.log('arr_table_tables_rows', arr_table_tables_rows);
 
@@ -1169,12 +1125,7 @@ var load_arr_core = (arr_core) => {
             if (table.name === 'users') {
                 db.tbl_users = table;
             }
-
-            //console.log('');
-            //console.log('table.name', table.name);
-            //console.log('table.pk_incrementor', table.pk_incrementor);
-            //console.log('arr_table_incrementors', arr_table_incrementors);
-
+            
             if (!table.pk_incrementor) {
                 if (map_table_id_incrementors[table.name]) {
                     table.pk_incrementor = map_table_id_incrementors[table.name];
@@ -1189,7 +1140,6 @@ var load_arr_core = (arr_core) => {
         //console.log('db.incrementors', db.incrementors);
 
         //throw 'stop';
-
         // Not sure the incrementors got created in the DB properly.
 
         //throw 'stop';
@@ -1198,8 +1148,6 @@ var load_arr_core = (arr_core) => {
         //throw 'stop';
 
         //each(db.tables, (table) => {
-
-
         // Then once 
         //});
 
@@ -1211,11 +1159,7 @@ var load_arr_core = (arr_core) => {
         //console.log('arr_table_field_rows.length', arr_table_field_rows.length);
         //console.log('db.tables.length', db.tables.length);
         //console.log('1) db.tables', db.tables);
-
-
-
         // Stop the initialisation at some point, as we need the rest of the tables added in normal mode.
-
 
         // Add the fields to the tables.
         each(arr_table_field_rows, (table_field_row) => {
@@ -1376,7 +1320,6 @@ var load_arr_core = (arr_core) => {
             [db.tbl_indexes.name, db.tbl_indexes.own_incrementor_ids]
         ]);
 
-
         // May redo the creation of db model from rows.
         //  At least mak sure all bases are covered.
         //  So far, some records are missed from the model.
@@ -1422,11 +1365,9 @@ var load_arr_core = (arr_core) => {
     //  Don't know why the order of tables has got jumbled.
     // Should have the index table rows showing up in prefix 8
 
-
     // then go through the table indexes.
     //  want to separate them by tables.
     //  
-
     return db || new Database();
 }
 
@@ -1465,12 +1406,6 @@ Database.diff_model_rows = (orig, current) => {
     let map_orig = {},
         map_current = {},
         map_orig_records = {};
-
-    //console.log('orig', orig);
-    //console.log('current', current);
-    //console.log('orig.length', orig.length);
-    //console.log('current.length', current.length);
-
     each(orig, (record) => {
         //console.log('record', record);
         // so make a record iterable, and it's just the key and the value.
@@ -1529,7 +1464,6 @@ Database.encode_key = database_encoding.encode_key;
 
 var p = Database.prototype;
 //p.encode_model_rows = encode_model_rows;
-
 
 if (require.main === module) {
 

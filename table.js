@@ -451,7 +451,6 @@ class Table extends Evented_Class {
         console.trace();
         throw 'NYI';
         // Can't specify unique field constraints / indexes right now.
-
         //return this.record_def.fields.filter(field => field.is_unique);
         return this.record_def.unique_fields;
     }
@@ -480,10 +479,8 @@ class Table extends Evented_Class {
     add_field() {
         //var args = Array.prototype.slice.call(arguments);
         //args.push(this);
-
         //console.log('table add_field ', arguments);
-        console.log('table add_field ');
-
+        //console.log('table add_field ');
         return this.record_def.add_field.apply(this.record_def, arguments);
     }
 

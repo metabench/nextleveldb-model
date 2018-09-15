@@ -163,9 +163,6 @@ class Key_List {
             //console.log('arr_key_items', arr_key_items);
 
             // what if they are of type 'Record'?
-
-
-
             this._buffer = process_arr_key_items_to_buffer(arr_key_items);
         }
 
@@ -224,7 +221,6 @@ class Key_List {
 
             let item = new Key(item_buf);
 
-
             yield item;
             pos = pos + buf_l;
 
@@ -256,6 +252,7 @@ class Key_List {
 
     // Not getting the buffer-backed keys, getting the array items
     get decoded() {
+        throw 'NYI';
 
 
 

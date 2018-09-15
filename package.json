@@ -7,7 +7,7 @@
         "deep-equal": "^1.0.1",
         "deep-object-diff": "^1.1.0",
         "lang-mini": "^0.0.8",
-        "moment": "^2.22.0",
+        "moment": "^2.22.2",
         "xas2": "^0.0.17"
     },
     "engines": {
@@ -19,5 +19,5 @@
         "type": "git",
         "url": "https://github.com/metabench/nextleveldb-model.git"
     },
-    "version": "0.0.69"
+    "version": "0.0.70"
 }

@@ -202,13 +202,13 @@ class Command_Response_Message {
 
 
     get is_last() {
-        //console.log('this.message_type_id', this.message_type_id);
+        console.log('this.message_type_id', this.message_type_id);
         //console.log('this._buffer', this._buffer);
 
         // Maybe not when there is no paging.
         // Though technically it is the last.
 
-        return (this.message_type_id === BINARY_PAGING_NONE || this.message_type_id === BINARY_PAGING_FLOW || this.message_type_id === RECORD_PAGING_NONE || this.message_type_id === RECORD_PAGING_LAST || this.message_type_id === KEY_PAGING_NONE || this.message_type_id === KEY_PAGING_LAST);
+        return (this.message_type_id === BINARY_PAGING_NONE || this.message_type_id === BINARY_PAGING_LAST || this.message_type_id === RECORD_PAGING_NONE || this.message_type_id === RECORD_PAGING_LAST || this.message_type_id === KEY_PAGING_NONE || this.message_type_id === KEY_PAGING_LAST);
     }
 
     //get buffer
@@ -366,16 +366,11 @@ class Command_Response_Message {
         [message_type_id, pos] = xas2.read(this._buffer, pos);
         //console.log('pos', pos);
 
-
         //console.log('message_id', message_id);
 
         //console.log('Command_Response_Message get value() message_type_id', message_type_id);
 
-
         // RECORD_PAGING_FLOW
-
-
-
 
         if (message_type_id === RECORD_PAGING_FLOW) {
             // break it into records.
@@ -395,8 +390,6 @@ class Command_Response_Message {
 
             //let arr_bufs_kv = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2);
             //console.log('arr_bufs_kv', arr_bufs_kv);
-
-
             //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
 
             // put them into a Record_List?
@@ -452,10 +445,6 @@ class Command_Response_Message {
             //  Could put it into a Record_List on server.
 
 
-
-
-
-
             this._buffer.copy(buf2, 0, pos);
 
             let arr_records = new B_Record_List(buf2).arr;
@@ -484,7 +473,36 @@ class Command_Response_Message {
 
             //return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
 
+        } else if (message_type_id === BINARY_PAGING_LAST) {
+            // BINARY_PAGING_LAST = 2
+            // read the page number
+
+            // decode it as binary.
+
+            // A way of saying that it's just a single value in the array?
+
+            [page_number, pos] = xas2.read(this._buffer, pos);
+            //console.log('page_number', page_number);
+
+            let buf2 = Buffer.alloc(this._buffer.length - pos);
+            this._buffer.copy(buf2, 0, pos);
+
+            // Decoding from position without buffer copy?
+            let res = Binary_Encoding.decode(buf2);
+            console.log('res', res);
+
+            console.log('this.singular_result', this.singular_result);
+
+            if (this.singular_result) {
+                return res[0];
+            } else {
+                return res;
+            }
+            
         } else {
+
+
+
             throw 'NYI';
         }
 
