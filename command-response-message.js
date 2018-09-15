@@ -25,7 +25,6 @@ const ERROR_MESSAGE = 10;
 // -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 
-
 const lang = require('lang-mini');
 const each = lang.each;
 const get_a_sig = lang.get_a_sig;
@@ -115,35 +114,12 @@ class Command_Response_Message {
                 if (message_type_id === BINARY_PAGING_NONE) {
                     this._buffer = Buffer.concat([xas2(message_id).buffer, xas2(message_type_id).buffer, buf_inner]);
                 } else {
-
-
-
                     throw 'NYI';
                 }
             }
 
             if (l === 4) {
-
-                // and the page number?
-                //  need to be able to include the page number in the response.
-
-                // Should not necessarily need a buffer here.
-                //  An array of records will suffice.
-
-
-                // An array of data.
-                //  Need to encode it, should be able to encode it into a buffer with the extra prefixes.
-
-
-
-
-
                 let [message_id, message_type_id, page_number, data] = a;
-
-                //console.log('Command_Response_Message data', data);
-
-                // Record_List
-
                 if (Array.isArray(data) && data[0] instanceof B_Record) {
                     let rl = new B_Record_List(data);
                     //this._buffer = rl.bu
@@ -153,11 +129,6 @@ class Command_Response_Message {
                     throw 'NYI';
                 }
             }
-
-
-            // (message_id, RECORD_PAGING_FLOW, page, data);
-
-
         }
 
         // Want this to hold the whole message to avoid problems.
@@ -261,20 +232,6 @@ class Command_Response_Message {
 
             let buf2 = Buffer.alloc(this._buffer.length - pos);
             this._buffer.copy(buf2, 0, pos);
-
-            // It wasn't encoded this way.
-            //  It was encoded as an array.
-            //   That probably makes it easier to read.
-            //    Maybe these sent records should not have been sent as an array, but as 'record encoding' which is more concise.
-
-            //let arr_bufs_kv = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2);
-
-            //console.log('arr_bufs_kv', arr_bufs_kv);
-
-            // 
-
-            //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
-
             return Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2, remove_kp);
 
         } else if (message_type_id === RECORD_PAGING_LAST) {
@@ -285,14 +242,6 @@ class Command_Response_Message {
             //console.log('page_number', page_number);
             let buf2 = Buffer.alloc(this._buffer.length - pos);
             this._buffer.copy(buf2, 0, pos);
-            // It wasn't encoded this way.
-            //  It was encoded as an array.
-            //   That probably makes it easier to read.
-            //    Maybe these sent records should not have been sent as an array, but as 'record encoding' which is more concise.
-
-            //let arr_bufs_kv = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2);
-            //console.log('arr_bufs_kv', arr_bufs_kv);
-            //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
             return Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2, remove_kp);
 
         } else {
@@ -304,15 +253,6 @@ class Command_Response_Message {
             //console.log('page_number', page_number);
             let buf2 = Buffer.alloc(this._buffer.length - pos);
             this._buffer.copy(buf2, 0, pos);
-            // It wasn't encoded this way.
-            //  It was encoded as an array.
-            //   That probably makes it easier to read.
-            //    Maybe these sent records should not have been sent as an array, but as 'record encoding' which is more concise.
-
-            //let arr_bufs_kv = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2);
-            //console.log('arr_bufs_kv', arr_bufs_kv);
-            //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
-
             return Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2, remove_kp);
 
 
@@ -364,14 +304,6 @@ class Command_Response_Message {
         const remove_kp = false;
         //[id, pos] = xas2.skip(this._buffer, pos);
         [message_type_id, pos] = xas2.read(this._buffer, pos);
-        //console.log('pos', pos);
-
-        //console.log('message_id', message_id);
-
-        //console.log('Command_Response_Message get value() message_type_id', message_type_id);
-
-        // RECORD_PAGING_FLOW
-
         if (message_type_id === RECORD_PAGING_FLOW) {
             // break it into records.
             //  num records here?
@@ -383,18 +315,6 @@ class Command_Response_Message {
 
             let buf2 = Buffer.alloc(this._buffer.length - pos);
             this._buffer.copy(buf2, 0, pos);
-            // It wasn't encoded this way.
-            //  It was encoded as an array.
-            //   That probably makes it easier to read.
-            //    Maybe these sent records should not have been sent as an array, but as 'record encoding' which is more concise.
-
-            //let arr_bufs_kv = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2);
-            //console.log('arr_bufs_kv', arr_bufs_kv);
-            //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
-
-            // put them into a Record_List?
-            //  buffer to array of records?
-
             return new B_Record_List(buf2).arr;
 
             //return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
@@ -408,23 +328,6 @@ class Command_Response_Message {
 
             let buf2 = Buffer.alloc(this._buffer.length - pos);
             this._buffer.copy(buf2, 0, pos);
-
-            // It wasn't encoded this way.
-            //  It was encoded as an array.
-            //   That probably makes it easier to read.
-            //    Maybe these sent records should not have been sent as an array, but as 'record encoding' which is more concise.
-
-
-
-            //let arr_bufs_kv = Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2);
-
-            //console.log('arr_bufs_kv', arr_bufs_kv);
-
-
-            //let arr_decoded = database_encoding.decode_model_rows(arr_bufs_kv, remove_kp);
-
-            //return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
-
             return new B_Record_List(buf2).arr;
 
         } else if (message_type_id === RECORD_PAGING_NONE) {
@@ -434,16 +337,6 @@ class Command_Response_Message {
             // include buffer_xas2_prefix
             //console.log('**a pos', pos);
             let buf2 = Buffer.alloc(this._buffer.length - pos);
-
-            // Should maybe expect a list of records here.
-            //  This seems to be used when there is a callback.
-
-            // Record or array of records?
-            //  Load as a list, get as array, if there is just one, return that.
-
-            // Server-side encoding to say something is an array of records / record list.
-            //  Could put it into a Record_List on server.
-
 
             this._buffer.copy(buf2, 0, pos);
 
@@ -456,23 +349,6 @@ class Command_Response_Message {
             } else {
                 return arr_records;
             }
-
-
-
-
-            //console.log('buf2', buf2);
-
-            //let rec = new B_Record(buf2);
-            //console.log('rec', rec);
-            //return rec;
-
-            //let
-
-            //let dec = Binary_Encoding.decode_buffer(buf2);
-            //console.log('dec', dec);
-
-            //return database_encoding.decode_model_rows(Binary_Encoding.split_length_item_encoded_buffer_to_kv(buf2), remove_kp);
-
         } else if (message_type_id === BINARY_PAGING_LAST) {
             // BINARY_PAGING_LAST = 2
             // read the page number

@@ -70,6 +70,12 @@ class Command_Message {
             }
         } else if (l === 2) {
 
+
+            // number and number?
+            // id and paging
+
+
+
             if (typeof a[0] === 'number' && Array.isArray(a[1])) {
                 let [command_id, arr_args] = arguments;
                 let buf_encoded_args = Binary_Encoding.encode_to_buffer(arr_args);
@@ -96,6 +102,15 @@ class Command_Message {
 
 
                 // Simplest construction is command, then param
+
+            } else if (typeof a[0] === 'number' && typeof a[1] === 'number') {
+                //console.trace();
+                //throw 'NYI';
+                let [command_id, page_size] = arguments;
+                this.missing_id = true;
+                let buf_paging = new Paging.Record_Paging(page_size).buffer;
+                this._buffer = Buffer.concat([xas2(command_id).buffer, buf_paging]);
+
 
             } else {
                 console.trace();

@@ -6,23 +6,18 @@ const is_arr_of_strs = lang.is_arr_of_strs;
 const is_arr_of_arrs = lang.is_arr_of_arrs;
 const get_a_sig = lang.get_a_sig;
 const Evented_Class = lang.Evented_Class;
-
 const Incrementor = require('./incrementor');
 const Record = require('./record');
 const Field = require('./field');
 const Index = require('./index-def');
 const Foreign_Key = require('./foreign-key');
 //var Database = require('./database');
-
 const Binary_Encoding = require('binary-encoding');
 const encode_to_buffer = Binary_Encoding.encode_to_buffer;
-
 const Record_Def = require('./record-def');
 const Table_Record_Collection = require('./table-record-collection');
 //var Model_Database = require('./database');
-
 const database_encoding = require('./encoding');
-
 // Each table will have its lower level data in the DB, and means of interacting with it here.
 
 const table_table_key_prefix = 2;
@@ -32,168 +27,37 @@ const special_characters = {
     '+': true
 }
 
-// Does seem like a split between handling the definition of a record, and the multitude of records in the table.
-// Could possibly make Table_Record_Collection and specifically have that administer the records themselves associated with this model.
-//  That would be a more appropriate place to have indexing of the records as well.
-
-// Probably a better way to modularise the code, reducing complexity within the Table class itself, and allowing record definitions to be worked on outside of tables.
-
-// Not sure about using jsgui collection for the table records collection.
-//  May want something more specific.
-
-// Table definitely looks more streamlined having separated definition and record collection parts.
-//  Now need to get it to work, and get the record colleciton part working properly.
-
-// 13/08/2017 Night - Have moved a lot of the functionality out of Table itself.
-//  This will make it easier to put indexing into place.
-
-// Still want to add records using a foreign key.
-//  Will be worth rendering web pages, and displaying pages as HTML.
-//  
-
-
-// 29/11/2017 - 
-
-// Likely to replace this with some OO code.
-//  Will generally keep the data stored in a Buffer.h
-
-/*
-const encode_model_row = (model_row) => {
-    //console.log('model_row', model_row);
-
-    if (model_row instanceof Buffer) {
-        var arr_res = [xas2(model_row.length).buffer, model_row, xas2(0).buffer];
-    } else {
-        if (model_row[1]) {
-            var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(model_row[1].length).buffer, model_row[1]];
-        } else {
-            // Value is null / no value set, all index rows are like this.
-            var arr_res = [xas2(model_row[0].length).buffer, model_row[0], xas2(0).buffer];
-        }
-    }
-    //console.log('arr_res', arr_res);
-    return Buffer.concat(arr_res);
-}
-*/
 
 let kp_to_range = buf_kp => {
     let buf_0 = Buffer.alloc(1);
     buf_0.writeUInt8(0, 0);
     let buf_1 = Buffer.alloc(1);
     buf_1.writeUInt8(255, 0);
-    // and another 0 byte...?
-
     return [Buffer.concat([buf_kp, buf_0]), Buffer.concat([buf_kp, buf_1])];
 }
-
-// For any table, want to get the tables that link towards it.
-
-
-
-
 
 class Table extends Evented_Class {
     constructor(spec) {
         super(spec);
-
-
-        // Want to be able to look into and get the foreign keys that point to a table.
-
-        // Fields have got fk_to_table
-        //  Pointing to the table that the fk points to.
-
-
-        // Fields could have inward_fk property.
-        //  A list of fields that point towards that field.
-
-
-
-
-
-
-        // Table key prefix
-        //  Table indexes key prefix = table key prefix + 1
-
-        // Makes sense to separate the definition of a record from the table itself.
-
-        // Would the record definition store the foreign key info?
-        //  The relevant fields that use foreign keys may / should have those foreign key references.
-
-        // 13/08/2017
-        //  Splitting record def up from the table itself.
-        //   Record def will deal with the parsing and details of how records are defined. The records themselves are different.
-        //   Does sort out the more jumbled part of Table though.
-
-        //  Maybe it provides some more clarity though.
-        //  Would go well with Table_Record_Collection. That would make Table much smaller code-wise, to the extent that it's a class to manage calls to disparate but related functionality.
-
-        // Table Record Collection may also need to refer to some indexing data in order to carry out some tasks.
-        //  It could refer to the record definition where appropriate.
-
-        // Keep a link to the table record, once it's been made? (in the table records table)
-
-
-
         var a = arguments,
             sig;
         a.l = a.length;
 
         sig = get_a_sig(a);
-
-
-        //console.log('Table constructor sig', sig);
-        //console.log('Table constructor a', a);
-
-        // Indexes could apply to the record def anyway?
-        //  Table handles the intersection of the record_def and records themselves.
-
         var id;
-
-        //console.log('a', a);
-
         this.record_def = new Record_Def(null, this);
-
-
         this.__type_name = 'table';
-
-        // This could have an indexes incrementor.
-        // Making a new incrementor could be done from the database object.
-        //  After all, the incrementor needs a globally unique id.
-
-        //var 
-
         var that = this,
             t, field_name, new_field;
-
         // The table linking back to the db, so that it can get the global incrementor.
         var name, db, storage;
         var spec_record_def;
-
-        // And a constructor where we give the table the actual incrementor.
-
-
-        // Could have something in the record def to see if there is an autoincremeinting pk field.
-
-
         if (a.length === 1) {
             var t_spec = tof(spec.name);
             if (t_spec === 'string') this.name = spec.name;
-            //this.record_def = new Record_Def(null, this);
-
         }
 
         if (a.length === 2) {
-            //var t_spec = tof(spec.name);
-
-            //if (t_spec !== 'undefined') this.name = spec.name;
-            //this.record_def = new Record_Def(null, this);
-
-            //get the type of the first param.
-
-
-
-
-
             var ta0 = tof(a[0]);
             //console.log('ta0', ta0);
 
@@ -202,66 +66,26 @@ class Table extends Evented_Class {
                 console.trace();
                 throw 'stop';
             }
-
-
-
             name = a[0];
             this.db = db = a[1];
         }
-
-
 
         if (a.length === 3) {
             if (sig === '[s,?,n]') {
                 name = a[0];
                 this.db = db = a[1];
                 this.id = id = a[2];
-
             } else {
-                // s,?,a
-
-                //var t_spec = tof(spec.name);
-                //if (t_spec !== 'undefined') this.name = spec.name;
                 name = a[0];
                 this.db = db = a[1];
-                //this.record_def = new Record_Def(a[2], this);
                 spec_record_def = a[2];
-                //
-                //storage = a[2];
             }
         }
-
-
-
-        // Seems like the primary key incrementor is not being stored correctly for the table.
-        //  Should make it so that the table's records includes the primary key incrementor for the table.
-        //  Also that table primary key incrementors get stored in the incrementors part of the DB.
-
-        // Need to have these primary key incrementors reconstructed.
-        //  Can't assume there are 3 incrementors per table.
-        //   Could assume 4, with an unused PK incrementor. Could maybe have a row count incrementor though.
-
-        // Looks like that will probably take more work on the model or crypto model db.
-        //  May need to start the db anew to get these table pk incrementors stored.
-
-        // Reconstruction of table pk incrementors?
-        //  That may be better in the short term.
-        //  Could find the highest key value in the tables.
-
-
-
 
         if (sig === '[s,?,n,a]') {
             name = a[0];
             this.db = db = a[1];
             this.id = id = a[2];
-
-            //console.log('this.id', this.id);
-
-            // need to go through that array, maybe doing lookups
-            //console.log('a[3]', a[3]);
-            //console.log('a[3].length', a[3].length);
-
             if (a[3].length === 3 || a[3].length === 4) {
                 if (tof(a[3][0]) === 'number') {
                     var inc_fields_id = a[3][0];
@@ -285,46 +109,12 @@ class Table extends Evented_Class {
                     this.pk_incrementor = a[3][3];
                 }
             }
-            //var inc_fields = 
-            //var inc_indexes = 
-            //var inc_foreign_keys = 
         }
-
-        //console.log('spec_record_def', JSON.stringify(spec_record_def));
-
-        // Table could have a primary key value incrementor.
-        //  That value could already be set to something.
-
         if (name) this.name = name;
-        //console.log('this.name', this.name);
-
-        //console.log('db', db);
         if (db) {
-            //this.db = db;
-
-            // The incrementor for the fields... that is part of the db and the table???
-            //  Not sure though, as they apply to what is now part of the record def.
-            //   These incrementors are used in defining what the record is.
-
-            // 3 incrementors per table.
-            //  Seems worth noting down all of their IDs.
-            //  Or just the first
-            //  Or we can work it out.
-            //  (Table id * 3) + 1.
-
-            // When reconstructing database, will be necessary to recreate the incrementors.
-
-            //  Probably best to create the incrementors separately, in one go, then assign them to the tables.
             if (!this.inc_fields) this.inc_fields = db.new_incrementor('inc_field_' + this.name);
             if (!this.inc_indexes) this.inc_indexes = db.new_incrementor('inc_idx_' + this.name);
             if (!this.inc_foreign_keys) this.inc_foreign_keys = db.new_incrementor('inc_fk_' + this.name);
-
-            //var inc_fields = this.inc_fields = this.inc_fields || db.new_incrementor('inc_field_' + this.name);
-            //var inc_indexes = this.inc_indexes = this.inc_indexes || db.new_incrementor('inc_idx_' + this.name);
-            //var inc_foreign_keys = this.inc_foreign_keys = this.inc_foreign_keys || db.new_incrementor('inc_fk_' + this.name);
-
-            //console.log('this.id', this.id);
-
             if (typeof this.id === 'undefined') {
                 id = this.id = db.map_incrementors['table'].increment();
                 //console.log('id', id);
@@ -356,51 +146,11 @@ class Table extends Evented_Class {
         } else {
             //this.record_def = new Record_Def(null, this);
         }
-
-        
-
-        // then any change to tables, in the DB, get it to update tables that now have incoming fk references.
-
         this.records = new Table_Record_Collection(this);
-
-        // Does not store the fields like that.
-        //  Will be in the OO record_def.
-
-        //if (storage) this.storage = storage;
-
-        // We get the table id from the tables incrementor.
-        //console.log('db.map_incrementors', db.map_incrementors);
-
-        // ID is part of the table itself.
-
-        //var id;
-        // if (db) 
-
-        // console.log('id', id);
-
-        // and create a new incrementor for the table's indexes?
-        //  got it already
-
-        // could use getters to combine the map_fields from the key and value definitions.
-        // Refer to the record def for the map fields for the moment?
-        //  There it is split into primary key and value fields.
-        //var map_fields = this.map_fields = {};
-        //this.map_foreign_keys = {};
         this.key_prefix = 2 + id * 2;
         this.indexes_key_prefix = this.key_prefix + 1;
         //throw 'stop';
         var new_inc, is_key, first_char;
-
-        //console.log('storage', storage);
-        /*
-        if (storage) {
-
-            // Some fields (particularly the id key field) will have an incrementor as its value/type.
-            // an array of fields...
-        
-            //this.map_fields_2 = map_fields_2;
-        }
-        */
     }
 
     get inward_fk_tables() {
@@ -410,7 +160,6 @@ class Table extends Evented_Class {
 
         console.log('db.map_tables_incoming_fks[this.id]', db.map_tables_incoming_fks[this.id]);
     }
-
 
     get buf_kp() {
         if (this._buf_kp) {
@@ -514,9 +263,6 @@ class Table extends Evented_Class {
         return this.records.add_arr_table_records.apply(this.records, arguments);
     }
 
-    // could have a fields getter.
-    //  The fields are normally split into key and value.
-
     get primary_key() {
         return this.record_def.pk;
     }
@@ -584,20 +330,11 @@ class Table extends Evented_Class {
         })
         return res;
     }
-
-
-    // Not delivered as the bb record (yet)
+    
     get structure_record() {
-        /*
-        tbl_tables.add_record([
-                [table.id],
-                [table.name, [table.inc_fields.id, table.inc_indexes.id, table.inc_foreign_keys.id]]
-            ]);
-            */
-        // Table KP
 
         let incrementor_ids;
-        console.log('!!this.pk_incrementor', !!this.pk_incrementor);
+        //console.log('!!this.pk_incrementor', !!this.pk_incrementor);
         if (this.pk_incrementor) {
             incrementor_ids = [this.inc_fields.id, this.inc_indexes.id, this.inc_foreign_keys.id, this.pk_incrementor.id];
         } else {
@@ -611,14 +348,7 @@ class Table extends Evented_Class {
     }
 
     get buf_structure_record() {
-        // Encode the model rows.
-        //  Could have separate db-binary-encoding
-        //   That would help to clean up the code a lot.
         var prefix = this.key_prefix;
-        //console.log('this.key', this.key);
-        //console.log('prefix', prefix);
-        //console.log('[this.key, this.value]', [this.key, this.value]);
-        //console.log('prefix', prefix);
         var res = Binary_Encoding.encode_pair_to_buffers(this.structure_record, prefix);
         return res;
     }
@@ -669,110 +399,27 @@ class Table extends Evented_Class {
         });
         return res;
     }
-
-    // A server-side download_full_table_records would be useful
-    //  Even the record in the tables table.
-    //   Could also have some overwrite protection on that side of things.
-    //   Noticed that we may not need the tables incrmementor, with there being a tables id and it autoincrements in the tables table.
-
-    // and the index instances of the records?
-
+    
     get_map_lookup(field_name) {
-
-        //console.log('field_name', field_name);
-        // looks it up to the primary key.
-        //  don't bother consulting the index right now.
-
-        // Need to use a flattened map of the fields?
-        //  Map of the flattened fields?
-        //  Have an issue here ... but problem is with decoding elsewhere. With loading tables.
 
         var i_field = this.map_fields[field_name].id;
         //console.log('i_field', i_field);
 
         var res = {};
-        //var field_i = this.fields[i_field];
-
         this.records.each((record) => {
-            //res[record]
-            //console.log('record', record);
-            //console.log('record.', record);
-            // record get value by field name
-            //  or by field id.
-            // Change it to flat array
             var arr_rec = record.to_flat_arr();
-            //console.log('arr_rec', arr_rec);
             var field_value = arr_rec[i_field];
-            //console.log('field_value', field_value);
-            //console.log('record.key', record.key);
-            // get the pk field or fields.
-            //if (record.key)
             res[field_value] = record.key;
-            //throw 'stop';
         });
-        //console.log('field_i', field_i);
-        //console.log('field_i', field_i.name);
-        //throw 'stop';
         return res;
     }
 
-
-    // Get expansive all records
-    //  All records associated with the table too
-    //   Incrementor records
-    //   Field records
-
-    // When doing some updates, could get two sets of records, and compare them.
-    //  Do an object diff on before and after
-    //   Any records which have changed then get put to the DB.
-
-    // That seems like the right way of carrying out various server-side tasks, such as adding a table.
-    //  The difference would be spread accross quite a number of model rows.
-
-    // Doing a diff on the full model rows would work well.
-    //  Then can send the changed rows to the database
-
-
     get_all_db_records() {
-        // include the indexes here? seems not
-        //console.log('get_all_db_records');
-        //var buf_records = this.records.get_all_db_records_bin.apply(this.records, arguments);
         var arr_records = this.records.get_all_db_records.apply(this.records, arguments);
-        //  and this makes the index records too?
-        //var buf_indexes = 
         return arr_records;
     }
 
-
-
     get b_records() {
-
-        // Will change to Buffer_Backed records.
-        //  Easy to decode, has the data already in binary.
-
-
-        /*
-        collect()
-        */
-
-        /*
-
-        let res = [];
-        each(this.records, record => {
-            res.push(record.to_b_record());
-        });
-
-        return res;
-        */
-
-        //console.log('this.records', this.records);
-
-        // need to get all binary records for that record, including the index record.
-
-        // So the index ones don't have the value set.
-        //  Better not to do that....
-        //  Best to give it key and value
-
         let res = [];
         each(this.records.arr_records, record => {
             each(record.to_b_records(), b_record => {
@@ -783,32 +430,16 @@ class Table extends Evented_Class {
 
         //return this.records.arr_records.map(x => x.to_b_records());
     }
-
-
-    // get_all_db_records_bin
+    
     get_all_db_records_bin() {
-        // include the indexes here? seems not
-        //console.log('get_all_db_records_bin');
         var buf_records = this.records.get_all_db_records_bin.apply(this.records, arguments);
-        //  and this makes the index records too?
-        //var buf_indexes = 
         return buf_records;
     }
-
-    // 
 
     get_arr_data_index_records() {
         // Get it for a specific record...
         return this.records.get_arr_data_index_records.apply(this.records, arguments);
     }
-
-    // Function to provide index records made from an actual record.
-    //  Probably no need to refer to this.records.
-    //   May change internal mechanisms to use encoded records.
-
-
-    // Would go through each index making such a record.
-
     get_record_bb_index_records(record) {
         let i = this.indexes,
             l = i.length;
@@ -821,10 +452,6 @@ class Table extends Evented_Class {
         return res;
     }
 
-
-
-    // find out which index record by id represents a field by name
-
     get_index_id_by_field_name(field_name) {
         //console.log('field_name', field_name);
         let field_id = this.map_fields[field_name];
@@ -832,16 +459,7 @@ class Table extends Evented_Class {
     }
 
     get_index_id_by_field_id(field_id) {
-        // An index which has got that field first.
-        // Could have a map of them easily.
-        // An index could hold multiple key fields.
-        // Memoifying this fn could help.
-
-        //console.log('get_index_id_by_field_id field_id', field_id);
-        //console.trace();
-
         let res;
-
         each(this.indexes, (index, i, stop) => {
             //console.log('index', index);
             if (index.key_fields.length === 1) {
@@ -856,18 +474,11 @@ class Table extends Evented_Class {
                 throw 'NYI';
             }
         })
-
         return res;
     }
 
 
     buf_pk_query(arr_pk_part) {
-        //var res = [xas2(this.key_prefix).buffer];
-        //console.log('Database', Database);
-
-        //var res = Database.encode_key(this.key_prefix, arr_pk_part);
-
-        // Binary_Encoding.encode_to_buffer(arr_values, kp);
         var res = Binary_Encoding.encode_to_buffer(arr_pk_part, this.key_prefix);
         return res;
     }
@@ -885,9 +496,9 @@ class Table extends Evented_Class {
         let buf_kvs = [];
         //let bufs_encoded_rows = [];
         //throw 'stop';
-        console.log('buf_inc_records', buf_inc_records);
+       // console.log('buf_inc_records', buf_inc_records);
         let ttr = this.structure_record;
-        console.log('ttr', ttr);
+        //console.log('ttr', ttr);
         //throw 'stop';
         // Model_Database.encode_arr_rows_to_buf
 
@@ -902,25 +513,7 @@ class Table extends Evented_Class {
             //console.log('buf_inc', buf_inc);
 
             let inc_row = incrementor.get_record();
-            //each(bufs_inc, b => buf_inc_records.push([b[0],
-            //    []
-            //]))
-            //let row = [buf_inc, []]
-
             rows.push(inc_row);
-            //rows.push([bufs_inc[0],
-            //    []
-            //]);
-            /*
-            let i_kv_buf = Binary_Encoding.encode_pair_to_buffers([bufs_inc[0],
-                []
-            ]);
-            console.log('i_kv_buf', i_kv_buf);
-            buf_kvs.push(i_kv_buf);
-            bufs_encoded_rows.push(encode_model_row(i_kv_buf));
-            */
-
-
         });
         //throw 'stop';
 
@@ -937,58 +530,16 @@ class Table extends Evented_Class {
             //bufs_encoded_rows.push(encode_model_row(Binary_Encoding.encode_pair_to_buffers(kv_field, 6)));
 
         })
-
-        //throw 'stop';
-        //all_buf_records = all_buf_records.concat(buf_inc_records);
-        //all_buf_records.push(ttr);
-        //console.log('ttr', ttr);
-        //console.log('buf_kvs', buf_kvs);
-        //console.log('rows', JSON.stringify(rows, null, 2));
-
         each(rows, row => console.log('row', row));
-        // Then how to encode the records together?
-        //throw 'stop';
-        // encode_rows
         let buf_encoded_rows = database_encoding.encode_rows_including_kps_to_buffer(rows);
-        console.log('* buf_encoded_rows', buf_encoded_rows);
+        //console.log('* buf_encoded_rows', buf_encoded_rows);
         //throw 'stop';
         return buf_encoded_rows;
-
-        // all_buf_records
-
-        /*
-        each(all_buf_records, kv_buf_pair => {
-            console.log('kv_buf_pair', kv_buf_pair);
-            let encoded_pair = Binary_Encoding.encode_pair_to_buffers(kv_buf_pair, this.key_prefix);
-            console.log('encoded_pair', encoded_pair);
-            buf_kbs.push(encode_model_row(encoded_pair));
-        });
-        */
-        //console.log('buf_kbs', buf_kbs);
-
-
-
     }
 
     validate_row(row) {
-        // Need to restore the db 
-
-        // Row already has a key prefix?
-
-        // Check row length
-
-        // Is row divided into both key and value
-
         var res = true;
         var r2 = [row[0].slice(1), row[1]];
-
-        // 
-
-        //console.log('table.fields.length', table.fields.length);
-
-        //console.log('r2.length', r2[0].length + r2[1].length);
-        //console.log('r2', r2);
-
         if (r2[0].length + r2[1].length !== this.fields.length) {
             res = false;
         } else {
@@ -1004,55 +555,9 @@ class Table extends Evented_Class {
 
     get own_table_table_record() {
         let tbl_tables = this.db.map_tables['tables'];
-        // then need the record that represents this table.
-        //console.log('tbl_tables.records.indexes', tbl_tables.records.indexes);
-        //console.log('tbl_tables.records.indexes[0]', tbl_tables.records.indexes[0]);
-
-
-        // no, its the record retrieved from that index.
         let own_index_record_retrieved = tbl_tables.records.indexes[0][JSON.stringify([this.name])];
-        //console.log('own_index_record_retrieved', own_index_record_retrieved);
-
         return own_index_record_retrieved;
-
-
-        // that's the index records
-        // They are in an obj, 
-        //console.log('tbl_tables.record_def.indexes', tbl_tables.record_def.indexes);
-        //console.log('tbl_tables.record_def.indexes.length', tbl_tables.record_def.indexes.length);
-
-
     }
-
-
-    //get_table_table_db_records_bin() {
-    // (the record for the table table + single (so far) record for indexing)
-
-    //}
-
-
-
-    // Interacting with the table table.
-    //  Want this to be possible.
-
-    // The table table will be defined using OOP.
-
-    // Interacting with the incremetors.
-
-
-
-    // record (definition)
-    //  also provides access to records
-
-    // count
-
-    // get keys
-
-    // key range
-
-    // Bulk loading of data
-
-
 }
 
 var p = Table.prototype;
