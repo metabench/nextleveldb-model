@@ -1,6 +1,11 @@
 const Binary_Encoding = require('binary-encoding');
 const database_encoding = require('../encoding');
 
+//const NONE = 0;
+const RECORD = 200;
+const KEY = 201;
+const VALUE = 202;
+
 class Key {
     constructor() {
 
@@ -12,7 +17,6 @@ class Key {
                 this._buffer = a[0];
             } else {
                 // Would be nice to take an array, and treat it as an index key if it starts with an odd number
-
 
                 // if it's an array, it's the values themselves
 
@@ -27,9 +31,6 @@ class Key {
                 } else {
                     throw 'NYI';
                 }
-
-
-
             }
         }
     }
@@ -60,10 +61,10 @@ class Key {
         return res;
     }
 
+    // number of items here.
     get length() {
         // 
         return database_encoding.key_length(this._buffer);
-
     }
 
     get_value_at(idx) {
@@ -72,6 +73,10 @@ class Key {
         //console.log('KEY get_value_at', idx);
         // But it's maybe an index record key. Can it handle getting the value like this?
         return database_encoding.key_value_at(this._buffer, idx);
+    }
+
+    get buffer_xas2_prefix() {
+        return new xas2(KEY).buffer;
     }
 
     validate() {
@@ -105,5 +110,24 @@ class Key {
     // then need to be able to get decoded value
 }
 
+Key.range = (buf_prefix) => {
+    var buf_0 = Buffer.alloc(1);
+    buf_0.writeUInt8(0, 0);
+    var buf_1 = Buffer.alloc(1);
+    buf_1.writeUInt8(255, 0);
+    // and another 0 byte...?
+
+    var buf_l = Buffer.concat([buf_prefix, buf_0]);
+    var buf_u = Buffer.concat([buf_prefix, buf_1]);
+
+    let res = [new Key(buf_l), new Key(buf_u)];
+    //console.log('res', res);
+    return res;
+}
+
+Key.buffer_range = (buf_prefix) => {
+    let kr = Key.range(buf_prefix);
+    return [kr[0].buffer, kr[1].buffer];
+}
 
 module.exports = Key;

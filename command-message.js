@@ -55,13 +55,20 @@ let command_ids_with_paging_option = [LL_COUNT_RECORDS, LL_GET_ALL_KEYS, LL_GET_
 // Optional paging option will maybe be phased out or not used
 //  Could assume that if the message ends before paging option, then none is to be used.
 let command_ids_with_optional_paging_option = [];
-
 let map_paging_commands = get_truth_map_from_arr(command_ids_with_paging_option);
+
+
+const RECORD = 200;
+const KEY = 201;
+const VALUE = 202;
+const NONE = 210;
 
 class Command_Message {
     constructor(spec) {
         let a = arguments;
         let l = a.length;
+
+        //console.log('Command_Message l', l);
 
         if (l === 1) {
             let t_spec = tof(spec);
@@ -69,8 +76,6 @@ class Command_Message {
                 this._buffer = spec;
             }
         } else if (l === 2) {
-
-
             // number and number?
             // id and paging
 
@@ -78,6 +83,18 @@ class Command_Message {
 
             if (typeof a[0] === 'number' && Array.isArray(a[1])) {
                 let [command_id, arr_args] = arguments;
+
+                // 
+
+                // put a prefix on each of them...
+                //let buf_encoded_args = Binary_Encoding.encode_to_buffer(arr_args, NONE);
+
+                // want a prefix at the beginning of each item?
+
+                // encode to buffer, but have a prefix before each of them
+
+                // put something saying no specific encoding type in here.
+
                 let buf_encoded_args = Binary_Encoding.encode_to_buffer(arr_args);
                 // But we have not given it a command id (yet)
                 //  Best to do that just before sending.
@@ -94,9 +111,6 @@ class Command_Message {
                 this._buffer = Buffer.concat([xas2(command_id).buffer, buf_paging, buf_encoded_args]);
 
                 //this._buffer = Buffer.concat([xas2(command_id).buffer, xas2(0).buffer,]);
-
-
-
                 // Then depending on the command itself it can have different construction.
 
 
@@ -127,16 +141,26 @@ class Command_Message {
             if (typeof a[0] === 'number' && Array.isArray(a[1]) && typeof a[2] === 'number') {
                 let [command_id, arr_args] = arguments;
 
+                //console.log('1) arr_args', arr_args);
+
                 arr_args = arr_args.map(x => {
                     //console.log('arr_args x', x);
                     if (x instanceof Buffer) {
-                        return Buffer.concat([xas2(0).buffer, x]);
+                        // saying its 0 for a buffer in the command message...
+                        //  concat a different number here.
+                        //  read it as a different number to see its a buffer.
+                        return x;
+
+                        //return Buffer.concat([xas2(NONE).buffer, x]);
                     } else {
                         return x;
                     }
                 });
+                //console.log('2) arr_args', arr_args);
 
+                // Encoding buffer to buffer and decoding should be fine.
                 let buf_encoded_args = Binary_Encoding.encode_to_buffer(arr_args);
+                //console.log('* buf_encoded_args', buf_encoded_args);
                 this.missing_id = true;
                 let buf_paging = new Paging.Record_Paging(a[2]).buffer;
                 //console.log('buf_paging', buf_paging);
@@ -217,8 +241,6 @@ class Command_Message {
         */
 
         return this._buffer;
-
-
     }
 
     // The inner message, but as separare arr rows
@@ -245,8 +267,28 @@ class Command_Message {
     }
 
     decode_inner() {
+        let imb = this.inner_message_buffer;
+        //console.log('imb', imb);
+
         let arr_decoded_stage = Binary_Encoding.decode_buffer(this.inner_message_buffer);
+
+        // not sure it needs to be multi-stage
+
+        //console.log('arr_decoded_stage', arr_decoded_stage);
+        //console.trace();
+
+        // Can't have further decoding of these buffers.
+        //  A prefix saying they are rows or records would need to be part of Binary_Encoding.
+
+        // Could incorporate extended types into Binary_Encoding.
+
+        // Binary_Encoding.extend(class, i_prefix);
+        //  So it gets extended to handle B_Key etc
+
+        // just use Binary_Encoding here.
+
         let arr_decoded = buffer_backed.decode_args_buffers(arr_decoded_stage);
+        //console.log('arr_decoded', arr_decoded);
         return arr_decoded;
     }
 

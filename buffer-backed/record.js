@@ -29,12 +29,17 @@ const ARRAY = 10;
 
 // ~-~-~-~-~-~-~-~-~-~-~-~-~-
 // Supplementary encoding
-
+/*
 const NONE = 0;
 const RECORD = 1;
 const KEY = 2;
 const VALUE = 3;
+*/
 
+const RECORD = 200;
+const KEY = 201;
+const VALUE = 202;
+const NONE = 210;
 
 // Record_Row
 //  That should be what this is really called.

@@ -633,7 +633,6 @@ var decode_model_row = (model_row, remove_kp) => {
 
 
                 if (buf_value.length > 0) {
-
                     // Has difficulty doing this here.
 
                     value = Binary_Encoding.decode_first_value_xas2_from_buffer(buf_value);
@@ -712,9 +711,6 @@ var decode_model_row = (model_row, remove_kp) => {
 
             // Client-side verification that the DB is in good running order makes sense.
 
-
-
-
             decoded_key = Binary_Encoding.decode_buffer(buf_key, 1);
             /*
     
@@ -733,9 +729,6 @@ var decode_model_row = (model_row, remove_kp) => {
                 return null;
             }
             */
-
-
-
 
         } else {
             try {
@@ -833,8 +826,6 @@ var decode_model_rows = (model_rows, remove_kp) => {
 //   table row (without the table kp, but there needs to be some way to identify the table)
 
 // index rows as arrays
-
-
 
 // When encoding, may need to set the number of kps to encode, or whether or not to encode them.
 
@@ -1018,9 +1009,6 @@ let encode_row_including_kps_to_buffer = row => {
 
 
         // has 2 kps.
-
-
-
 
         //throw 'NYI';
     }

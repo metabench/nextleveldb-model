@@ -1,9 +1,16 @@
 const Binary_Encoding = require('binary-encoding');
 
+/*
 const NONE = 0;
 const RECORD = 1;
 const KEY = 2;
 const VALUE = 3;
+*/
+
+//const NONE = 0;
+const RECORD = 200;
+const KEY = 201;
+const VALUE = 202;
 
 class Value {
     constructor() {

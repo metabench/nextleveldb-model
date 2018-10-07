@@ -26,16 +26,14 @@ const ARRAY = 10;
 // ~-~-~-~-~-~-~-~-~-~-~-~-~-
 // Supplementary encoding
 
-const NONE = 0;
-const RECORD = 1;
-const KEY = 2;
-const VALUE = 3;
+//const NONE = 0;
+const RECORD = 200;
+const KEY = 201;
+const VALUE = 202;
 
 // Record_Row
 //  That should be what this is really called.
-
 // A row is not necessarily a record row. A record itself has got index rows too sometimes.
-
 // Read_fields_to_buffer
 //  Then when making index records from normal records it could carry that out.
 
@@ -88,8 +86,6 @@ class Row {
             enumerable: true,
             configurable: true
         });
-
-
         //let kvp_bufs;
 
         if (l === 1) {
@@ -144,8 +140,6 @@ class Row {
                         } else {
                             // undefined key, but has value.
                             if (def(a[0][0])) {
-
-
                                 console.log('a', a);
                                 //console.log('key', key);
                                 //console.log('value', value);
@@ -200,8 +194,6 @@ class Row {
         return this.decoded;
     }
 
-
-
     get record() {
         return this;
     }
@@ -247,8 +239,6 @@ class Row {
     }
     // validate encoding...
 
-
-
     get decoded_key_no_kp() {
         let decoded_key = this.key.decoded;
         decoded_key.shift();
@@ -289,8 +279,6 @@ class Row {
             // So, need to be able to read the record when there is not a key.
             // First buffer has length 0.
 
-
-
             return Buffer.concat([xas2(0).buffer, xas2(this.kvp_bufs[1].length).buffer, this.kvp_bufs[1]]);
         } else {
             //console.log('this.kvp_bufs[0]', this.kvp_bufs[0]);
@@ -310,13 +298,11 @@ class Row {
 
     get key_length() {
         return this.key.length;
-
     }
 
     validate_encoding() {
         let res = true;
         try {
-
             // don't want tracing done, not sure why it sometimes happens. Trae that!
             let decoded = this.decoded;
         } catch (err) {
@@ -364,9 +350,7 @@ class Row {
 
             //console.log('r_idx', r_idx);
             //console.log('res', res);
-
             //return res;
-
             return this.value.get_value_at(idx - kl);
         }
     }

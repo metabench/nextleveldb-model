@@ -75,7 +75,6 @@ class Command_Response_Message {
         } else {
 
             if (l === 2) {
-
                 // a message id and a record.
 
                 if (typeof a[0] === 'number' && a[1] instanceof B_Record) {
@@ -91,8 +90,55 @@ class Command_Response_Message {
                     this._buffer = Buffer.concat([xas2(a[0]).buffer, xas2(RECORD_PAGING_NONE).buffer, record_buf]);
 
                 } else {
-                    console.trace();
-                    throw 'NYI';
+                    // a1 instaceof array
+
+                    if (typeof a[0] === 'number' && Array.isArray(a[1])) {
+
+                        let all_are_records = true;
+                        each(a[1], item => {
+                            all_are_records = all_are_records && item instanceof B_Record
+                        });
+
+                        if (all_are_records) {
+                            let rl = new B_Record_List(a[1]);
+
+                            // 
+                            this._buffer = Buffer.concat([xas2(a[0]).buffer, xas2(RECORD_PAGING_NONE).buffer, rl.buffer]);
+                        }
+
+                        // if they are all records...?
+
+                        // are they all records?
+
+
+
+
+
+                        
+                    }
+
+                    // use binary encoding on them
+
+
+
+
+
+                    // Array of objects - will need to encode them.
+
+                    // Array of b_records?
+
+                    // Want a standard / built-in way of encoding B_Records with Binary_Encoding.
+
+                    // array of B_Records
+                    //  Encodie them into B_Records list.
+
+
+
+
+
+                    //console.log('Command_Response_Message spec a', a);
+                    //console.trace();
+                    //throw 'NYI';
                 }
             }
 
@@ -173,7 +219,7 @@ class Command_Response_Message {
 
 
     get is_last() {
-        console.log('this.message_type_id', this.message_type_id);
+        //console.log('this.message_type_id', this.message_type_id);
         //console.log('this._buffer', this._buffer);
 
         // Maybe not when there is no paging.
@@ -210,8 +256,6 @@ class Command_Response_Message {
             throw 'NYI';
         }
     }
-
-
 
     // Don't really just store the kv records in a single buffer.
     //  Always have used array kv pairs. Not sure that's most performant.
@@ -304,6 +348,7 @@ class Command_Response_Message {
         const remove_kp = false;
         //[id, pos] = xas2.skip(this._buffer, pos);
         [message_type_id, pos] = xas2.read(this._buffer, pos);
+        console.log('message_type_id', message_type_id);
         if (message_type_id === RECORD_PAGING_FLOW) {
             // break it into records.
             //  num records here?
@@ -340,9 +385,20 @@ class Command_Response_Message {
 
             this._buffer.copy(buf2, 0, pos);
 
+            console.log('buf2', buf2);
+
+
             let arr_records = new B_Record_List(buf2).arr;
             //console.log('arr_records', arr_records);
-            //console.log('arr_records.length', arr_records.length);
+            console.log('arr_records.length', arr_records.length);
+            //console.log('arr_records[0].decoded', arr_records[0].decoded);
+            //console.log('arr_records[1].decoded', arr_records[1].decoded);
+            //console.log('arr_records[2].decoded', arr_records[2].decoded);
+
+            //console.log('arr_records[0].buffer', arr_records[0].buffer);
+            //console.log('arr_records[1].buffer', arr_records[1].buffer);
+            //console.log('arr_records[2].buffer', arr_records[2].buffer);
+
 
             if (arr_records.length === 1) {
                 return arr_records[0];
@@ -365,9 +421,9 @@ class Command_Response_Message {
 
             // Decoding from position without buffer copy?
             let res = Binary_Encoding.decode(buf2);
-            console.log('res', res);
+            //console.log('res', res);
 
-            console.log('this.singular_result', this.singular_result);
+            //console.log('this.singular_result', this.singular_result);
 
             if (this.singular_result) {
                 return res[0];
